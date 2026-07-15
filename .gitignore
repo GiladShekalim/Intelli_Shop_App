@@ -1,3 +1,12 @@
+# ── Local docs / planning notes — NEVER commit (code only) ──
+# All planning docs, design notes, and generated markdown stay local-only.
+# The repository holds source code only; no docs, plans, or process notes.
+/docs/
+*.plan.md
+PLAN*.md
+IMPLEMENTATION_PLAN.md
+BACKEND_ANALYSIS.md
+
 # ── Secrets (NEVER commit) ─────────────────────────────
 .env
 *.env
@@ -16,7 +25,7 @@ db.sqlite3
 *.log
 staticfiles/
 
-# ── Android / Gradle (extended in Milestone 0 from avoided_race_app) ──
+# ── Android / Gradle ───────────────────────────────────
 *.iml
 .gradle/
 local.properties
