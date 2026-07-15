@@ -502,29 +502,56 @@ def profile_view(request):
 
     if request.method == 'POST':
         action = request.POST.get('action')
-        
+        # Android client sends this header; the web form does not (so its behavior is unchanged).
+        wants_json = request.headers.get('Accept') == 'application/json'
+        success = True
+        message = ''
+
         if action == 'update_username':
             new_username = request.POST.get('username')
             User.update_one(
-                {'_id': ObjectId(user_id)}, 
+                {'_id': ObjectId(user_id)},
                 {'username': new_username}
             )
-            
+            message = 'Username updated successfully'
+
         elif action == 'update_password':
             current_password = request.POST.get('current_password')
             new_password = request.POST.get('new_password')
             confirm_password = request.POST.get('confirm_password')
-            
+
             if user.get('password') == current_password and new_password == confirm_password:
                 User.update_one(
-                    {'_id': ObjectId(user_id)}, 
+                    {'_id': ObjectId(user_id)},
                     {'password': new_password}
                 )
-            
+                message = 'Password updated successfully'
+            else:
+                success = False
+                if user.get('password') != current_password:
+                    message = 'Current password is incorrect'
+                else:
+                    message = 'New passwords do not match'
+
         elif action == 'delete_account':
             # Add email verification here
             User.delete_one({'_id': ObjectId(user_id)})
+            if wants_json:
+                return JsonResponse({'status': 'success', 'message': 'Account deleted'})
             return redirect('logout')
+
+        else:
+            success = False
+            message = 'Unknown action'
+
+        # JSON clients (Android) get a real success/error signal instead of the
+        # silent HTTP-200 render fall-through. The web form (no Accept: application/json)
+        # keeps its exact original behavior below.
+        if wants_json:
+            return JsonResponse({
+                'status': 'success' if success else 'error',
+                'message': message
+            })
 
     context = {
         'username': user.get('username'),
