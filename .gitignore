@@ -1,0 +1,35 @@
+# ── Secrets (NEVER commit) ─────────────────────────────
+.env
+*.env
+!*.env.example
+backend/**/.env
+
+# ── Python / Django backend ────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+*.sqlite3
+db.sqlite3
+*.log
+staticfiles/
+
+# ── Android / Gradle (extended in Milestone 0 from avoided_race_app) ──
+*.iml
+.gradle/
+local.properties
+/build/
+**/build/
+.cxx/
+captures/
+*.apk
+*.aab
+*.keystore
+!debug.keystore
+
+# ── IDE / OS ───────────────────────────────────────────
+.idea/
+.DS_Store
+Thumbs.db

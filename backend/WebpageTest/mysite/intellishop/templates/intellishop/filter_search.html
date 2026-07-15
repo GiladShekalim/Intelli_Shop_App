@@ -1,0 +1,1345 @@
+{% extends 'intellishop/index_home_original.html' %}
+{% load static %}
+
+{% block content %}
+<div class="filter-search-container">
+    <!-- Search Bar -->
+    <div class="search-bar">
+        <div class="search-input-container">
+            <input type="text" placeholder="Write..." class="search-input">
+            <i class="bi bi-search search-icon"></i>
+        </div>
+        <!-- AI Filter Helper Button -->
+        <button id="ai-filter-helper-btn" class="btn-ai-helper" type="button" title="Explain what you are looking for.&#10;We will filter for you !">
+            <i class="bi bi-magic"></i>
+            <span class="btn-text">AI Filter Helper</span>
+        </button>
+    </div>
+
+    <!-- Filter Sections -->
+    <div class="filter-sections">
+        {% comment %} <!-- Most Popular Section -->
+        <div class="filter-section">
+            <div class="section-header">
+                <h3>Most Popular</h3>
+                <i class="bi bi-chevron-down"></i>
+            </div>
+            <div class="filter-options">
+                <div class="filter-item placeholder"></div>
+                <div class="filter-item placeholder"></div>
+                <div class="filter-item placeholder"></div>
+            </div>
+        </div> {% endcomment %}
+
+        <!-- Price Range by fixed amount Section -->
+        <div class="filter-section">
+            <div class="section-header">
+                <h3>Price Range by Value</h3>
+                <i class="bi bi-chevron-down"></i>
+            </div>
+            <div class="filter-options">
+                <input type="checkbox" class="btn-check filter-checkbox" id="enable-value-filters" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="enable-value-filters">Enable Value Filters</label>
+            </div>
+        </div>
+        <div class="filter-section" id="value-price-filter-section">
+            <div class="filter-options" style="grid-template-columns: 1fr;">
+                <div class="price-range-slider-container">
+                    <span class="min-price-label">{{ min_price }}</span>
+                    <input type="range" class="price-range-slider" min="{{ min_price }}" max="{{ max_price }}" value="{{ max_price }}" id="price-range-slider">
+                    <span class="max-price-label">{{ max_price }}</span>
+                    <span class="current-price-value"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Range by percentage Section -->
+        <div class="filter-section">
+            <div class="section-header">
+                <h3>Price Range by Percentage (%)</h3>
+                <i class="bi bi-chevron-down"></i>
+            </div>
+            <div class="filter-options">
+                <input type="checkbox" class="btn-check filter-checkbox" id="enable-percentage-filters" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="enable-percentage-filters">Enable Percentage Filters</label>
+            </div>
+        </div>
+        <div class="filter-section" id="percentage-price-filter-section">
+            <div class="filter-options" style="grid-template-columns: 1fr;"> 
+                <div class="percentage-options-list">
+                    <label class="percentage-filter-item">
+                        <input type="radio" class="btn-check percentage-checkbox" name="percentage-filter" id="percentage-60-plus" value="more_than_60" autocomplete="off">
+                        <span class="btn btn-outline-secondary percentage-label" for="percentage-60-plus">60% or more ({{ percentage_counts.more_than_60 }})</span>
+                    </label>
+                    <label class="percentage-filter-item">
+                        <input type="radio" class="btn-check percentage-checkbox" name="percentage-filter" id="percentage-50-60" value="between_50_60" autocomplete="off">
+                        <span class="btn btn-outline-secondary percentage-label" for="percentage-50-60">50% - 60% ({{ percentage_counts.between_50_60 }})</span>
+                    </label>
+                    <label class="percentage-filter-item">
+                        <input type="radio" class="btn-check percentage-checkbox" name="percentage-filter" id="percentage-40-50" value="between_40_50" autocomplete="off">
+                        <span class="btn btn-outline-secondary percentage-label" for="percentage-40-50">40% - 50% ({{ percentage_counts.between_40_50 }})</span>
+                    </label>
+                    <label class="percentage-filter-item">
+                        <input type="radio" class="btn-check percentage-checkbox" name="percentage-filter" id="percentage-30-40" value="between_30_40" autocomplete="off">
+                        <span class="btn btn-outline-secondary percentage-label" for="percentage-30-40">30% - 40% ({{ percentage_counts.between_30_40 }})</span>
+                    </label>
+                    <label class="percentage-filter-item">
+                        <input type="radio" class="btn-check percentage-checkbox" name="percentage-filter" id="percentage-20-30" value="between_20_30" autocomplete="off">
+                        <span class="btn btn-outline-secondary percentage-label" for="percentage-20-30">20% - 30% ({{ percentage_counts.between_20_30 }})</span>
+                    </label>
+                    <label class="percentage-filter-item">
+                        <input type="radio" class="btn-check percentage-checkbox" name="percentage-filter" id="percentage-up_to_20" value="up_to_20" autocomplete="off">
+                        <span class="btn btn-outline-secondary percentage-label" for="percentage-up_to_20">Up to 20% ({{ percentage_counts.up_to_20 }})</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Section -->
+        <div class="filter-section">
+            <div class="section-header">
+                <h3>Status</h3>
+                <i class="bi bi-chevron-down"></i>
+            </div>
+            <div class="filter-options">
+                <input type="checkbox" class="btn-check filter-checkbox" id="status-young" value="Young" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="status-young">Young</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="status-senior" value="Senior" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="status-senior">Senior</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="status-homeowner" value="Homeowner" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="status-homeowner">Homeowner</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="status-traveler" value="Traveler" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="status-traveler">Traveler</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="status-tech" value="Tech" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="status-tech">Tech</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="status-pets" value="Pets" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="status-pets">Pets</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="status-fitness" value="Fitness" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="status-fitness">Fitness</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="status-student" value="Student" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="status-student">Student</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="status-remote" value="Remote" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="status-remote">Remote</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="status-family" value="Family" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="status-family">Family</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="status-parent" value="Parent" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="status-parent">Parent</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="status-military-veteran" value="Military/Veteran" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="status-military-veteran">Military/Veteran</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="status-digital-nomad" value="Digital Nomad" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="status-digital-nomad">Digital Nomad</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="status-first-time-buyer" value="First-time Buyer" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="status-first-time-buyer">First-time Buyer</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="status-retiree" value="Retiree" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="status-retiree">Retiree</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="status-single" value="Single" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="status-single">Single</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="status-renter" value="Renter" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="status-renter">Renter</label>
+            </div>
+        </div>
+
+        <!-- Interests Section -->
+        <div class="filter-section">
+            <div class="section-header">
+                <h3>Interests</h3>
+                <i class="bi bi-chevron-down"></i>
+            </div>
+            <div class="filter-options">
+                <input type="checkbox" class="btn-check filter-checkbox" id="interest-consumerism" value="Consumerism" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="interest-consumerism">Consumerism</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="interest-travel-vacation" value="Travel and Vacation" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="interest-travel-vacation">Travel and Vacation</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="interest-culture-leisure" value="Culture and Leisure" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="interest-culture-leisure">Culture and Leisure</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="interest-cars" value="Cars" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="interest-cars">Cars</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="interest-insurance" value="Insurance" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="interest-insurance">Insurance</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="interest-finance-banking" value="Finance and Banking" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="interest-finance-banking">Finance and Banking</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="interest-lifestyle" value="lifestyle" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="interest-lifestyle">Lifestyle & Personal Needs</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="interest-home" value="home" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="interest-home">Home & Garden</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="interest-electronics" value="electronics" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="interest-electronics">Electronics</label>
+
+                <input type="checkbox" class="btn-check filter-checkbox" id="interest-books" value="books" autocomplete="off">
+                <label class="btn btn-outline-secondary filter-label" for="interest-books">Books & Entertainment</label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Action Buttons     SHOW ALL-->
+    <div style="margin: 20px 0;">
+        <button id="show-all-btn" class="btn-apply" type="button" style="width: 100%;">
+            <span class="btn-text">Show All</span>
+        </button>
+        <div id="all-discounts-container"></div>
+    </div>
+
+    <div class="action-buttons">
+        <button class="btn-clear">Clear all</button>
+        <button id="apply-filters-btn" class="btn-apply" type="button">
+            <span class="btn-text">Apply</span>
+        </button>
+    </div>
+</div>
+
+<style>
+.filter-search-container {
+    padding: 20px;
+    height: calc(100vh - 120px);
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.back-button {
+    border: none;
+    background: none;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.search-input-container {
+    flex: 1;
+    position: relative;
+    background: #f0f2f5;
+    border-radius: 20px;
+    padding: 8px 15px;
+    display: flex;
+    align-items: center;
+}
+
+.search-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 5px;
+    outline: none;
+}
+
+.search-icon {
+    color: #666;
+    margin-left: 10px;
+}
+
+.filter-sections {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.filter-section {
+    margin-bottom: 20px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.section-header h3 {
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.filter-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.filter-item.placeholder {
+    background: #f0f2f5;
+    height: 40px;
+    border-radius: 8px;
+}
+
+.filter-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.filter-tag {
+    background: #f0f2f5;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.filter-tag:hover {
+    background: #e4e6e9;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    padding: 20px 0;
+    margin-top: auto;
+}
+
+.btn-clear, .btn-apply {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.btn-clear {
+    background: #f0f2f5;
+}
+
+.btn-clear:hover {
+    background: #e4e6e9;
+}
+
+.btn-apply {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    min-height: 44px;
+    background: #007bff;
+    color: white;
+}
+
+.btn-apply.loading {
+    background: #0b5ed7;
+    cursor: wait;
+}
+
+.btn-apply.loading .btn-text {
+    content: "Loading...";
+}
+
+.btn-apply:hover {
+    background: #0b5ed7;
+}
+
+@media (max-width: 768px) {
+    .filter-options {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .search-bar {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .btn-ai-helper {
+        width: 100%;
+    }
+}
+
+/* Price Range Slider Styles */
+.price-range-slider-container,
+.percentage-range-slider-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 70%;
+    margin: 0 auto;
+}
+
+.price-range-slider,
+.percentage-range-slider {
+    flex: 1;
+    margin: 0 10px;
+}
+
+.min-price-label,
+.max-price-label,
+.min-percentage-label,
+.max-percentage-label {
+    white-space: nowrap;
+}
+
+/* Add styling for selected filter labels */
+.filter-label.selected {
+    background-color: #0d6efd !important;
+    color: white !important;
+}
+
+/* Adjustments for the new filter-label style with btn-outline-secondary for default look */
+.btn-outline-secondary.filter-label {
+    background-color: #f0f2f5;
+    border-color: #f0f2f5;
+    color: #495057;
+    font-weight: normal;
+    border-radius: 8px;
+}
+
+.btn-outline-secondary.filter-label:hover {
+    background-color: #e4e6e9;
+    border-color: #e4e6e9;
+    color: #495057;
+}
+
+/* Ensure the actual checkbox is hidden */
+.btn-check:checked + .btn-outline-secondary.filter-label {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: white !important;
+}
+
+/* Add styling for percentage filter labels */
+.percentage-options-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.percentage-filter-item {
+    display: inline-block;
+    cursor: pointer;
+    margin-bottom: 0;
+}
+
+.percentage-label {
+    width: auto;
+    text-align: center;
+    background-color: #f0f2f5;
+    border-color: #f0f2f5;
+    color: #495057;
+    font-weight: normal;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 1em;
+}
+
+.percentage-label:hover {
+    background-color: #e4e6e9;
+    border-color: #e4e6e9;
+}
+
+.btn-check:checked + .percentage-label {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: white !important;
+}
+
+/* Styles for current slider values */
+.current-price-value,
+.current-percentage-value {
+    background-color: #0d6efd;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-weight: bold;
+    margin-left: 10px;
+    min-width: 60px;
+    text-align: center;
+}
+
+/* === CSS for Back Button (Edit Filters) === */
+.custom-back-btn.right-arrow {
+    display: flex;
+    align-items: center;
+    background: #0a3764;
+    border: none;
+    border-radius: 40px;
+    color: #fff;
+    font-size: 2em;
+    font-weight: 400;
+    padding: 0.3em 1.2em 0.3em 0.6em;
+    cursor: pointer;
+    gap: 18px;
+    transition: background 0.2s;
+    margin: 0 auto 8px auto;
+    outline: none;
+}
+.custom-back-btn.right-arrow:hover {
+    background: #155a8a;
+}
+
+/* === CSS for Back Button Text === */
+.back-text {
+    letter-spacing: 0.04em;
+    font-weight: 400;
+    font-size: 0.8em;
+}
+
+/* === CSS for Back Button Circle === */
+.back-circle {
+    background: #fff;
+    color: #0a3764;
+    border-radius: 50%;
+    width: 2.4em;
+    height: 2.4em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0.2em;
+    position: relative;
+    overflow: hidden;
+    padding: 0;
+}
+
+/* === CSS for SVG Arrow === */
+.arrow-svg {
+    display: block;
+    width: 56%; 
+    height: 56%; 
+}
+
+#all-discounts-container {
+    margin-top: 8px !important;
+}
+
+/* AI Filter Helper Button Styles */
+.btn-ai-helper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    min-height: 44px;
+    background: #6f42c1;
+    color: white;
+    white-space: nowrap;
+}
+
+.btn-ai-helper:hover {
+    background: #5a32a3;
+}
+
+.btn-ai-helper.loading {
+    background: #5a32a3;
+    cursor: wait;
+}
+
+.btn-ai-helper.loading .btn-text {
+    content: "Processing...";
+}
+
+.btn-ai-helper i {
+    font-size: 1.1em;
+}
+</style>
+
+<script>
+// --- GLOBAL SCOPE ---
+// All coupon-related functions are now handled by CouponUtils
+
+// --- DOMContentLoaded for event delegation and other logic ---
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle sections
+    const headers = document.querySelectorAll('.section-header');
+    headers.forEach(header => {
+        header.addEventListener('click', () => {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('i');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'grid';
+                icon.classList.remove('bi-chevron-down');
+                icon.classList.add('bi-chevron-up');
+            } else {
+                content.style.display = 'none';
+                icon.classList.remove('bi-chevron-up');
+                icon.classList.add('bi-chevron-down');
+            }
+        });
+    });
+
+    // Filter tag selection (update to handle new checkboxes)
+    const filterCheckboxes = document.querySelectorAll('.filter-checkbox, .percentage-checkbox');
+    filterCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            const label = document.querySelector(`label[for='${checkbox.id}'] span.percentage-label`) || 
+                          document.querySelector(`label[for='${checkbox.id}']`);
+            if (checkbox.checked) {
+                label.classList.add('selected');
+            } else {
+                label.classList.remove('selected');
+            }
+        });
+    });
+
+    // Handle price range slider value display
+    const priceRangeSlider = document.getElementById('price-range-slider');
+    const currentPriceValueSpan = document.querySelector('#value-price-filter-section .current-price-value');
+
+    if (priceRangeSlider && currentPriceValueSpan) {
+        // Initial display
+        currentPriceValueSpan.textContent = priceRangeSlider.value;
+
+        // Update on input change
+        priceRangeSlider.addEventListener('input', () => {
+            currentPriceValueSpan.textContent = priceRangeSlider.value;
+        });
+    }
+
+    // Handle enable/disable price filters checkboxes
+    const enableValueFiltersCheckbox = document.getElementById('enable-value-filters');
+    const valuePriceFilterSection = document.getElementById('value-price-filter-section');
+    const enablePercentageFiltersCheckbox = document.getElementById('enable-percentage-filters');
+    const percentagePriceFilterSection = document.getElementById('percentage-price-filter-section');
+
+    function toggleFilterVisibility(checkbox, section) {
+        section.style.display = checkbox.checked ? 'block' : 'none';
+    }
+
+    // Initial state
+    toggleFilterVisibility(enableValueFiltersCheckbox, valuePriceFilterSection);
+    toggleFilterVisibility(enablePercentageFiltersCheckbox, percentagePriceFilterSection);
+
+    // Event listeners for the checkboxes
+    enableValueFiltersCheckbox.addEventListener('change', () => toggleFilterVisibility(enableValueFiltersCheckbox, valuePriceFilterSection));
+    enablePercentageFiltersCheckbox.addEventListener('change', () => toggleFilterVisibility(enablePercentageFiltersCheckbox, percentagePriceFilterSection));
+
+    // Clear all button (update to clear checkboxes)
+    document.querySelector('.btn-clear').addEventListener('click', () => {
+        // Clear old span-based filters
+        document.querySelectorAll('.filter-tag.selected').forEach(tag => {
+            tag.classList.remove('selected');
+        });
+        // Clear new checkbox-based filters
+        document.querySelectorAll('.filter-checkbox:checked, .percentage-checkbox:checked').forEach(checkbox => {
+            checkbox.checked = false;
+            const label = document.querySelector(`label[for='${checkbox.id}'] span.percentage-label`) || 
+                          document.querySelector(`label[for='${checkbox.id}']`);
+            if (label) {
+                label.classList.remove('selected');
+            }
+        });
+
+        // Reset range & percentage controls (NEW)
+        if (typeof enableValueFiltersCheckbox !== 'undefined' && enableValueFiltersCheckbox) {
+            enableValueFiltersCheckbox.checked = false;
+            toggleFilterVisibility(enableValueFiltersCheckbox, valuePriceFilterSection);
+        }
+        if (typeof enablePercentageFiltersCheckbox !== 'undefined' && enablePercentageFiltersCheckbox) {
+            enablePercentageFiltersCheckbox.checked = false;
+            toggleFilterVisibility(enablePercentageFiltersCheckbox, percentagePriceFilterSection);
+        }
+        if (typeof priceRangeSlider !== 'undefined' && priceRangeSlider && typeof currentPriceValueSpan !== 'undefined' && currentPriceValueSpan) {
+            priceRangeSlider.value = priceRangeSlider.max;
+            currentPriceValueSpan.textContent = priceRangeSlider.value;
+        }
+    });
+
+    // Enhanced Apply button functionality (UPDATED)
+    document.getElementById('apply-filters-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        const button = this;
+        const buttonText = button.querySelector('.btn-text') || button;
+        const container = document.getElementById('all-discounts-container');
+        
+        // Show loading state
+        button.classList.add('loading');
+        buttonText.textContent = 'Loading Please Wait ...';
+        container.innerHTML = '';
+
+        // Create loading div with spinner
+        let loadingDiv = document.createElement('div');
+        loadingDiv.className = 'loading-spinner';
+        loadingDiv.innerHTML = `
+            <div class="spinner"></div>
+            <span>Loading discounts...</span>
+        `;
+        container.appendChild(loadingDiv);
+
+        // Collect filter data
+        const filters = collectFilterData();
+        localStorage.setItem('lastUsedFilters', JSON.stringify(filters));
+        
+        // Log the search type for debugging
+        const hasText = Boolean(filters.text_search);
+        const hasParameters = Boolean(
+            filters.statuses || 
+            filters.interests || 
+            filters.price_range || 
+            filters.percentage_range
+        );
+        
+        let searchType = "Show All";
+        if (hasText && hasParameters) {
+            searchType = "Combined Search";
+        } else if (hasText && !hasParameters) {
+            searchType = "Text-Only Search";
+        } else if (!hasText && hasParameters) {
+            searchType = "Parameters-Only Search";
+        }
+        
+        console.log(`Executing ${searchType} with filters:`, filters);
+        
+        // Create a promise that resolves after 3 seconds (minimum loading time)
+        const minimumLoadingTime = new Promise(resolve => setTimeout(resolve, 3000));
+
+        // Create a promise for the fetch request
+        const fetchPromise = fetch('/filtered_discounts/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': CouponUtils.getCookie('csrftoken')
+            },
+            body: JSON.stringify(filters)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        });
+
+        // Wait for both the minimum loading time and the fetch to complete
+        Promise.all([minimumLoadingTime, fetchPromise])
+            .then(([_, data]) => {
+                // Remove loading spinner and text
+                if (loadingDiv) loadingDiv.remove();
+                container.innerHTML = '';
+
+                // Hide filter/search UI (Write, Show All, Apply, Clear All)
+                const searchBar = document.querySelector('.search-bar');
+                if (searchBar) searchBar.style.display = 'none';
+                const showAllBtn = document.getElementById('show-all-btn');
+                if (showAllBtn) showAllBtn.style.display = 'none';
+                const actionButtons = document.querySelector('.action-buttons');
+                if (actionButtons) actionButtons.style.display = 'none';
+
+                // Add Back To Update Filters button above the results
+                let backBtn = document.createElement('button');
+                backBtn.className = 'custom-back-btn right-arrow';
+                backBtn.innerHTML = `
+                    <span class="back-text">Edit Filters</span>
+                    <span class="back-circle">
+                        <svg class="arrow-svg" viewBox="0 0 40 40" width="32" height="32">
+                            <line x1="32" y1="20" x2="8" y2="20" stroke="#0a3764" stroke-width="3" stroke-linecap="round"/>
+                            <line x1="8" y1="20" x2="18" y2="12" stroke="#0a3764" stroke-width="3" stroke-linecap="round"/>
+                            <line x1="8" y1="20" x2="18" y2="28" stroke="#0a3764" stroke-width="3" stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                `;
+                backBtn.onclick = function() {
+                    window.location.reload();
+                };
+                container.parentNode.insertBefore(backBtn, container);
+
+                if (!data.discounts || data.discounts.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-results">
+                            <i class="bi bi-emoji-frown"></i>
+                            <p>No discounts found matching your criteria.</p>
+                            <p><small>Try adjusting your filters or <a href="#" onclick="showAllDiscounts()">show all discounts</a></small></p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Use the existing renderDiscountCards function
+                renderDiscountCards(data.discounts, container);
+                
+                // Add filter summary with search type
+                const filterSummary = createFilterSummary(
+                    data.applied_filters, 
+                    data.total_count, 
+                    data.search_type || searchType
+                );
+                container.insertBefore(filterSummary, container.firstChild);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                container.innerHTML = `
+                    <div class="error-message">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <p>Failed to load filtered discounts. Please try again later.</p>
+                    </div>
+                `;
+            })
+            .finally(() => {
+                // Remove loading state and restore button text
+                button.classList.remove('loading');
+                buttonText.textContent = 'Apply';
+            });
+    });
+
+    // Function to collect filter data (UPDATED)
+    function collectFilterData() {
+        const filters = {};
+        
+        // Collect text search (NEW) - but clear it after collection for AI-triggered searches
+        const searchInput = document.querySelector('.search-input');
+        if (searchInput && searchInput.value.trim()) {
+            filters.text_search = searchInput.value.trim();
+            // Clear the text field after collecting the data
+            searchInput.value = '';
+            // Reset search icon color
+            const searchIcon = searchInput.parentElement.querySelector('.search-icon');
+            if (searchIcon) {
+                searchIcon.style.color = '#666';
+            }
+        }
+        
+        // Collect status filters (existing)
+        const selectedStatuses = Array.from(document.querySelectorAll('.filter-checkbox[id^="status-"]:checked'))
+            .map(checkbox => checkbox.value);
+        if (selectedStatuses.length > 0) {
+            filters.statuses = selectedStatuses;
+        }
+
+        // Collect interest filters (existing)
+        const selectedInterests = Array.from(document.querySelectorAll('.filter-checkbox[id^="interest-"]:checked'))
+            .map(checkbox => checkbox.value);
+        if (selectedInterests.length > 0) {
+            filters.interests = selectedInterests;
+        }
+        
+        // Collect price range filters (existing)
+        const enableValueFilters = document.getElementById('enable-value-filters');
+        const priceRangeSlider = document.getElementById('price-range-slider');
+        if (enableValueFilters && enableValueFilters.checked && priceRangeSlider) {
+            filters.price_range = {
+                enabled: true,
+                max_value: parseFloat(priceRangeSlider.value)
+            };
+        }
+        
+        // Collect percentage range filters (existing)
+        const enablePercentageFilters = document.getElementById('enable-percentage-filters');
+        const percentageRangeSlider = document.getElementById('percentage-range-slider');
+        const selectedPercentageBucket = document.querySelector('.percentage-checkbox:checked');
+        
+        if (enablePercentageFilters && enablePercentageFilters.checked) {
+            filters.percentage_range = {
+                enabled: true
+            };
+            
+            if (percentageRangeSlider) {
+                filters.percentage_range.max_value = parseFloat(percentageRangeSlider.value);
+            }
+            
+            if (selectedPercentageBucket) {
+                filters.percentage_range.bucket = selectedPercentageBucket.value;
+            }
+        }
+        
+        return filters;
+    }
+
+    // Function to create filter summary (UPDATED)
+    function createFilterSummary(appliedFilters, totalCount, searchType) {
+        const summaryDiv = document.createElement('div');
+        summaryDiv.className = 'filter-summary';
+        summaryDiv.style.cssText = `
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            direction: rtl;
+            text-align: right;
+        `;
+        
+        let summaryText = `<strong>תוצאות חיפוש:</strong> נמצאו ${totalCount} הנחות`;
+        
+        // Add search type indicator
+        if (searchType) {
+            summaryText += `<br><small><strong>סוג חיפוש:</strong> ${searchType}</small>`;
+        }
+        
+        if (appliedFilters) {
+            const appliedFiltersList = [];
+            
+            // Add text search to summary
+            if (appliedFilters.text_search) {
+                appliedFiltersList.push(`חיפוש טקסט: "${appliedFilters.text_search}"`);
+            }
+            
+            if (appliedFilters.statuses) {
+                appliedFiltersList.push(`סטטוס: ${appliedFilters.statuses.join(', ')}`);
+            }
+            
+            if (appliedFilters.interests) {
+                appliedFiltersList.push(`תחומי עניין: ${appliedFilters.interests.join(', ')}`);
+            }
+            
+            if (appliedFilters.price_range && appliedFilters.price_range.enabled) {
+                appliedFiltersList.push(`מחיר עד: ${appliedFilters.price_range.max_value}₪`);
+            }
+            
+            if (appliedFilters.percentage_range && appliedFilters.percentage_range.enabled) {
+                if (appliedFilters.percentage_range.bucket) {
+                    const bucketLabels = {
+                        'more_than_60': '60% או יותר',
+                        'between_50_60': '50% - 60%',
+                        'between_40_50': '40% - 50%',
+                        'between_30_40': '30% - 40%',
+                        'between_20_30': '20% - 30%',
+                        'up_to_20': 'עד 20%'
+                    };
+                    appliedFiltersList.push(`אחוז הנחה: ${bucketLabels[appliedFilters.percentage_range.bucket]}`);
+                } else if (appliedFilters.percentage_range.max_value) {
+                    appliedFiltersList.push(`אחוז הנחה עד: ${appliedFilters.percentage_range.max_value}%`);
+                }
+            }
+            
+            if (appliedFiltersList.length > 0) {
+                summaryText += `<br><small><strong>פילטרים שהוחלו:</strong> ${appliedFiltersList.join(' | ')}</small>`;
+            }
+        }
+        
+        summaryDiv.innerHTML = summaryText;
+        return summaryDiv;
+    }
+
+    // Enhanced renderDiscountCards function (reusable for both Show All and Apply)
+    function renderDiscountCards(discounts, container) {
+        // Use the shared CouponUtils function
+        CouponUtils.renderCouponCards(discounts, container, {
+            showFavoriteControls: true,
+            showRemoveFavorite: false
+        });
+    }
+
+    // Enhanced Show All button (now uses the shared renderDiscountCards function)
+    document.getElementById('show-all-btn').addEventListener('click', function(e) {
+        e.preventDefault(); // Prevent any default form submission
+        const button = this;
+        const buttonText = button.querySelector('.btn-text');
+        const container = document.getElementById('all-discounts-container');
+        
+        // Show loading state
+        button.classList.add('loading');
+        buttonText.textContent = 'Loading Please Wait ...';
+        container.innerHTML = '';
+
+        // Create loading div with spinner
+        let loadingDiv = document.createElement('div');
+        loadingDiv.className = 'loading-spinner';
+        loadingDiv.innerHTML = `
+            <div class="spinner"></div>
+            <span>Loading discounts...</span>
+        `;
+        container.appendChild(loadingDiv);
+
+        // Create a promise that resolves after 3 seconds
+        const minimumLoadingTime = new Promise(resolve => setTimeout(resolve, 3000));
+
+        // Create a promise for the fetch request
+        const fetchPromise = fetch('/show_all_discounts/')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            });
+
+        // Wait for both the minimum loading time and the fetch to complete
+        Promise.all([minimumLoadingTime, fetchPromise])
+            .then(([_, data]) => {
+                // Remove loading spinner and text
+                if (loadingDiv) loadingDiv.remove();
+                container.innerHTML = '';
+
+                // Now remove filter/search UI (Show All, Apply, Clear All, Write...)
+                const searchBar = document.querySelector('.search-bar');
+                if (searchBar) searchBar.style.display = 'none';
+                button.style.display = 'none';
+                const actionButtons = document.querySelector('.action-buttons');
+                if (actionButtons) actionButtons.style.display = 'none';
+
+                // Add Back To Update Filters button above the results
+                let backBtn = document.createElement('button');
+                backBtn.className = 'custom-back-btn right-arrow';
+                backBtn.innerHTML = `
+                    <span class="back-text">Edit Filters</span>
+                    <span class="back-circle">
+                        <svg class="arrow-svg" viewBox="0 0 40 40" width="32" height="32">
+                            <line x1="32" y1="20" x2="8" y2="20" stroke="#0a3764" stroke-width="3" stroke-linecap="round"/>
+                            <line x1="8" y1="20" x2="18" y2="12" stroke="#0a3764" stroke-width="3" stroke-linecap="round"/>
+                            <line x1="8" y1="20" x2="18" y2="28" stroke="#0a3764" stroke-width="3" stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                `;
+                backBtn.onclick = function() {
+                    window.location.reload();
+                };
+                container.parentNode.insertBefore(backBtn, container);
+                
+                if (!data.discounts || data.discounts.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-results">
+                            <i class="bi bi-emoji-frown"></i>
+                            <p>No discounts found at the moment.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Use the shared CouponUtils function to render coupons
+                CouponUtils.renderCouponCards(data.discounts, container, {
+                    showFavoriteControls: true,
+                    showRemoveFavorite: false
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                container.innerHTML = `
+                    <div class="error-message">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <p>Failed to load discounts. Please try again later.</p>
+                    </div>
+                `;
+            })
+            .finally(() => {
+                // Remove loading state and restore button text if needed
+                button.classList.remove('loading');
+                buttonText.textContent = 'Show All';
+            });
+    });
+
+    // Add search input event listeners (NEW)
+    const searchInput = document.querySelector('.search-input');
+    if (searchInput) {
+        // Add placeholder text
+        searchInput.placeholder = 'Search by title, description, coupon code...';
+        
+        // Add enter key support for quick search
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                // Trigger the Apply button click
+                document.getElementById('apply-filters-btn').click();
+            }
+        });
+        
+        // Add real-time search indicator (optional)
+        searchInput.addEventListener('input', function() {
+            const hasText = this.value.trim().length > 0;
+            const searchIcon = this.parentElement.querySelector('.search-icon');
+            
+            if (hasText) {
+                searchIcon.style.color = '#007bff';
+            } else {
+                searchIcon.style.color = '#666';
+            }
+        });
+    }
+    
+    // Update clear button to also clear search input (NEW)
+    document.querySelector('.btn-clear').addEventListener('click', () => {
+        // Clear search input
+        const searchInput = document.querySelector('.search-input');
+        if (searchInput) {
+            searchInput.value = '';
+            const searchIcon = searchInput.parentElement.querySelector('.search-icon');
+            searchIcon.style.color = '#666';
+        }
+        
+        // Clear old span-based filters (existing)
+        document.querySelectorAll('.filter-tag.selected').forEach(tag => {
+            tag.classList.remove('selected');
+        });
+        
+        // Clear new checkbox-based filters (existing)
+        document.querySelectorAll('.filter-checkbox:checked, .percentage-checkbox:checked').forEach(checkbox => {
+            checkbox.checked = false;
+            const label = document.querySelector(`label[for='${checkbox.id}'] span.percentage-label`) || 
+                          document.querySelector(`label[for='${checkbox.id}']`);
+            if (label) {
+                label.classList.remove('selected');
+            }
+        });
+
+        // Reset range & percentage controls (NEW)
+        if (typeof enableValueFiltersCheckbox !== 'undefined' && enableValueFiltersCheckbox) {
+            enableValueFiltersCheckbox.checked = false;
+            toggleFilterVisibility(enableValueFiltersCheckbox, valuePriceFilterSection);
+        }
+        if (typeof enablePercentageFiltersCheckbox !== 'undefined' && enablePercentageFiltersCheckbox) {
+            enablePercentageFiltersCheckbox.checked = false;
+            toggleFilterVisibility(enablePercentageFiltersCheckbox, percentagePriceFilterSection);
+        }
+        if (typeof priceRangeSlider !== 'undefined' && priceRangeSlider && typeof currentPriceValueSpan !== 'undefined' && currentPriceValueSpan) {
+            priceRangeSlider.value = priceRangeSlider.max;
+            currentPriceValueSpan.textContent = priceRangeSlider.value;
+        }
+    });
+
+    const savedFilters = localStorage.getItem('lastUsedFilters');
+    if (savedFilters) {
+        const filters = JSON.parse(savedFilters);
+        // Restore status checkboxes
+        if (filters.statuses) {
+            filters.statuses.forEach(val => {
+                const cb = document.querySelector(`.filter-checkbox[id^="status-"][value="${val}"]`);
+                if (cb) cb.checked = true;
+            });
+        }
+        // Restore interest checkboxes
+        if (filters.interests) {
+            filters.interests.forEach(val => {
+                const cb = document.querySelector(`.filter-checkbox[id^="interest-"][value="${val}"]`);
+                if (cb) cb.checked = true;
+            });
+        }
+        // Restore price range
+        if (filters.price_range && filters.price_range.enabled) {
+            const enableValueFilters = document.getElementById('enable-value-filters');
+            const priceRangeSlider = document.getElementById('price-range-slider');
+            if (enableValueFilters) enableValueFilters.checked = true;
+            if (priceRangeSlider && filters.price_range.max_value) priceRangeSlider.value = filters.price_range.max_value;
+        }
+        // Restore percentage range
+        if (filters.percentage_range && filters.percentage_range.enabled) {
+            const enablePercentageFilters = document.getElementById('enable-percentage-filters');
+            if (enablePercentageFilters) enablePercentageFilters.checked = true;
+            if (filters.percentage_range.bucket) {
+                const radio = document.querySelector(`.percentage-checkbox[value="${filters.percentage_range.bucket}"]`);
+                if (radio) radio.checked = true;
+            }
+        }
+    }
+
+    // AI Filter Helper functionality
+    document.getElementById('ai-filter-helper-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        const button = this;
+        const buttonText = button.querySelector('.btn-text');
+        const searchInput = document.querySelector('.search-input');
+        
+        // Get the user text
+        const userText = searchInput ? searchInput.value.trim() : '';
+        
+        if (!userText) {
+            alert('Please enter some text in the search field to use AI Filter Helper.');
+            return;
+        }
+        
+        // Show loading state
+        button.classList.add('loading');
+        buttonText.textContent = 'Processing...';
+        button.disabled = true;
+        
+        console.log('AI Filter Helper processing text:', userText);
+        
+        // Send request to AI Filter Helper endpoint
+        fetch('/ai_filter_helper/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': CouponUtils.getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                user_text: userText
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('AI Filter Helper response:', data);
+            
+            if (data.success && data.filters) {
+                // Clear the text field before applying filters
+                const searchInput = document.querySelector('.search-input');
+                if (searchInput) {
+                    searchInput.value = '';
+                    const searchIcon = searchInput.parentElement.querySelector('.search-icon');
+                    if (searchIcon) {
+                        searchIcon.style.color = '#666';
+                    }
+                }
+                
+                // Apply the extracted filters to the UI
+                applyFiltersToUI(data.filters);
+                
+                // Show success message
+                CouponUtils.showNotification('AI filters applied successfully!', 'success');
+                
+                // Automatically trigger the Apply button for parameter-based search
+                setTimeout(() => {
+                    document.getElementById('apply-filters-btn').click();
+                }, 500);
+            } else {
+                CouponUtils.showNotification('No relevant filters found for your text.', 'info');
+            }
+        })
+        .catch(error => {
+            console.error('AI Filter Helper error:', error);
+            CouponUtils.showNotification('Failed to process AI filter request. Please try again.', 'error');
+        })
+        .finally(() => {
+            // Remove loading state
+            button.classList.remove('loading');
+            buttonText.textContent = 'AI Filter Helper';
+            button.disabled = false;
+        });
+    });
+
+    // Function to apply filters to UI (keeping this as it's specific to filter UI)
+    function applyFiltersToUI(filters) {
+        console.log('Applying filters to UI:', filters);
+        
+        // Clear existing filters first
+        document.querySelectorAll('.filter-checkbox:checked, .percentage-checkbox:checked').forEach(checkbox => {
+            checkbox.checked = false;
+            const label = document.querySelector(`label[for='${checkbox.id}'] span.percentage-label`) || 
+                          document.querySelector(`label[for='${checkbox.id}']`);
+            if (label) {
+                label.classList.remove('selected');
+            }
+        });
+        
+        // Apply status filters
+        if (filters.statuses && Array.isArray(filters.statuses)) {
+            console.log('Applying status filters:', filters.statuses);
+            filters.statuses.forEach(status => {
+                const checkbox = document.querySelector(`.filter-checkbox[id^="status-"][value="${status}"]`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                    const label = document.querySelector(`label[for='${checkbox.id}']`);
+                    if (label) {
+                        label.classList.add('selected');
+                    }
+                    console.log(`✓ Applied status filter: ${status}`);
+                } else {
+                    console.log(`✗ Status filter not found: ${status}`);
+                }
+            });
+        }
+        
+        // Apply interest filters
+        if (filters.interests && Array.isArray(filters.interests)) {
+            console.log('Applying interest filters:', filters.interests);
+            filters.interests.forEach(interest => {
+                const checkbox = document.querySelector(`.filter-checkbox[id^="interest-"][value="${interest}"]`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                    const label = document.querySelector(`label[for='${checkbox.id}']`);
+                    if (label) {
+                        label.classList.add('selected');
+                    }
+                    console.log(`✓ Applied interest filter: ${interest}`);
+                } else {
+                    console.log(`✗ Interest filter not found: ${interest}`);
+                }
+            });
+        }
+        
+        // Apply price range filters
+        if (filters.price_range && filters.price_range.enabled) {
+            console.log('Applying price range filters:', filters.price_range);
+            const enableValueFilters = document.getElementById('enable-value-filters');
+            const priceRangeSlider = document.getElementById('price-range-slider');
+            
+            if (enableValueFilters) {
+                enableValueFilters.checked = true;
+                toggleFilterVisibility(enableValueFilters, document.getElementById('value-price-filter-section'));
+                console.log('✓ Enabled value filters checkbox');
+            }
+            
+            if (priceRangeSlider && filters.price_range.max_value) {
+                priceRangeSlider.value = filters.price_range.max_value;
+                const currentPriceValueSpan = document.querySelector('#value-price-filter-section .current-price-value');
+                if (currentPriceValueSpan) {
+                    currentPriceValueSpan.textContent = priceRangeSlider.value;
+                }
+                console.log(`✓ Set price range slider to: ${filters.price_range.max_value}`);
+            }
+        }
+        
+        // Apply percentage range filters - FIXED IMPLEMENTATION
+        if (filters.percentage_range && filters.percentage_range.enabled) {
+            console.log('Applying percentage range filters:', filters.percentage_range);
+            
+            // First, enable the percentage filters checkbox
+            const enablePercentageFilters = document.getElementById('enable-percentage-filters');
+            if (enablePercentageFilters) {
+                enablePercentageFilters.checked = true;
+                toggleFilterVisibility(enablePercentageFilters, document.getElementById('percentage-price-filter-section'));
+                console.log('✓ Enabled percentage filters checkbox');
+            } else {
+                console.log('✗ Enable percentage filters checkbox not found');
+            }
+            
+            // Then, select the appropriate radio button
+            if (filters.percentage_range.bucket) {
+                const radio = document.querySelector(`.percentage-checkbox[value="${filters.percentage_range.bucket}"]`);
+                if (radio) {
+                    radio.checked = true;
+                    const label = document.querySelector(`label[for='${radio.id}'] span.percentage-label`);
+                    if (label) {
+                        label.classList.add('selected');
+                    }
+                    console.log(`✓ Selected percentage bucket: ${filters.percentage_range.bucket}`);
+                } else {
+                    console.log(`✗ Percentage bucket radio button not found: ${filters.percentage_range.bucket}`);
+                    console.log('Available percentage buckets:', Array.from(document.querySelectorAll('.percentage-checkbox')).map(r => r.value));
+                }
+            } else {
+                console.log('✗ No percentage bucket specified in filters');
+            }
+        } else {
+            console.log('No percentage range filters to apply');
+        }
+        
+        console.log('Finished applying filters to UI');
+    }
+
+    // Initialize coupon utilities
+    CouponUtils.initialize({
+        enableFavorites: true,
+        enableCopyCode: true,
+        enableRemoveFavorite: false
+    });
+});
+</script>
+{% endblock %}
+
+ritten_file>
