@@ -6,6 +6,7 @@ urlpatterns = [
     path('', views.index, name='index'),  # Root route to index
     path('home/', views.index_home, name='index_home'),
     path('login/', views.login_view, name='login'),
+    path('google_login/', views.google_login, name='google_login'),
     path('register/', views.register, name='register'),
     path('mfa_verification/', views.mfa_verification, name='mfa_verification'),
     path('dashboard/', views.dashboard, name='dashboard'),

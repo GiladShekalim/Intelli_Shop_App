@@ -1033,3 +1033,58 @@ def debug_favorites_page(request):
     """Debug page for testing favorites functionality"""
     return render(request, 'intellishop/debug_favorites.html')
 
+
+@csrf_exempt
+def google_login(request):
+    """Verify a Google ID token and log the matching user in.
+
+    Existing user (matched by email) -> session set, is_new False.
+    Unknown email -> is_new True with email/name; the client then completes
+    the profile/categories and registers through the normal /register/ flow.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'POST required'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+    except Exception:
+        return JsonResponse({'status': 'error', 'message': 'Invalid request body'}, status=400)
+
+    token = data.get('id_token')
+    if not token:
+        return JsonResponse({'status': 'error', 'message': 'Missing id_token'}, status=400)
+
+    client_id = os.environ.get('GOOGLE_CLIENT_ID', '')
+    try:
+        from google.oauth2 import id_token as google_id_token
+        from google.auth.transport import requests as google_requests
+        info = google_id_token.verify_oauth2_token(
+            token, google_requests.Request(), client_id or None
+        )
+    except Exception:
+        return JsonResponse({'status': 'error', 'message': 'Invalid Google token'}, status=401)
+
+    email = info.get('email')
+    if not email:
+        return JsonResponse({'status': 'error', 'message': 'No email in token'}, status=400)
+    name = info.get('name') or email.split('@')[0]
+
+    user = User.find_one({'email': email})
+    if user:
+        request.session['user_id'] = str(user['_id'])
+        request.session['username'] = user.get('username', name)
+        return JsonResponse({
+            'status': 'success',
+            'is_new': False,
+            'user_id': str(user['_id']),
+            'username': user.get('username', ''),
+            'email': email,
+        })
+
+    return JsonResponse({
+        'status': 'success',
+        'is_new': True,
+        'email': email,
+        'name': name,
+    })
+
