@@ -18,4 +18,9 @@
     <string name="register_success">Account created — please log in</string>
     <string name="error_fill_required">Please fill in username, email and password</string>
     <string name="error_register_failed">Registration failed</string>
+
+    <string name="login_submit">Log in</string>
+    <string name="login_register_link">New here? Create an account</string>
+    <string name="error_fill_login">Please enter your email and password</string>
+    <string name="error_login_failed">Login failed. Check your email and password.</string>
 </resources>
