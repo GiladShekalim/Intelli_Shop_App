@@ -14,4 +14,21 @@ class Constants {
         const val COOKIES = "cookies"
         const val SESSION = "session"
     }
+
+    // Interests — exact backend CATEGORIES values (order and case matter).
+    object Categories {
+        val ALL = listOf(
+            "Consumerism", "Travel and Vacation", "Culture and Leisure", "Cars", "Insurance",
+            "Finance and Banking", "lifestyle", "home", "electronics", "books"
+        )
+    }
+
+    // Statuses — exact backend CONSUMER_STATUS values.
+    object ConsumerStatus {
+        val ALL = listOf(
+            "Young", "Senior", "Homeowner", "Traveler", "Tech", "Pets", "Fitness", "Student",
+            "Remote", "Family", "Parent", "Military/Veteran", "Digital Nomad",
+            "First-time Buyer", "Retiree", "Single", "Renter"
+        )
+    }
 }
