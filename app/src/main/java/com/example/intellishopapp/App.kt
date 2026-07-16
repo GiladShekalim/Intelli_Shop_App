@@ -3,6 +3,7 @@ package com.example.intellishopapp
 import android.app.Application
 import com.example.intellishopapp.network.RetrofitClient
 import com.example.intellishopapp.repository.AuthRepository
+import com.example.intellishopapp.utilities.SessionManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -15,6 +16,7 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         RetrofitClient.init(this)
+        SessionManager.init(this)
         CoroutineScope(Dispatchers.IO).launch {
             AuthRepository().ensureCsrfPrimed()
         }
