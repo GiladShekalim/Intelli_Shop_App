@@ -10,7 +10,7 @@ class Constants {
 
         // Google OAuth 2.0 Web client ID (from Google Cloud Console). Must match the
         // backend's GOOGLE_CLIENT_ID. Fill this in before using "Continue with Google".
-        const val GOOGLE_WEB_CLIENT_ID = "<your-web-client-id>.apps.googleusercontent.com"
+        const val GOOGLE_WEB_CLIENT_ID = "516608219252-t8p0ha4t2ubvth9sslvsb4otu9hht21e.apps.googleusercontent.com"
     }
 
     object Prefs {
