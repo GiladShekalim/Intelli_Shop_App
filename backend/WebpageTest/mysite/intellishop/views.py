@@ -147,6 +147,7 @@ def index_home(request):
     
     return render(request, 'intellishop/index_home_original.html', context)
 
+@csrf_exempt
 def login_view(request):
     # If user is already logged in, redirect to home
     if request.session.get('user_id'):
@@ -224,6 +225,7 @@ def login_view(request):
             
     return render(request, 'intellishop/login.html')
 
+@csrf_exempt
 def register(request):
     # If user is already logged in, redirect to home
     if request.session.get('user_id'):
@@ -489,6 +491,7 @@ def filter_search(request):
     
     return render(request, 'intellishop/filter_search.html', context)
 
+@csrf_exempt
 def profile_view(request):
     
     # Get user from session
