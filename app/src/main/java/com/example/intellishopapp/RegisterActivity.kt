@@ -9,10 +9,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import com.example.intellishopapp.model.UserSession
 import com.example.intellishopapp.model.dto.RegisterRequest
 import com.example.intellishopapp.repository.AuthRepository
 import com.example.intellishopapp.utilities.ApiResult
 import com.example.intellishopapp.utilities.Constants
+import com.example.intellishopapp.utilities.SessionManager
+import java.util.UUID
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
@@ -25,6 +28,7 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var register_ET_username: TextInputEditText
     private lateinit var register_ET_email: TextInputEditText
     private lateinit var register_ET_password: TextInputEditText
+    private lateinit var register_LAY_passwordField: View
     private lateinit var register_ET_age: TextInputEditText
     private lateinit var register_ET_location: TextInputEditText
     private lateinit var register_LAY_statusChips: ChipGroup
@@ -35,6 +39,9 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var register_LAY_progress: View
 
     private val authRepository = AuthRepository()
+
+    private var googleMode = false
+    private var generatedPassword: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +60,7 @@ class RegisterActivity : AppCompatActivity() {
         register_ET_username = findViewById(R.id.register_ET_username)
         register_ET_email = findViewById(R.id.register_ET_email)
         register_ET_password = findViewById(R.id.register_ET_password)
+        register_LAY_passwordField = findViewById(R.id.register_LAY_passwordField)
         register_ET_age = findViewById(R.id.register_ET_age)
         register_ET_location = findViewById(R.id.register_ET_location)
         register_LAY_statusChips = findViewById(R.id.register_LAY_statusChips)
@@ -68,6 +76,15 @@ class RegisterActivity : AppCompatActivity() {
         addChips(register_LAY_hobbiesChips, Constants.Categories.ALL)
         register_BTN_submit.setOnClickListener { submit() }
         register_LBL_loginLink.setOnClickListener { goToLogin(null) }
+
+        // Coming from Google: prefill identity, hide the password field (auto-generated).
+        googleMode = intent.getBooleanExtra(EXTRA_GOOGLE, false)
+        intent.getStringExtra(EXTRA_EMAIL)?.let { register_ET_email.setText(it) }
+        if (googleMode) {
+            intent.getStringExtra(EXTRA_NAME)?.let { register_ET_username.setText(it) }
+            register_LAY_passwordField.visibility = View.GONE
+            generatedPassword = UUID.randomUUID().toString()
+        }
     }
 
     private fun addChips(group: ChipGroup, values: List<String>) {
@@ -91,7 +108,8 @@ class RegisterActivity : AppCompatActivity() {
     private fun submit() {
         val username = register_ET_username.text?.toString()?.trim().orEmpty()
         val email = register_ET_email.text?.toString()?.trim().orEmpty()
-        val password = register_ET_password.text?.toString().orEmpty()
+        val password = if (googleMode) generatedPassword.orEmpty()
+        else register_ET_password.text?.toString().orEmpty()
         val ageText = register_ET_age.text?.toString()?.trim().orEmpty()
         val location = register_ET_location.text?.toString()?.trim().orEmpty()
 
@@ -117,8 +135,12 @@ class RegisterActivity : AppCompatActivity() {
             when (val result = authRepository.register(request)) {
                 is ApiResult.Success -> {
                     if (result.data.status == "success") {
-                        Toast.makeText(this@RegisterActivity, R.string.register_success, Toast.LENGTH_SHORT).show()
-                        goToLogin(email)
+                        if (googleMode) {
+                            finishGoogleSignUp(email, password, username)
+                        } else {
+                            Toast.makeText(this@RegisterActivity, R.string.register_success, Toast.LENGTH_SHORT).show()
+                            goToLogin(email)
+                        }
                     } else {
                         setLoading(false)
                         showError(result.data.message ?: getString(R.string.error_register_failed))
@@ -128,6 +150,26 @@ class RegisterActivity : AppCompatActivity() {
                     setLoading(false)
                     showError(result.message)
                 }
+            }
+        }
+    }
+
+    // New Google user: register created the account, now log in with the generated
+    // password and go straight to main (they'll use Google next time).
+    private suspend fun finishGoogleSignUp(email: String, password: String, username: String) {
+        when (val login = authRepository.login(email, password)) {
+            is ApiResult.Success -> {
+                SessionManager.getInstance().save(
+                    UserSession(userId = login.data.user_id, email = email, username = username)
+                )
+                startActivity(Intent(this, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                })
+                finish()
+            }
+            is ApiResult.Error -> {
+                setLoading(false)
+                showError(getString(R.string.error_register_failed))
             }
         }
     }
@@ -151,5 +193,7 @@ class RegisterActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_EMAIL = "extra_email"
+        const val EXTRA_NAME = "extra_name"
+        const val EXTRA_GOOGLE = "extra_google"
     }
 }
