@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.intellishopapp.model.UserSession
 import com.example.intellishopapp.repository.AuthRepository
 import com.example.intellishopapp.utilities.ApiResult
+import com.example.intellishopapp.utilities.GoogleAuthHelper
 import com.example.intellishopapp.utilities.SessionManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
@@ -22,6 +23,7 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var login_ET_email: TextInputEditText
     private lateinit var login_ET_password: TextInputEditText
     private lateinit var login_BTN_submit: MaterialButton
+    private lateinit var login_BTN_google: MaterialButton
     private lateinit var login_LBL_error: MaterialTextView
     private lateinit var login_LBL_registerLink: MaterialTextView
     private lateinit var login_LAY_progress: View
@@ -50,6 +52,7 @@ class LoginActivity : AppCompatActivity() {
         login_ET_email = findViewById(R.id.login_ET_email)
         login_ET_password = findViewById(R.id.login_ET_password)
         login_BTN_submit = findViewById(R.id.login_BTN_submit)
+        login_BTN_google = findViewById(R.id.login_BTN_google)
         login_LBL_error = findViewById(R.id.login_LBL_error)
         login_LBL_registerLink = findViewById(R.id.login_LBL_registerLink)
         login_LAY_progress = findViewById(R.id.login_LAY_progress)
@@ -58,8 +61,49 @@ class LoginActivity : AppCompatActivity() {
     private fun initViews() {
         intent.getStringExtra(RegisterActivity.EXTRA_EMAIL)?.let { login_ET_email.setText(it) }
         login_BTN_submit.setOnClickListener { submit() }
+        login_BTN_google.setOnClickListener { signInWithGoogle() }
         login_LBL_registerLink.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
+        }
+    }
+
+    private fun signInWithGoogle() {
+        login_LBL_error.visibility = View.GONE
+        setLoading(true)
+        lifecycleScope.launch {
+            val idToken = GoogleAuthHelper.getIdToken(this@LoginActivity)
+            if (idToken == null) {
+                setLoading(false)
+                showError(getString(R.string.error_google_failed))
+                return@launch
+            }
+            when (val result = authRepository.googleLogin(idToken)) {
+                is ApiResult.Success -> {
+                    val body = result.data
+                    if (!body.is_new) {
+                        SessionManager.getInstance().save(
+                            UserSession(
+                                userId = body.user_id ?: "",
+                                email = body.email ?: "",
+                                username = body.username
+                            )
+                        )
+                        goToMain()
+                    } else {
+                        // New Google user — complete profile/categories then register.
+                        val intent = Intent(this@LoginActivity, RegisterActivity::class.java)
+                        intent.putExtra(RegisterActivity.EXTRA_EMAIL, body.email)
+                        intent.putExtra(RegisterActivity.EXTRA_NAME, body.name)
+                        intent.putExtra(RegisterActivity.EXTRA_GOOGLE, true)
+                        startActivity(intent)
+                        setLoading(false)
+                    }
+                }
+                is ApiResult.Error -> {
+                    setLoading(false)
+                    showError(getString(R.string.error_google_failed))
+                }
+            }
         }
     }
 

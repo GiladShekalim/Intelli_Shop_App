@@ -67,6 +67,22 @@
             android:text="@string/login_submit" />
 
         <com.google.android.material.textview.MaterialTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
+            android:text="@string/login_or"
+            android:textColor="@color/text_secondary" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/login_BTN_google"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/continue_with_google" />
+
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/login_LBL_registerLink"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

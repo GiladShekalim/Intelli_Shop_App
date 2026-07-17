@@ -23,4 +23,7 @@
     <string name="login_register_link">New here? Create an account</string>
     <string name="error_fill_login">Please enter your email and password</string>
     <string name="error_login_failed">Login failed. Check your email and password.</string>
+    <string name="login_or">or</string>
+    <string name="continue_with_google">Continue with Google</string>
+    <string name="error_google_failed">Google sign-in was cancelled or failed</string>
 </resources>
