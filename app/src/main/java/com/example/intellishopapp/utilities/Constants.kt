@@ -7,6 +7,10 @@ class Constants {
         // Emulator: 10.0.2.2 is the host machine's loopback (Django on 0.0.0.0:8000).
         // For a physical phone on the same Wi-Fi, use the Mac's LAN IP instead (e.g. 192.168.68.109).
         const val BASE_URL = "http://10.0.2.2:8000/"
+
+        // Google OAuth 2.0 Web client ID (from Google Cloud Console). Must match the
+        // backend's GOOGLE_CLIENT_ID. Fill this in before using "Continue with Google".
+        const val GOOGLE_WEB_CLIENT_ID = "<your-web-client-id>.apps.googleusercontent.com"
     }
 
     object Prefs {

@@ -1,5 +1,7 @@
 package com.example.intellishopapp.network
 
+import com.example.intellishopapp.model.dto.GoogleLoginRequest
+import com.example.intellishopapp.model.dto.GoogleLoginResponse
 import com.example.intellishopapp.model.dto.LoginRequest
 import com.example.intellishopapp.model.dto.LoginResponse
 import com.example.intellishopapp.model.dto.RegisterRequest
@@ -21,4 +23,7 @@ interface ApiService {
 
     @POST("register/")
     suspend fun register(@Body body: RegisterRequest): Response<RegisterResponse>
+
+    @POST("google_login/")
+    suspend fun googleLogin(@Body body: GoogleLoginRequest): Response<GoogleLoginResponse>
 }
