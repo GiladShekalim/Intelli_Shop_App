@@ -14,6 +14,8 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
  */
 object GoogleAuthHelper {
 
+    // Throws GetCredentialException (or others) so the caller can surface the real
+    // reason (bad client id, SHA-1/package mismatch, account not a test user, etc.).
     suspend fun getIdToken(context: Context): String? {
         val option = GetGoogleIdOption.Builder()
             .setServerClientId(Constants.Api.GOOGLE_WEB_CLIENT_ID)
@@ -22,17 +24,14 @@ object GoogleAuthHelper {
         val request = GetCredentialRequest.Builder()
             .addCredentialOption(option)
             .build()
-        return try {
-            val response = CredentialManager.create(context).getCredential(context, request)
-            val credential = response.credential
-            if (credential is CustomCredential &&
-                credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-            ) {
-                GoogleIdTokenCredential.createFrom(credential.data).idToken
-            } else {
-                null
-            }
-        } catch (e: Exception) {
+
+        val response = CredentialManager.create(context).getCredential(context, request)
+        val credential = response.credential
+        return if (credential is CustomCredential &&
+            credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+        ) {
+            GoogleIdTokenCredential.createFrom(credential.data).idToken
+        } else {
             null
         }
     }

@@ -2,6 +2,7 @@ package com.example.intellishopapp
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -71,7 +72,14 @@ class LoginActivity : AppCompatActivity() {
         login_LBL_error.visibility = View.GONE
         setLoading(true)
         lifecycleScope.launch {
-            val idToken = GoogleAuthHelper.getIdToken(this@LoginActivity)
+            val idToken = try {
+                GoogleAuthHelper.getIdToken(this@LoginActivity)
+            } catch (e: Exception) {
+                Log.e("GoogleAuth", "getIdToken failed", e)
+                setLoading(false)
+                showError("Google: ${e.message}")
+                return@launch
+            }
             if (idToken == null) {
                 setLoading(false)
                 showError(getString(R.string.error_google_failed))
