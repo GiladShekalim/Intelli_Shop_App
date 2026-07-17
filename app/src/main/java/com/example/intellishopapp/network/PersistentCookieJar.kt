@@ -37,6 +37,12 @@ class PersistentCookieJar(private val prefs: SharedPreferences) : CookieJar {
         return stored.filter { it.matches(url) }
     }
 
+    /** Drops all cookies (session + csrf) — used on sign-out and before a fresh login. */
+    fun clear() {
+        cache.clear()
+        prefs.edit().remove(Constants.Prefs.COOKIES).apply()
+    }
+
     private fun persist() {
         val serializable = cache.mapValues { entry -> entry.value.map { it.toSerializable() } }
         prefs.edit().putString(Constants.Prefs.COOKIES, gson.toJson(serializable)).apply()

@@ -6,6 +6,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.intellishopapp.network.RetrofitClient
 import com.example.intellishopapp.utilities.SessionManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textview.MaterialTextView
@@ -46,6 +47,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun signOut() {
         SessionManager.getInstance().clear()
+        RetrofitClient.getInstance().clearCookies()
         val intent = Intent(this, LoginActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)

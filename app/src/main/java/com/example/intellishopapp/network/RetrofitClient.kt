@@ -32,6 +32,9 @@ class RetrofitClient private constructor(context: Context) {
         .build()
         .create(ApiService::class.java)
 
+    /** Clears the persisted session/csrf cookies (sign-out, or before a fresh login). */
+    fun clearCookies() = cookieJar.clear()
+
     companion object {
         @Volatile
         private var instance: RetrofitClient? = null

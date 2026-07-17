@@ -8,6 +8,7 @@ import com.example.intellishopapp.model.dto.RegisterRequest
 import com.example.intellishopapp.model.dto.RegisterResponse
 import com.example.intellishopapp.network.RetrofitClient
 import com.example.intellishopapp.utilities.ApiResult
+import com.google.gson.Gson
 
 class AuthRepository {
 
@@ -23,6 +24,9 @@ class AuthRepository {
     }
 
     suspend fun login(email: String, password: String): ApiResult<LoginResponse> {
+        // Drop any stale session cookie so the backend treats this as a fresh login
+        // (otherwise it 302-redirects an "already logged in" request to the HTML home page).
+        RetrofitClient.getInstance().clearCookies()
         return try {
             val response = api.login(LoginRequest(email, password))
             val body = response.body()
@@ -37,13 +41,19 @@ class AuthRepository {
     }
 
     suspend fun register(body: RegisterRequest): ApiResult<RegisterResponse> {
+        // Same reason as login: a stale session cookie makes /register/ redirect to HTML.
+        RetrofitClient.getInstance().clearCookies()
         return try {
             val response = api.register(body)
             val respBody = response.body()
             if (response.isSuccessful && respBody != null) {
                 ApiResult.Success(respBody)
             } else {
-                ApiResult.Error("Registration failed", response.code())
+                // Surface the backend's real message (e.g. "Email already exists").
+                val msg = runCatching {
+                    Gson().fromJson(response.errorBody()?.string(), RegisterResponse::class.java)?.message
+                }.getOrNull()
+                ApiResult.Error(msg ?: "Registration failed", response.code())
             }
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Network error")
