@@ -1064,7 +1064,20 @@ def google_login(request):
         info = google_id_token.verify_oauth2_token(
             token, google_requests.Request(), client_id or None
         )
-    except Exception:
+    except Exception as e:
+        # Diagnostic: show what the server is configured with vs. what the token carries.
+        print("=== google_login verification FAILED ===")
+        print("  configured GOOGLE_CLIENT_ID:", repr(client_id))
+        print("  error:", repr(e))
+        try:
+            import base64
+            payload = token.split('.')[1]
+            payload += '=' * (-len(payload) % 4)
+            claims = json.loads(base64.urlsafe_b64decode(payload))
+            print("  token aud:", claims.get('aud'))
+            print("  token email:", claims.get('email'), "| iss:", claims.get('iss'))
+        except Exception as de:
+            print("  could not decode token payload:", de)
         return JsonResponse({'status': 'error', 'message': 'Invalid Google token'}, status=401)
 
     email = info.get('email')
