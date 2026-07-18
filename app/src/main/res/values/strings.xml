@@ -8,6 +8,12 @@
     <string name="menu_open">Menu</string>
     <string name="menu_sign_in">Sign in</string>
 
+    <string name="empty_coupons">No coupons available</string>
+    <string name="gate_sign_up">Sign up free to view</string>
+    <string name="coupon_soon">Coupon details coming soon</string>
+    <string name="coupon_image">Coupon image</string>
+    <string name="favorite_toggle">Save coupon</string>
+
     <string name="main_welcome">Welcome, %s</string>
     <string name="sign_out">Sign out</string>
 
