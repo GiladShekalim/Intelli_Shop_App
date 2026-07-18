@@ -2,6 +2,7 @@ package com.example.intellishopapp.network
 
 import com.example.intellishopapp.model.dto.GoogleLoginRequest
 import com.example.intellishopapp.model.dto.GoogleLoginResponse
+import com.example.intellishopapp.model.dto.ShowAllDiscountsResponse
 import com.example.intellishopapp.model.dto.LoginRequest
 import com.example.intellishopapp.model.dto.LoginResponse
 import com.example.intellishopapp.model.dto.RegisterRequest
@@ -26,4 +27,7 @@ interface ApiService {
 
     @POST("google_login/")
     suspend fun googleLogin(@Body body: GoogleLoginRequest): Response<GoogleLoginResponse>
+
+    @GET("show_all_discounts/")
+    suspend fun showAllDiscounts(): Response<ShowAllDiscountsResponse>
 }
