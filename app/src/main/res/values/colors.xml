@@ -9,4 +9,5 @@
     <color name="text_secondary">#FF5F5F5F</color>
     <color name="brand_primary">#FF2E7D32</color>
     <color name="brand_accent">#FFFFC107</color>
+    <color name="divider">#FFE6E6E6</color>
 </resources>

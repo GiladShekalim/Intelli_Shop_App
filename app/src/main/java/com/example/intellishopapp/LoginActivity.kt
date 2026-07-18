@@ -33,7 +33,7 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Already logged in (e.g. after relaunch) → go straight to main.
+        // Already logged in (e.g. after relaunch) -> go straight to main.
         if (SessionManager.getInstance().isLoggedIn()) {
             goToMain()
             return

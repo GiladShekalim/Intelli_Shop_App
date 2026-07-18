@@ -2,6 +2,12 @@
     <string name="app_name">IntelliShop</string>
     <string name="login_title">IntelliShop</string>
 
+    <string name="tab_home">Home</string>
+    <string name="tab_coupons">Coupons</string>
+    <string name="tab_profile">Profile</string>
+    <string name="menu_open">Menu</string>
+    <string name="menu_sign_in">Sign in</string>
+
     <string name="main_welcome">Welcome, %s</string>
     <string name="sign_out">Sign out</string>
 
