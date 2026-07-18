@@ -2,71 +2,76 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/item_LAY_card"
-    android:layout_width="match_parent"
+    android:layout_width="160dp"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="12dp"
-    android:layout_marginVertical="6dp"
+    android:layout_marginHorizontal="6dp"
+    android:layout_marginVertical="4dp"
     android:background="@drawable/bg_card"
     android:elevation="2dp"
-    android:padding="12dp">
+    android:paddingBottom="10dp">
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/item_IMG_logo"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:layout_width="0dp"
+        android:layout_height="110dp"
         android:contentDescription="@string/coupon_image"
         android:scaleType="centerCrop"
         android:src="@drawable/ic_image_placeholder"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <ImageButton
         android:id="@+id/item_BTN_favorite"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_margin="4dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/favorite_toggle"
         android:src="@drawable/ic_heart_outline"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/text_secondary" />
+        app:layout_constraintTop_toTopOf="@id/item_IMG_logo"
+        app:layout_constraintEnd_toEndOf="@id/item_IMG_logo"
+        app:tint="@color/white" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/item_LBL_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
+        android:layout_marginHorizontal="10dp"
+        android:layout_marginTop="8dp"
         android:ellipsize="end"
         android:maxLines="2"
         android:textColor="@color/text_primary"
-        android:textSize="15sp"
+        android:textSize="14sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toStartOf="@id/item_BTN_favorite"
-        app:layout_constraintStart_toEndOf="@id/item_IMG_logo"
-        app:layout_constraintTop_toTopOf="@id/item_IMG_logo" />
+        app:layout_constraintTop_toBottomOf="@id/item_IMG_logo"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/item_LBL_store"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="10dp"
         android:layout_marginTop="2dp"
         android:ellipsize="end"
         android:maxLines="1"
         android:textColor="@color/text_secondary"
-        android:textSize="13sp"
-        app:layout_constraintEnd_toEndOf="@id/item_LBL_title"
-        app:layout_constraintStart_toStartOf="@id/item_LBL_title"
-        app:layout_constraintTop_toBottomOf="@id/item_LBL_title" />
+        android:textSize="12sp"
+        app:layout_constraintTop_toBottomOf="@id/item_LBL_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/item_LBL_discount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="10dp"
         android:layout_marginTop="4dp"
         android:textColor="@color/discount_text"
-        android:textSize="14sp"
+        android:textSize="13sp"
         android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="@id/item_LBL_title"
-        app:layout_constraintTop_toBottomOf="@id/item_LBL_store" />
+        app:layout_constraintTop_toBottomOf="@id/item_LBL_store"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

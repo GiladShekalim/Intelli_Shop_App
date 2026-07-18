@@ -8,6 +8,9 @@
     <string name="menu_open">Menu</string>
     <string name="menu_sign_in">Sign in</string>
 
+    <string name="search_hint">Search IntelliShop</string>
+    <string name="search_soon">Search coming soon</string>
+    <string name="view_more">View More</string>
     <string name="empty_coupons">No coupons available</string>
     <string name="gate_sign_up">Sign up free to view</string>
     <string name="coupon_soon">Coupon details coming soon</string>
