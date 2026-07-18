@@ -9,4 +9,5 @@
     <color name="divider">#FF2A2A2A</color>
     <color name="card_background">#FF1E1E1E</color>
     <color name="discount_text">#FFFFB74D</color>
+    <color name="search_field">#FF2A2A2A</color>
 </resources>

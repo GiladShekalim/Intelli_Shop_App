@@ -2,10 +2,12 @@ package com.example.intellishopapp
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
+import com.example.intellishopapp.utilities.SignalManager
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -25,6 +27,7 @@ import com.google.android.material.textview.MaterialTextView
 class MainActivity : AppCompatActivity() {
 
     private lateinit var main_BTN_burger: ImageButton
+    private lateinit var main_LAY_search: LinearLayout
     private lateinit var main_LAY_tabHome: LinearLayout
     private lateinit var main_LAY_tabCoupons: LinearLayout
     private lateinit var main_LAY_tabProfile: LinearLayout
@@ -57,6 +60,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun findViews() {
         main_BTN_burger = findViewById(R.id.main_BTN_burger)
+        main_LAY_search = findViewById(R.id.main_LAY_search)
         main_LAY_tabHome = findViewById(R.id.main_LAY_tabHome)
         main_LAY_tabCoupons = findViewById(R.id.main_LAY_tabCoupons)
         main_LAY_tabProfile = findViewById(R.id.main_LAY_tabProfile)
@@ -91,6 +95,9 @@ class MainActivity : AppCompatActivity() {
         main_LAY_tabCoupons.setOnClickListener { selectTab(Tab.COUPONS) }
         main_LAY_tabProfile.setOnClickListener { selectTab(Tab.PROFILE) }
         main_BTN_burger.setOnClickListener { showMenu() }
+        main_LAY_search.setOnClickListener {
+            SignalManager.getInstance().toast(getString(R.string.search_soon))
+        }
     }
 
     private fun selectTab(tab: Tab) {
@@ -107,6 +114,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateTabColors(tab: Tab) {
+        // Search bar belongs to Home (per the Figma); hidden on other tabs.
+        main_LAY_search.visibility = if (tab == Tab.HOME) View.VISIBLE else View.GONE
         val selected = ContextCompat.getColor(this, R.color.brand_primary)
         val normal = ContextCompat.getColor(this, R.color.text_secondary)
         applyTab(main_IMG_tabHome, main_LBL_tabHome, if (tab == Tab.HOME) selected else normal)
