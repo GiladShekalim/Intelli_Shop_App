@@ -7,4 +7,6 @@
     <color name="brand_primary">#FF81C784</color>
     <color name="brand_accent">#FFFFD54F</color>
     <color name="divider">#FF2A2A2A</color>
+    <color name="card_background">#FF1E1E1E</color>
+    <color name="discount_text">#FFFFB74D</color>
 </resources>
