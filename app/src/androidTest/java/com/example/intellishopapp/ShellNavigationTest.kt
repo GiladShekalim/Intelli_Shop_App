@@ -25,7 +25,7 @@ class ShellNavigationTest {
 
     @Test
     fun shellLaunches_showsHomeContent() {
-        onView(withId(R.id.home_LBL_title)).check(matches(isDisplayed()))
+        onView(withId(R.id.home_LAY_couponList)).check(matches(isDisplayed()))
     }
 
     @Test
@@ -44,7 +44,7 @@ class ShellNavigationTest {
     fun returnToHomeTab_showsHomeContent() {
         onView(withId(R.id.main_LAY_tabProfile)).perform(click())
         onView(withId(R.id.main_LAY_tabHome)).perform(click())
-        onView(withId(R.id.home_LBL_title)).check(matches(isDisplayed()))
+        onView(withId(R.id.home_LAY_couponList)).check(matches(isDisplayed()))
     }
 
     @Test
@@ -57,13 +57,13 @@ class ShellNavigationTest {
 
     @Test
     fun e2e_navigateAllTabsThenOpenMenu() {
-        onView(withId(R.id.home_LBL_title)).check(matches(isDisplayed()))
+        onView(withId(R.id.home_LAY_couponList)).check(matches(isDisplayed()))
         onView(withId(R.id.main_LAY_tabCoupons)).perform(click())
         onView(withId(R.id.favorites_LBL_title)).check(matches(isDisplayed()))
         onView(withId(R.id.main_LAY_tabProfile)).perform(click())
         onView(withId(R.id.profile_LBL_title)).check(matches(isDisplayed()))
         onView(withId(R.id.main_LAY_tabHome)).perform(click())
-        onView(withId(R.id.home_LBL_title)).check(matches(isDisplayed()))
+        onView(withId(R.id.home_LAY_couponList)).check(matches(isDisplayed()))
         onView(withId(R.id.main_BTN_burger)).perform(click())
         onView(withText(R.string.menu_sign_in)).inRoot(isPlatformPopup()).check(matches(isDisplayed()))
     }
