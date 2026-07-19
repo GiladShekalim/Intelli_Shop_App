@@ -17,8 +17,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Guest Home: the coupon list is browsable by anyone; a guest tapping a coupon
- * is prompted to sign up and sent to Login. Requires the Django server running.
+ * Guest Home (Figma layout): a hero row + category sections are browsable by
+ * anyone; a guest tapping a coupon is prompted to sign up and sent to Login.
+ * Requires the Django server running.
  */
 @RunWith(AndroidJUnit4::class)
 class HomeGuestTest {
@@ -32,29 +33,29 @@ class HomeGuestTest {
     }
 
     @Test
-    fun home_showsCouponList() {
-        onView(withId(R.id.home_LAY_couponList)).check(matches(isDisplayed()))
+    fun home_showsScrollableFeed() {
+        onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
     }
 
     @Test
-    fun home_loadsCouponsFromBackend() {
-        waitForCoupons()
-        onView(withId(R.id.home_LAY_couponList)).check(matches(hasMinimumChildCount(1)))
+    fun home_loadsFeaturedCouponsFromBackend() {
+        waitForHero()
+        onView(withId(R.id.home_LAY_hero)).check(matches(hasMinimumChildCount(1)))
     }
 
     @Test
     fun guestTapCoupon_opensLogin() {
-        waitForCoupons()
-        onView(withId(R.id.home_LAY_couponList))
+        waitForHero()
+        onView(withId(R.id.home_LAY_hero))
             .perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(0, click()))
         onView(withId(R.id.login_ET_email)).check(matches(isDisplayed()))
     }
 
-    private fun waitForCoupons() {
+    private fun waitForHero() {
         val end = System.currentTimeMillis() + 15000
         while (System.currentTimeMillis() < end) {
             try {
-                onView(withId(R.id.home_LAY_couponList)).check(matches(hasMinimumChildCount(1)))
+                onView(withId(R.id.home_LAY_hero)).check(matches(hasMinimumChildCount(1)))
                 return
             } catch (e: Throwable) {
                 Thread.sleep(400)
