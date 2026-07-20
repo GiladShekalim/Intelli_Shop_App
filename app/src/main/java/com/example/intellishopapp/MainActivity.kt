@@ -42,7 +42,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var favoritesFragment: Fragment
     private lateinit var profileFragment: Fragment
     private lateinit var activeFragment: Fragment
-    private var currentTab = Tab.HOME
 
     private enum class Tab { HOME, COUPONS, PROFILE }
 
@@ -99,21 +98,15 @@ class MainActivity : AppCompatActivity() {
         main_LAY_search.setOnClickListener {
             SignalManager.getInstance().toast(getString(R.string.search_soon))
         }
-
-        // When a transient screen (e.g. Login) is dismissed, restore the tab chrome.
-        supportFragmentManager.addOnBackStackChangedListener {
-            if (supportFragmentManager.backStackEntryCount == 0) {
-                main_LAY_search.visibility = if (currentTab == Tab.HOME) View.VISIBLE else View.GONE
-            }
-        }
     }
 
-    /** Shows the Login screen inside the shell (over the current tab). */
+    /**
+     * Shows the Login screen inside the shell, layered over the current content
+     * (its opaque background covers it). Dismissing pops it off cleanly.
+     */
     fun showLogin() {
         if (supportFragmentManager.findFragmentByTag(TAG_LOGIN) != null) return
-        main_LAY_search.visibility = View.GONE
         supportFragmentManager.beginTransaction()
-            .hide(activeFragment)
             .add(R.id.main_FRAME_content, LoginFragment(), TAG_LOGIN)
             .addToBackStack(TAG_LOGIN)
             .commit()
@@ -129,7 +122,6 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.beginTransaction().hide(activeFragment).show(target).commit()
             activeFragment = target
         }
-        currentTab = tab
         updateTabColors(tab)
     }
 

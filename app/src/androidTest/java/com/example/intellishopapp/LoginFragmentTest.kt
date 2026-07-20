@@ -4,6 +4,7 @@ import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.typeText
+import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.RootMatchers.isPlatformPopup
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
@@ -62,12 +63,14 @@ class LoginFragmentTest {
     }
 
     @Test
-    fun login_validCredentials_returnsToShell() {
+    fun login_validCredentials_dismissesLogin() {
         openLogin()
         onView(withId(R.id.login_ET_email)).perform(typeText("lala@gmail.com"), closeSoftKeyboard())
         onView(withId(R.id.login_ET_password)).perform(typeText("lala"), closeSoftKeyboard())
         onView(withId(R.id.login_BTN_submit)).perform(click())
-        waitUntilDisplayed(R.id.home_LAY_scroll)
+        // Login is popped off the shell -> the feed shows again.
+        waitUntilGone(R.id.login_ET_email)
+        onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
     }
 
     @Test
@@ -88,5 +91,18 @@ class LoginFragmentTest {
             }
         }
         onView(withId(id)).check(matches(isDisplayed()))
+    }
+
+    private fun waitUntilGone(id: Int) {
+        val end = System.currentTimeMillis() + 12000
+        while (System.currentTimeMillis() < end) {
+            try {
+                onView(withId(id)).check(doesNotExist())
+                return
+            } catch (e: Throwable) {
+                Thread.sleep(300)
+            }
+        }
+        onView(withId(id)).check(doesNotExist())
     }
 }
