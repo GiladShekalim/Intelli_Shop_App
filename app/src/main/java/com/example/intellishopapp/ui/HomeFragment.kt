@@ -109,17 +109,19 @@ class HomeFragment : Fragment() {
         row.layoutManager = LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false)
         row.adapter = CouponAdapter(coupons, R.layout.item_coupon_card) { onCouponClicked(it) }
         viewMore.setOnClickListener {
-            SignalManager.getInstance().toast(getString(R.string.search_soon))
+            (requireActivity() as MainActivity).showBanner(getString(R.string.search_soon))
         }
         home_LAY_sections.addView(section)
     }
 
     private fun onCouponClicked(coupon: CouponDto) {
+        val shell = requireActivity() as MainActivity
         if (SessionManager.getInstance().isLoggedIn()) {
-            SignalManager.getInstance().toast(getString(R.string.coupon_soon))
+            shell.showBanner(getString(R.string.coupon_soon))
         } else {
-            SignalManager.getInstance().signal(getString(R.string.gate_sign_up))
-            (requireActivity() as MainActivity).showLogin()
+            shell.showBanner(getString(R.string.gate_sign_up), longDuration = true)
+            SignalManager.getInstance().vibrate()
+            shell.showLogin()
         }
     }
 }

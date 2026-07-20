@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.EditText
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.example.intellishopapp.MainActivity
 import com.example.intellishopapp.R
 import com.example.intellishopapp.RegisterActivity
 import com.example.intellishopapp.model.UserSession
@@ -16,7 +17,6 @@ import com.example.intellishopapp.repository.AuthRepository
 import com.example.intellishopapp.utilities.ApiResult
 import com.example.intellishopapp.utilities.GoogleAuthHelper
 import com.example.intellishopapp.utilities.SessionManager
-import com.example.intellishopapp.utilities.SignalManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textview.MaterialTextView
 import kotlinx.coroutines.launch
@@ -144,7 +144,7 @@ class LoginFragment : Fragment() {
     }
 
     private fun onSignedIn() {
-        SignalManager.getInstance().toast(getString(R.string.welcome_back))
+        (requireActivity() as MainActivity).showBanner(getString(R.string.welcome_back))
         parentFragmentManager.popBackStack()
     }
 

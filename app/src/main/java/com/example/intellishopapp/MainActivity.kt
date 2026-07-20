@@ -6,7 +6,6 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupMenu
-import com.example.intellishopapp.utilities.SignalManager
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -37,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var main_LBL_tabHome: MaterialTextView
     private lateinit var main_LBL_tabCoupons: MaterialTextView
     private lateinit var main_LBL_tabProfile: MaterialTextView
+    private lateinit var main_LBL_banner: MaterialTextView
 
     private lateinit var homeFragment: Fragment
     private lateinit var favoritesFragment: Fragment
@@ -70,6 +70,7 @@ class MainActivity : AppCompatActivity() {
         main_LBL_tabHome = findViewById(R.id.main_LBL_tabHome)
         main_LBL_tabCoupons = findViewById(R.id.main_LBL_tabCoupons)
         main_LBL_tabProfile = findViewById(R.id.main_LBL_tabProfile)
+        main_LBL_banner = findViewById(R.id.main_LBL_banner)
     }
 
     private fun initViews() {
@@ -96,8 +97,27 @@ class MainActivity : AppCompatActivity() {
         main_LAY_tabProfile.setOnClickListener { selectTab(Tab.PROFILE) }
         main_BTN_burger.setOnClickListener { showMenu() }
         main_LAY_search.setOnClickListener {
-            SignalManager.getInstance().toast(getString(R.string.search_soon))
+            showBanner(getString(R.string.search_soon))
         }
+    }
+
+    private val hideBannerRunnable = Runnable {
+        main_LBL_banner.animate().alpha(0f).setDuration(180).withEndAction {
+            main_LBL_banner.visibility = View.GONE
+        }.start()
+    }
+
+    /**
+     * Shows the top banner. Short (~2s) for happy-flow messages, long (~4s) for
+     * sign-in prompts. Light green, fades in and auto-hides.
+     */
+    fun showBanner(message: String, longDuration: Boolean = false) {
+        main_LBL_banner.text = message
+        main_LBL_banner.visibility = View.VISIBLE
+        main_LBL_banner.alpha = 0f
+        main_LBL_banner.animate().alpha(1f).setDuration(180).start()
+        main_LBL_banner.removeCallbacks(hideBannerRunnable)
+        main_LBL_banner.postDelayed(hideBannerRunnable, if (longDuration) 4000L else 2000L)
     }
 
     /**
