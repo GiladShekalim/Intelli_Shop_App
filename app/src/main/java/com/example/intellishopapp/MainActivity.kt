@@ -1,6 +1,5 @@
 package com.example.intellishopapp
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageButton
@@ -16,6 +15,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import com.example.intellishopapp.ui.FavoritesFragment
 import com.example.intellishopapp.ui.HomeFragment
+import com.example.intellishopapp.ui.LoginFragment
 import com.example.intellishopapp.ui.ProfileFragment
 import com.google.android.material.textview.MaterialTextView
 
@@ -42,6 +42,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var favoritesFragment: Fragment
     private lateinit var profileFragment: Fragment
     private lateinit var activeFragment: Fragment
+    private var currentTab = Tab.HOME
 
     private enum class Tab { HOME, COUPONS, PROFILE }
 
@@ -98,6 +99,24 @@ class MainActivity : AppCompatActivity() {
         main_LAY_search.setOnClickListener {
             SignalManager.getInstance().toast(getString(R.string.search_soon))
         }
+
+        // When a transient screen (e.g. Login) is dismissed, restore the tab chrome.
+        supportFragmentManager.addOnBackStackChangedListener {
+            if (supportFragmentManager.backStackEntryCount == 0) {
+                main_LAY_search.visibility = if (currentTab == Tab.HOME) View.VISIBLE else View.GONE
+            }
+        }
+    }
+
+    /** Shows the Login screen inside the shell (over the current tab). */
+    fun showLogin() {
+        if (supportFragmentManager.findFragmentByTag(TAG_LOGIN) != null) return
+        main_LAY_search.visibility = View.GONE
+        supportFragmentManager.beginTransaction()
+            .hide(activeFragment)
+            .add(R.id.main_FRAME_content, LoginFragment(), TAG_LOGIN)
+            .addToBackStack(TAG_LOGIN)
+            .commit()
     }
 
     private fun selectTab(tab: Tab) {
@@ -110,6 +129,7 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.beginTransaction().hide(activeFragment).show(target).commit()
             activeFragment = target
         }
+        currentTab = tab
         updateTabColors(tab)
     }
 
@@ -134,7 +154,7 @@ class MainActivity : AppCompatActivity() {
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 MENU_SIGN_IN -> {
-                    startActivity(Intent(this, LoginActivity::class.java))
+                    showLogin()
                     true
                 }
                 else -> false
@@ -147,6 +167,7 @@ class MainActivity : AppCompatActivity() {
         private const val TAG_HOME = "home"
         private const val TAG_COUPONS = "coupons"
         private const val TAG_PROFILE = "profile"
+        private const val TAG_LOGIN = "login"
         private const val MENU_SIGN_IN = 1
     }
 }

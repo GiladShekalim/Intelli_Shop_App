@@ -1,6 +1,5 @@
 package com.example.intellishopapp.ui
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,7 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.intellishopapp.LoginActivity
+import com.example.intellishopapp.MainActivity
 import com.example.intellishopapp.R
 import com.example.intellishopapp.adapter.CouponAdapter
 import com.example.intellishopapp.model.dto.CouponDto
@@ -120,7 +119,7 @@ class HomeFragment : Fragment() {
             SignalManager.getInstance().toast(getString(R.string.coupon_soon))
         } else {
             SignalManager.getInstance().signal(getString(R.string.gate_sign_up))
-            startActivity(Intent(requireContext(), LoginActivity::class.java))
+            (requireActivity() as MainActivity).showLogin()
         }
     }
 }
