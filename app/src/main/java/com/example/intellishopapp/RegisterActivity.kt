@@ -175,9 +175,7 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     private fun goToLogin(prefillEmail: String?) {
-        val intent = Intent(this, LoginActivity::class.java)
-        if (prefillEmail != null) intent.putExtra(EXTRA_EMAIL, prefillEmail)
-        startActivity(intent)
+        // Returns to the Login screen hosted in the shell.
         finish()
     }
 
