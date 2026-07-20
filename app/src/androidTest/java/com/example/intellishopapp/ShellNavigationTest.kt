@@ -9,6 +9,7 @@ import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.hamcrest.Matchers.not
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -66,5 +67,26 @@ class ShellNavigationTest {
         onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
         onView(withId(R.id.main_BTN_burger)).perform(click())
         onView(withText(R.string.menu_sign_in)).inRoot(isPlatformPopup()).check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun roundTrip_homeProfileHome_landsOnCleanHome() {
+        onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
+        onView(withId(R.id.main_LAY_tabProfile)).perform(click())
+        onView(withId(R.id.profile_LBL_title)).check(matches(isDisplayed()))
+        onView(withId(R.id.home_LAY_scroll)).check(matches(not(isDisplayed())))
+        onView(withId(R.id.main_LAY_tabHome)).perform(click())
+        onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
+        onView(withId(R.id.profile_LBL_title)).check(matches(not(isDisplayed())))
+    }
+
+    @Test
+    fun roundTrip_homeCouponsHome_landsOnCleanHome() {
+        onView(withId(R.id.main_LAY_tabCoupons)).perform(click())
+        onView(withId(R.id.favorites_LBL_title)).check(matches(isDisplayed()))
+        onView(withId(R.id.home_LAY_scroll)).check(matches(not(isDisplayed())))
+        onView(withId(R.id.main_LAY_tabHome)).perform(click())
+        onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
+        onView(withId(R.id.favorites_LBL_title)).check(matches(not(isDisplayed())))
     }
 }

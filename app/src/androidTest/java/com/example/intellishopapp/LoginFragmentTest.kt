@@ -1,6 +1,7 @@
 package com.example.intellishopapp
 
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.Espresso.pressBack
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.typeText
@@ -70,6 +71,15 @@ class LoginFragmentTest {
         onView(withId(R.id.login_BTN_submit)).perform(click())
         // Login is popped off the shell -> the feed shows again.
         waitUntilGone(R.id.login_ET_email)
+        onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun openLogin_pressBack_returnsToCleanHome() {
+        openLogin()
+        onView(withId(R.id.login_ET_email)).check(matches(isDisplayed()))
+        pressBack()
+        onView(withId(R.id.login_ET_email)).check(doesNotExist())
         onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
     }
 
