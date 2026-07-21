@@ -70,6 +70,13 @@ class ShellNavigationTest {
     }
 
     @Test
+    fun searchBar_showsBanner() {
+        onView(withId(R.id.main_LAY_search)).perform(click())
+        onView(withId(R.id.main_LBL_banner)).check(matches(isDisplayed()))
+        onView(withId(R.id.main_LBL_banner)).check(matches(withText(R.string.search_soon)))
+    }
+
+    @Test
     fun roundTrip_homeProfileHome_landsOnCleanHome() {
         onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
         onView(withId(R.id.main_LAY_tabProfile)).perform(click())
