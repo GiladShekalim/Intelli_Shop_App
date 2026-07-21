@@ -2,6 +2,7 @@ package com.example.intellishopapp
 
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.RootMatchers.isPlatformPopup
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
@@ -53,6 +54,31 @@ class ShellNavigationTest {
         onView(withId(R.id.main_LAY_tabCoupons)).perform(click())
         onView(withId(R.id.main_LAY_tabHome)).perform(click())
         onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun onLogin_pressHome_leavesLoginAndShowsHome() {
+        onView(withId(R.id.main_LAY_tabProfile)).perform(click())
+        onView(withId(R.id.login_ET_email)).check(matches(isDisplayed()))
+        onView(withId(R.id.main_LAY_tabHome)).perform(click())
+        onView(withId(R.id.login_ET_email)).check(doesNotExist())
+        onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun onLogin_pressCoupons_leavesLoginAndShowsCoupons() {
+        onView(withId(R.id.main_LAY_tabProfile)).perform(click())
+        onView(withId(R.id.login_ET_email)).check(matches(isDisplayed()))
+        onView(withId(R.id.main_LAY_tabCoupons)).perform(click())
+        onView(withId(R.id.login_ET_email)).check(doesNotExist())
+        onView(withId(R.id.favorites_LBL_title)).check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun loginOverlay_hidesSearchBar() {
+        onView(withId(R.id.main_LAY_search)).check(matches(isDisplayed()))
+        onView(withId(R.id.main_LAY_tabProfile)).perform(click())
+        onView(withId(R.id.main_LAY_search)).check(matches(not(isDisplayed())))
     }
 
     @Test
