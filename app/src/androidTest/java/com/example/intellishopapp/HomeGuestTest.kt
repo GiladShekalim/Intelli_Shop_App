@@ -18,8 +18,8 @@ import org.junit.runner.RunWith
 
 /**
  * Guest Home (Figma layout): a hero row + category sections are browsable by
- * anyone; a guest tapping a coupon is prompted to sign up and sent to Login.
- * Requires the Django server running.
+ * anyone; a guest tapping a coupon opens the Details sheet (the sign-in gate is on
+ * the actions inside it). Requires the Django server running.
  */
 @RunWith(AndroidJUnit4::class)
 class HomeGuestTest {
@@ -44,11 +44,11 @@ class HomeGuestTest {
     }
 
     @Test
-    fun guestTapCoupon_opensLogin() {
+    fun guestTapCoupon_opensDetail() {
         waitForHero()
         onView(withId(R.id.home_LAY_hero))
             .perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(0, click()))
-        onView(withId(R.id.login_ET_email)).check(matches(isDisplayed()))
+        onView(withId(R.id.detail_LBL_title)).check(matches(isDisplayed()))
     }
 
     private fun waitForHero() {
