@@ -12,10 +12,13 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import com.example.intellishopapp.ui.FavoritesFragment
 import com.example.intellishopapp.ui.HomeFragment
 import com.example.intellishopapp.ui.LoginFragment
 import com.example.intellishopapp.ui.ProfileFragment
+import com.example.intellishopapp.ui.RegisterFragment
+import com.example.intellishopapp.utilities.SessionManager
 import com.google.android.material.textview.MaterialTextView
 
 /**
@@ -132,7 +135,26 @@ class MainActivity : AppCompatActivity() {
             .commit()
     }
 
+    /** Shows Register layered over the content. args carry the Google prefill. */
+    fun showRegister(args: Bundle?) {
+        if (supportFragmentManager.findFragmentByTag(TAG_REGISTER) != null) return
+        supportFragmentManager.beginTransaction()
+            .add(R.id.main_FRAME_content, RegisterFragment().apply { arguments = args }, TAG_REGISTER)
+            .addToBackStack(TAG_REGISTER)
+            .commit()
+    }
+
+    /** Clears any auth overlays (login/register) — used after a successful sign-in. */
+    fun dismissAuth() {
+        supportFragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+    }
+
     private fun selectTab(tab: Tab) {
+        // Profile requires an account; a guest is sent to Login instead.
+        if (tab == Tab.PROFILE && !SessionManager.getInstance().isLoggedIn()) {
+            showLogin()
+            return
+        }
         val target = when (tab) {
             Tab.HOME -> homeFragment
             Tab.COUPONS -> favoritesFragment
@@ -180,6 +202,7 @@ class MainActivity : AppCompatActivity() {
         private const val TAG_COUPONS = "coupons"
         private const val TAG_PROFILE = "profile"
         private const val TAG_LOGIN = "login"
+        private const val TAG_REGISTER = "register"
         private const val MENU_SIGN_IN = 1
     }
 }

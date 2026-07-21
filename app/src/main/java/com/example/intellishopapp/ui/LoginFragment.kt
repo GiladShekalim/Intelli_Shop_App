@@ -1,17 +1,16 @@
 package com.example.intellishopapp.ui
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.intellishopapp.MainActivity
 import com.example.intellishopapp.R
-import com.example.intellishopapp.RegisterActivity
 import com.example.intellishopapp.model.UserSession
 import com.example.intellishopapp.repository.AuthRepository
 import com.example.intellishopapp.utilities.ApiResult
@@ -63,7 +62,7 @@ class LoginFragment : Fragment() {
         login_BTN_submit.setOnClickListener { submit() }
         login_BTN_google.setOnClickListener { signInWithGoogle() }
         login_LBL_registerLink.setOnClickListener {
-            startActivity(Intent(requireContext(), RegisterActivity::class.java))
+            (requireActivity() as MainActivity).showRegister(null)
         }
     }
 
@@ -128,11 +127,13 @@ class LoginFragment : Fragment() {
                         onSignedIn()
                     } else {
                         setLoading(false)
-                        startActivity(Intent(requireContext(), RegisterActivity::class.java).apply {
-                            putExtra(RegisterActivity.EXTRA_EMAIL, body.email)
-                            putExtra(RegisterActivity.EXTRA_NAME, body.name)
-                            putExtra(RegisterActivity.EXTRA_GOOGLE, true)
-                        })
+                        (requireActivity() as MainActivity).showRegister(
+                            bundleOf(
+                                RegisterFragment.EXTRA_EMAIL to body.email,
+                                RegisterFragment.EXTRA_NAME to body.name,
+                                RegisterFragment.EXTRA_GOOGLE to true
+                            )
+                        )
                     }
                 }
                 is ApiResult.Error -> {
