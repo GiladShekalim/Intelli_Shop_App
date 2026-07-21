@@ -17,15 +17,13 @@ import com.example.intellishopapp.model.dto.CouponDto
 import com.example.intellishopapp.repository.CouponRepository
 import com.example.intellishopapp.utilities.ApiResult
 import com.example.intellishopapp.utilities.Constants
-import com.example.intellishopapp.utilities.SessionManager
-import com.example.intellishopapp.utilities.SignalManager
 import com.google.android.material.textview.MaterialTextView
 import kotlinx.coroutines.launch
 
 /**
  * Guest-browsable home, styled like the Figma: a featured hero row on top and a
- * horizontal "View More" row per category below. Anyone can browse; opening a
- * coupon requires an account (guests are prompted to sign up).
+ * horizontal "View More" row per category below. Anyone can browse and open a
+ * coupon; the sign-in gate lives on the actions inside the detail sheet.
  */
 class HomeFragment : Fragment() {
 
@@ -115,13 +113,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun onCouponClicked(coupon: CouponDto) {
-        val shell = requireActivity() as MainActivity
-        if (SessionManager.getInstance().isLoggedIn()) {
-            shell.showBanner(getString(R.string.coupon_soon))
-        } else {
-            shell.showBanner(getString(R.string.gate_sign_up), longDuration = true)
-            SignalManager.getInstance().vibrate()
-            shell.showLogin()
-        }
+        // Details open for everyone; the gated actions live inside the sheet.
+        (requireActivity() as MainActivity).showCouponDetail(coupon)
     }
 }

@@ -13,6 +13,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import com.example.intellishopapp.ui.CouponDetailFragment
 import com.example.intellishopapp.ui.FavoritesFragment
 import com.example.intellishopapp.ui.HomeFragment
 import com.example.intellishopapp.ui.LoginFragment
@@ -109,14 +110,13 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.addOnBackStackChangedListener { refreshSearchBar() }
     }
 
-    private fun isAuthShowing(): Boolean =
-        supportFragmentManager.findFragmentByTag(TAG_LOGIN) != null ||
-            supportFragmentManager.findFragmentByTag(TAG_REGISTER) != null
+    /** Any overlay layered over the tabs (Login, Register, or a Coupon Detail). */
+    private fun hasOverlay(): Boolean = supportFragmentManager.backStackEntryCount > 0
 
-    /** Search bar belongs to Home only, and never over an auth overlay. */
+    /** Search bar belongs to Home only, and never over an overlay. */
     private fun refreshSearchBar() {
         main_LAY_search.visibility =
-            if (currentTab == Tab.HOME && !isAuthShowing()) View.VISIBLE else View.GONE
+            if (currentTab == Tab.HOME && !hasOverlay()) View.VISIBLE else View.GONE
     }
 
     private val hideBannerRunnable = Runnable {
@@ -166,10 +166,23 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
     }
 
+    /**
+     * Opens the Coupon Details sheet over the content (the fragment handles its own
+     * slide up/down). Openable by everyone; its actions gate guests to Login.
+     */
+    fun showCouponDetail(coupon: com.example.intellishopapp.model.dto.CouponDto) {
+        if (supportFragmentManager.findFragmentByTag(TAG_DETAIL) != null) return
+        main_LAY_search.visibility = View.GONE
+        supportFragmentManager.beginTransaction()
+            .add(R.id.main_FRAME_content, CouponDetailFragment.newInstance(coupon), TAG_DETAIL)
+            .addToBackStack(TAG_DETAIL)
+            .commit()
+    }
+
     private fun selectTab(tab: Tab) {
-        // A tab press always leaves any auth overlay (Login/Register) behind so the
+        // A tab press always leaves any overlay (Login/Register/Detail) behind so the
         // chosen page is actually shown instead of staying pinned under it.
-        if (isAuthShowing()) {
+        if (hasOverlay()) {
             supportFragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
         }
         // Profile requires an account; a guest is sent to Login instead.
@@ -225,6 +238,7 @@ class MainActivity : AppCompatActivity() {
         private const val TAG_PROFILE = "profile"
         private const val TAG_LOGIN = "login"
         private const val TAG_REGISTER = "register"
+        private const val TAG_DETAIL = "detail"
         private const val MENU_SIGN_IN = 1
     }
 }
