@@ -47,6 +47,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var activeFragment: Fragment
 
     private enum class Tab { HOME, COUPONS, PROFILE }
+    private var currentTab = Tab.HOME
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -102,6 +103,20 @@ class MainActivity : AppCompatActivity() {
         main_LAY_search.setOnClickListener {
             showBanner(getString(R.string.search_soon))
         }
+
+        // Keep the search bar correct whenever an auth overlay is pushed or popped
+        // (e.g. system back leaving Login restores it on Home).
+        supportFragmentManager.addOnBackStackChangedListener { refreshSearchBar() }
+    }
+
+    private fun isAuthShowing(): Boolean =
+        supportFragmentManager.findFragmentByTag(TAG_LOGIN) != null ||
+            supportFragmentManager.findFragmentByTag(TAG_REGISTER) != null
+
+    /** Search bar belongs to Home only, and never over an auth overlay. */
+    private fun refreshSearchBar() {
+        main_LAY_search.visibility =
+            if (currentTab == Tab.HOME && !isAuthShowing()) View.VISIBLE else View.GONE
     }
 
     private val hideBannerRunnable = Runnable {
@@ -129,6 +144,7 @@ class MainActivity : AppCompatActivity() {
      */
     fun showLogin() {
         if (supportFragmentManager.findFragmentByTag(TAG_LOGIN) != null) return
+        main_LAY_search.visibility = View.GONE
         supportFragmentManager.beginTransaction()
             .add(R.id.main_FRAME_content, LoginFragment(), TAG_LOGIN)
             .addToBackStack(TAG_LOGIN)
@@ -138,6 +154,7 @@ class MainActivity : AppCompatActivity() {
     /** Shows Register layered over the content. args carry the Google prefill. */
     fun showRegister(args: Bundle?) {
         if (supportFragmentManager.findFragmentByTag(TAG_REGISTER) != null) return
+        main_LAY_search.visibility = View.GONE
         supportFragmentManager.beginTransaction()
             .add(R.id.main_FRAME_content, RegisterFragment().apply { arguments = args }, TAG_REGISTER)
             .addToBackStack(TAG_REGISTER)
@@ -150,6 +167,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun selectTab(tab: Tab) {
+        // A tab press always leaves any auth overlay (Login/Register) behind so the
+        // chosen page is actually shown instead of staying pinned under it.
+        if (isAuthShowing()) {
+            supportFragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+        }
         // Profile requires an account; a guest is sent to Login instead.
         if (tab == Tab.PROFILE && !SessionManager.getInstance().isLoggedIn()) {
             showLogin()
@@ -164,12 +186,12 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.beginTransaction().hide(activeFragment).show(target).commit()
             activeFragment = target
         }
+        currentTab = tab
         updateTabColors(tab)
     }
 
     private fun updateTabColors(tab: Tab) {
-        // Search bar belongs to Home (per the Figma); hidden on other tabs.
-        main_LAY_search.visibility = if (tab == Tab.HOME) View.VISIBLE else View.GONE
+        refreshSearchBar()
         val selected = ContextCompat.getColor(this, R.color.brand_primary)
         val normal = ContextCompat.getColor(this, R.color.text_secondary)
         applyTab(main_IMG_tabHome, main_LBL_tabHome, if (tab == Tab.HOME) selected else normal)
