@@ -44,4 +44,61 @@ class CouponFormatterTest {
     fun storeName_emptyWhenNoClub() {
         assertEquals("", CouponFormatter.storeName(coupon(10.0, "percentage", null)))
     }
+
+    // --- edge cases ---
+
+    @Test
+    fun percentageWithDecimal_keepsDecimal() {
+        assertEquals("29.5%", CouponFormatter.priceLabel(coupon(29.5, "percentage")))
+    }
+
+    @Test
+    fun fixedWithDecimal_keepsDecimal() {
+        assertEquals("\$99.99", CouponFormatter.priceLabel(coupon(99.99, "fixed_amount")))
+    }
+
+    @Test
+    fun zeroPercentage_showsZeroPercent() {
+        assertEquals("0%", CouponFormatter.priceLabel(coupon(0.0, "percentage")))
+    }
+
+    @Test
+    fun zeroFixed_showsZeroDollar() {
+        assertEquals("\$0", CouponFormatter.priceLabel(coupon(0.0, "fixed_amount")))
+    }
+
+    @Test
+    fun nullType_fallsBackToDollar() {
+        assertEquals("\$50", CouponFormatter.priceLabel(coupon(50.0, null)))
+    }
+
+    @Test
+    fun unknownType_fallsBackToDollar() {
+        assertEquals("\$50", CouponFormatter.priceLabel(coupon(50.0, "mystery")))
+    }
+
+    @Test
+    fun negativePercentage_keepsSign() {
+        assertEquals("-10%", CouponFormatter.priceLabel(coupon(-10.0, "percentage")))
+    }
+
+    @Test
+    fun largeAmount_hasNoThousandsSeparator() {
+        assertEquals("\$1000000", CouponFormatter.priceLabel(coupon(1_000_000.0, "fixed_amount")))
+    }
+
+    @Test
+    fun storeName_emptyListIsEmpty() {
+        assertEquals("", CouponFormatter.storeName(coupon(10.0, "percentage", emptyList())))
+    }
+
+    @Test
+    fun title_nullIsEmpty() {
+        assertEquals("", CouponFormatter.title(coupon(10.0, "percentage", title = null)))
+    }
+
+    @Test
+    fun title_passesThrough() {
+        assertEquals("Big Sale", CouponFormatter.title(coupon(10.0, "percentage", title = "Big Sale")))
+    }
 }
