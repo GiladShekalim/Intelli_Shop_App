@@ -9,14 +9,16 @@ import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.intellishopapp.utilities.SessionManager
 import org.hamcrest.Matchers.not
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Shell navigation tests: the bottom 3-tab bar switches fragments and the burger
- * menu opens. Runs on a device/emulator against MainActivity (the launcher shell).
+ * Shell navigation for a guest: Home and Coupons are browsable; Profile gates to
+ * Login; the bottom tabs switch cleanly with no leftover between screens.
  */
 @RunWith(AndroidJUnit4::class)
 class ShellNavigationTest {
@@ -24,47 +26,37 @@ class ShellNavigationTest {
     @get:Rule
     val scenario = ActivityScenarioRule(MainActivity::class.java)
 
+    @Before
+    fun ensureGuest() {
+        SessionManager.getInstance().clear()
+    }
+
     @Test
-    fun shellLaunches_showsHomeContent() {
+    fun shellLaunches_showsHome() {
         onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
     }
 
     @Test
-    fun couponsTab_showsCouponsContent() {
+    fun couponsTab_isBrowsableByGuest() {
         onView(withId(R.id.main_LAY_tabCoupons)).perform(click())
         onView(withId(R.id.favorites_LBL_title)).check(matches(isDisplayed()))
     }
 
     @Test
-    fun profileTab_showsProfileContent() {
+    fun guestProfileTab_opensLogin() {
         onView(withId(R.id.main_LAY_tabProfile)).perform(click())
-        onView(withId(R.id.profile_LBL_title)).check(matches(isDisplayed()))
+        onView(withId(R.id.login_ET_email)).check(matches(isDisplayed()))
     }
 
     @Test
-    fun returnToHomeTab_showsHomeContent() {
-        onView(withId(R.id.main_LAY_tabProfile)).perform(click())
+    fun returnToHome_showsHome() {
+        onView(withId(R.id.main_LAY_tabCoupons)).perform(click())
         onView(withId(R.id.main_LAY_tabHome)).perform(click())
         onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
     }
 
     @Test
     fun burger_opensMenu_withSignIn() {
-        onView(withId(R.id.main_BTN_burger)).perform(click())
-        onView(withText(R.string.menu_sign_in))
-            .inRoot(isPlatformPopup())
-            .check(matches(isDisplayed()))
-    }
-
-    @Test
-    fun e2e_navigateAllTabsThenOpenMenu() {
-        onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
-        onView(withId(R.id.main_LAY_tabCoupons)).perform(click())
-        onView(withId(R.id.favorites_LBL_title)).check(matches(isDisplayed()))
-        onView(withId(R.id.main_LAY_tabProfile)).perform(click())
-        onView(withId(R.id.profile_LBL_title)).check(matches(isDisplayed()))
-        onView(withId(R.id.main_LAY_tabHome)).perform(click())
-        onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
         onView(withId(R.id.main_BTN_burger)).perform(click())
         onView(withText(R.string.menu_sign_in)).inRoot(isPlatformPopup()).check(matches(isDisplayed()))
     }
@@ -77,18 +69,8 @@ class ShellNavigationTest {
     }
 
     @Test
-    fun roundTrip_homeProfileHome_landsOnCleanHome() {
-        onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
-        onView(withId(R.id.main_LAY_tabProfile)).perform(click())
-        onView(withId(R.id.profile_LBL_title)).check(matches(isDisplayed()))
-        onView(withId(R.id.home_LAY_scroll)).check(matches(not(isDisplayed())))
-        onView(withId(R.id.main_LAY_tabHome)).perform(click())
-        onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
-        onView(withId(R.id.profile_LBL_title)).check(matches(not(isDisplayed())))
-    }
-
-    @Test
     fun roundTrip_homeCouponsHome_landsOnCleanHome() {
+        onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
         onView(withId(R.id.main_LAY_tabCoupons)).perform(click())
         onView(withId(R.id.favorites_LBL_title)).check(matches(isDisplayed()))
         onView(withId(R.id.home_LAY_scroll)).check(matches(not(isDisplayed())))
