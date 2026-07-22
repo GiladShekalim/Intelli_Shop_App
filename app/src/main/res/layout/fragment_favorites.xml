@@ -1,15 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:background="@color/background_color">
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/favorites_LBL_title"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="@string/tab_coupons"
+        android:gravity="center"
+        android:paddingVertical="14dp"
+        android:text="@string/favorites_header"
         android:textColor="@color/text_primary"
-        android:textSize="20sp" />
-</FrameLayout>
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/divider" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/favorites_RCV_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingVertical="6dp"
+            android:clipToPadding="false" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/favorites_LBL_empty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/favorites_empty"
+            android:textColor="@color/text_secondary"
+            android:textSize="16sp"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/favorites_PRG_loading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+    </FrameLayout>
+</LinearLayout>

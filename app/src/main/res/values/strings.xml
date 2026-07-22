@@ -33,7 +33,12 @@
     <string name="detail_valid_until">Valid until %s</string>
     <string name="detail_link_missing">Link not available</string>
     <string name="detail_saved">Saved to My Coupons</string>
+    <string name="detail_removed">Removed from favorites</string>
+    <string name="detail_update_failed">Could not update favorites</string>
     <string name="detail_code_copied">Coupon code copied</string>
+
+    <string name="favorites_header">My Coupons</string>
+    <string name="favorites_empty">No saved coupons yet</string>
     <string name="gate_save">Sign in to save coupons</string>
     <string name="gate_copy">Sign in to copy the coupon code</string>
     <string name="gate_site">Sign in to go to the site</string>
