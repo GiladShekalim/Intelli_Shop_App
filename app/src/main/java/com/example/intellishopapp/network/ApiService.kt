@@ -1,5 +1,7 @@
 package com.example.intellishopapp.network
 
+import com.example.intellishopapp.model.dto.FavoriteRequest
+import com.example.intellishopapp.model.dto.FavoriteResponse
 import com.example.intellishopapp.model.dto.GoogleLoginRequest
 import com.example.intellishopapp.model.dto.GoogleLoginResponse
 import com.example.intellishopapp.model.dto.ShowAllDiscountsResponse
@@ -30,4 +32,10 @@ interface ApiService {
 
     @GET("show_all_discounts/")
     suspend fun showAllDiscounts(): Response<ShowAllDiscountsResponse>
+
+    @POST("add_favorite/")
+    suspend fun addFavorite(@Body body: FavoriteRequest): Response<FavoriteResponse>
+
+    @POST("remove_favorite/")
+    suspend fun removeFavorite(@Body body: FavoriteRequest): Response<FavoriteResponse>
 }
