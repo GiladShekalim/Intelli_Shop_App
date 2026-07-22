@@ -7,6 +7,7 @@ import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.RecyclerViewActions
 import androidx.test.espresso.matcher.ViewMatchers.hasMinimumChildCount
+import androidx.test.espresso.matcher.ViewMatchers.isCompletelyDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.ext.junit.rules.ActivityScenarioRule
@@ -37,6 +38,8 @@ class CouponDetailTest {
         onView(withId(R.id.home_LAY_hero))
             .perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(0, click()))
         onView(withId(R.id.detail_LBL_title)).check(matches(isDisplayed()))
+        // Let the slide-up animation settle before tapping the lowest buttons.
+        waitCompletelyDisplayed(R.id.detail_BTN_offer)
     }
 
     @Test
@@ -87,6 +90,19 @@ class CouponDetailTest {
                 Thread.sleep(400)
             }
         }
+    }
+
+    private fun waitCompletelyDisplayed(id: Int) {
+        val end = System.currentTimeMillis() + 4000
+        while (System.currentTimeMillis() < end) {
+            try {
+                onView(withId(id)).check(matches(isCompletelyDisplayed()))
+                return
+            } catch (e: Throwable) {
+                Thread.sleep(100)
+            }
+        }
+        onView(withId(id)).check(matches(isCompletelyDisplayed()))
     }
 
     private fun waitUntilGone(id: Int) {
