@@ -15,15 +15,19 @@ import android.widget.LinearLayout
 import androidx.activity.OnBackPressedCallback
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.example.intellishopapp.MainActivity
 import com.example.intellishopapp.R
 import com.example.intellishopapp.logic.CouponFormatter
 import com.example.intellishopapp.model.dto.CouponDto
+import com.example.intellishopapp.repository.FavoriteRepository
+import com.example.intellishopapp.utilities.ApiResult
 import com.example.intellishopapp.utilities.SessionManager
 import com.example.intellishopapp.utilities.SignalManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textview.MaterialTextView
+import kotlinx.coroutines.launch
 
 /**
  * Coupon Details as a slide-up sheet over the content: raises from the bottom on
@@ -51,6 +55,9 @@ class CouponDetailFragment : Fragment() {
     private lateinit var detail_BTN_site: MaterialButton
     private lateinit var detail_BTN_offer: MaterialButton
 
+    private val favoriteRepository = FavoriteRepository()
+    private val couponId: String get() = requireArguments().getString(ARG_ID).orEmpty()
+
     private var dragStartY = 0f
     private var dismissing = false
 
@@ -64,6 +71,7 @@ class CouponDetailFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         findViews(view)
         bindContent()
+        setHeart(SessionManager.getInstance().isFavorite(couponId))
         initActions()
         animateUpOnEnter()
         // Back should slide the sheet down, not fall through to the shell.
@@ -129,8 +137,8 @@ class CouponDetailFragment : Fragment() {
     private fun initActions() {
         detail_BTN_close.setOnClickListener { animateDownAndDismiss() }
 
-        detail_BTN_save.setOnClickListener { gated(R.string.gate_save) { markSaved() } }
-        detail_BTN_favorite.setOnClickListener { gated(R.string.gate_save) { markSaved() } }
+        detail_BTN_save.setOnClickListener { gated(R.string.gate_save) { toggleFavorite() } }
+        detail_BTN_favorite.setOnClickListener { gated(R.string.gate_save) { toggleFavorite() } }
         detail_BTN_copy.setOnClickListener { gated(R.string.gate_copy) { copyCode() } }
         detail_BTN_site.setOnClickListener { gated(R.string.gate_site) { openLink(ARG_SITE) } }
         detail_BTN_offer.setOnClickListener { gated(R.string.gate_offer) { openLink(ARG_OFFER) } }
@@ -176,13 +184,41 @@ class CouponDetailFragment : Fragment() {
         }
     }
 
-    private fun markSaved() {
-        detail_BTN_favorite.setImageResource(R.drawable.ic_heart_filled)
+    /** Toggle save/unsave: write through to the backend, then mirror locally. */
+    private fun toggleFavorite() {
+        val id = couponId
+        val session = SessionManager.getInstance()
+        val currentlyFav = session.isFavorite(id)
+        viewLifecycleOwner.lifecycleScope.launch {
+            val result = if (currentlyFav) favoriteRepository.remove(id) else favoriteRepository.add(id)
+            val shell = activity as? MainActivity ?: return@launch
+            when (result) {
+                is ApiResult.Success -> if (currentlyFav) {
+                    session.removeFavorite(id)
+                    setHeart(false)
+                    shell.showBanner(getString(R.string.detail_removed))
+                } else {
+                    session.addFavorite(id)
+                    setHeart(true)
+                    showSavedPill()
+                    shell.showBanner(getString(R.string.detail_saved))
+                }
+                is ApiResult.Error -> shell.showBanner(getString(R.string.detail_update_failed))
+            }
+        }
+    }
+
+    private fun setHeart(isFavorite: Boolean) {
+        detail_BTN_favorite.setImageResource(
+            if (isFavorite) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline
+        )
+    }
+
+    private fun showSavedPill() {
         detail_LAY_savedPill.visibility = View.VISIBLE
         detail_LAY_savedPill.postDelayed({
             if (isAdded) detail_LAY_savedPill.visibility = View.GONE
         }, 1500)
-        (requireActivity() as MainActivity).showBanner(getString(R.string.detail_saved))
     }
 
     private fun copyCode() {
@@ -226,6 +262,7 @@ class CouponDetailFragment : Fragment() {
     }
 
     companion object {
+        private const val ARG_ID = "id"
         private const val ARG_IMAGE = "image"
         private const val ARG_STORE = "store"
         private const val ARG_DISCOUNT = "discount"
@@ -240,6 +277,7 @@ class CouponDetailFragment : Fragment() {
         fun newInstance(coupon: CouponDto): CouponDetailFragment =
             CouponDetailFragment().apply {
                 arguments = bundleOf(
+                    ARG_ID to coupon.discount_id,
                     ARG_IMAGE to coupon.image_link,
                     ARG_STORE to CouponFormatter.storeName(coupon),
                     ARG_DISCOUNT to CouponFormatter.priceLabel(coupon),
