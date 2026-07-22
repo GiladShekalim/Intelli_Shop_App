@@ -30,6 +30,20 @@ class SessionManager private constructor(context: Context) {
         prefs.edit().remove(Constants.Prefs.SESSION).apply()
     }
 
+    // --- favorites (local-first mirror of the backend, like the old web client) ---
+
+    fun favoriteIds(): Set<String> = get()?.knownFavoriteIds ?: emptySet()
+
+    fun isFavorite(discountId: String): Boolean = favoriteIds().contains(discountId)
+
+    fun addFavorite(discountId: String) {
+        get()?.let { save(it.copy(knownFavoriteIds = it.knownFavoriteIds + discountId)) }
+    }
+
+    fun removeFavorite(discountId: String) {
+        get()?.let { save(it.copy(knownFavoriteIds = it.knownFavoriteIds - discountId)) }
+    }
+
     companion object {
         @Volatile
         private var instance: SessionManager? = null
