@@ -10,6 +10,10 @@
 
     <string name="search_hint">Search IntelliShop</string>
     <string name="search_soon">Search coming soon</string>
+    <string name="search_go">Search</string>
+    <string name="search_prompt">Search coupons by name, store, or keyword</string>
+    <string name="search_empty">No coupons match your search</string>
+    <string name="search_min_chars">Type at least 2 characters</string>
     <string name="view_more">View More</string>
     <string name="empty_coupons">No coupons available</string>
     <string name="gate_sign_up">Sign up free to view</string>
