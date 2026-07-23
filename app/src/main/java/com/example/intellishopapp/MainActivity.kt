@@ -13,14 +13,20 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.lifecycleScope
+import com.example.intellishopapp.model.dto.CouponDto
+import com.example.intellishopapp.repository.FavoriteRepository
 import com.example.intellishopapp.ui.CouponDetailFragment
 import com.example.intellishopapp.ui.FavoritesFragment
 import com.example.intellishopapp.ui.HomeFragment
 import com.example.intellishopapp.ui.LoginFragment
 import com.example.intellishopapp.ui.ProfileFragment
 import com.example.intellishopapp.ui.RegisterFragment
+import com.example.intellishopapp.utilities.ApiResult
 import com.example.intellishopapp.utilities.SessionManager
+import com.example.intellishopapp.utilities.SignalManager
 import com.google.android.material.textview.MaterialTextView
+import kotlinx.coroutines.launch
 
 /**
  * The app shell: a top bar with the burger menu, a content frame that hosts the
@@ -49,6 +55,7 @@ class MainActivity : AppCompatActivity() {
 
     private enum class Tab { HOME, COUPONS, PROFILE }
     private var currentTab = Tab.HOME
+    private val favoriteRepository = FavoriteRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -181,6 +188,40 @@ class MainActivity : AppCompatActivity() {
 
     /** Jump to the Coupons tab (used by the Profile shortcut). */
     fun openCoupons() = selectTab(Tab.COUPONS)
+
+    /**
+     * Toggle a coupon's favorite (from a card heart or the detail sheet). Guests get
+     * a sign-in notification only (no redirect); members write through to the backend,
+     * mirror the local set, show the result banner, and report the new state.
+     */
+    fun toggleFavorite(discountId: String, onResult: (nowFavorite: Boolean) -> Unit = {}) {
+        if (discountId.isBlank()) return
+        val session = SessionManager.getInstance()
+        if (!session.isLoggedIn()) {
+            showBanner(getString(R.string.gate_save), longDuration = true)
+            SignalManager.getInstance().vibrate()
+            return
+        }
+        val currentlyFav = session.isFavorite(discountId)
+        lifecycleScope.launch {
+            val result =
+                if (currentlyFav) favoriteRepository.remove(discountId)
+                else favoriteRepository.add(discountId)
+            when (result) {
+                is ApiResult.Success -> {
+                    if (currentlyFav) {
+                        session.removeFavorite(discountId)
+                        showBanner(getString(R.string.detail_removed))
+                    } else {
+                        session.addFavorite(discountId)
+                        showBanner(getString(R.string.detail_saved))
+                    }
+                    onResult(!currentlyFav)
+                }
+                is ApiResult.Error -> showBanner(getString(R.string.detail_update_failed))
+            }
+        }
+    }
 
     /** Sign out: drop the session + cookies and return to the guest Home state. */
     fun signOut() {
