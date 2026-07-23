@@ -13,30 +13,29 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.example.intellishopapp.MainActivity
 import com.example.intellishopapp.R
 import com.example.intellishopapp.logic.CouponFormatter
 import com.example.intellishopapp.model.dto.CouponDto
-import com.example.intellishopapp.repository.FavoriteRepository
-import com.example.intellishopapp.utilities.ApiResult
 import com.example.intellishopapp.utilities.SessionManager
 import com.example.intellishopapp.utilities.SignalManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textview.MaterialTextView
-import kotlinx.coroutines.launch
 
 /**
- * Coupon Details as a slide-up sheet over the content: raises from the bottom on
- * open, slide it back down (or Back) to dismiss. Anyone can open it; the actions
- * (Save / Copy code / Go To Site / Go To Offer) are gated — a guest gets the
- * sign-in banner and is sent to Login.
+ * Coupon Details as a slide-up sheet that rises to ~6/8 of the screen over a dim
+ * scrim; slide it down, tap the scrim, or Back to dismiss. Anyone can open it. The
+ * actions (Save / Copy code / Go To Site / Go To Offer) are limited for guests:
+ * they show a sign-in notification only (no redirect). For members, Go To Site /
+ * Offer first confirm leaving the app.
  */
 class CouponDetailFragment : Fragment() {
 
+    private lateinit var detail_LAY_scrim: View
     private lateinit var detail_LAY_root: View
     private lateinit var detail_LAY_header: LinearLayout
     private lateinit var detail_VIEW_handle: View
@@ -55,7 +54,6 @@ class CouponDetailFragment : Fragment() {
     private lateinit var detail_BTN_site: MaterialButton
     private lateinit var detail_BTN_offer: MaterialButton
 
-    private val favoriteRepository = FavoriteRepository()
     private val couponId: String get() = requireArguments().getString(ARG_ID).orEmpty()
 
     private var dragStartY = 0f
@@ -70,6 +68,7 @@ class CouponDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         findViews(view)
+        setupSheet()
         bindContent()
         setHeart(SessionManager.getInstance().isFavorite(couponId))
         initActions()
@@ -84,6 +83,7 @@ class CouponDetailFragment : Fragment() {
     }
 
     private fun findViews(view: View) {
+        detail_LAY_scrim = view.findViewById(R.id.detail_LAY_scrim)
         detail_LAY_root = view.findViewById(R.id.detail_LAY_root)
         detail_LAY_header = view.findViewById(R.id.detail_LAY_header)
         detail_VIEW_handle = view.findViewById(R.id.detail_VIEW_handle)
@@ -101,6 +101,14 @@ class CouponDetailFragment : Fragment() {
         detail_BTN_copy = view.findViewById(R.id.detail_BTN_copy)
         detail_BTN_site = view.findViewById(R.id.detail_BTN_site)
         detail_BTN_offer = view.findViewById(R.id.detail_BTN_offer)
+    }
+
+    /** Sheet occupies ~6/8 of the screen at the bottom; the scrim above dismisses. */
+    private fun setupSheet() {
+        detail_LAY_root.layoutParams = detail_LAY_root.layoutParams.apply {
+            height = resources.displayMetrics.heightPixels * 6 / 8
+        }
+        detail_LAY_scrim.setOnClickListener { animateDownAndDismiss() }
     }
 
     private fun bindContent() {
@@ -140,8 +148,8 @@ class CouponDetailFragment : Fragment() {
         detail_BTN_save.setOnClickListener { gated(R.string.gate_save) { toggleFavorite() } }
         detail_BTN_favorite.setOnClickListener { gated(R.string.gate_save) { toggleFavorite() } }
         detail_BTN_copy.setOnClickListener { gated(R.string.gate_copy) { copyCode() } }
-        detail_BTN_site.setOnClickListener { gated(R.string.gate_site) { openLink(ARG_SITE) } }
-        detail_BTN_offer.setOnClickListener { gated(R.string.gate_offer) { openLink(ARG_OFFER) } }
+        detail_BTN_site.setOnClickListener { gated(R.string.gate_site) { confirmLeave(ARG_SITE) } }
+        detail_BTN_offer.setOnClickListener { gated(R.string.gate_offer) { confirmLeave(ARG_OFFER) } }
 
         val dragListener = View.OnTouchListener { _, event ->
             when (event.actionMasked) {
@@ -172,39 +180,24 @@ class CouponDetailFragment : Fragment() {
 
     private fun dismissThreshold(): Float = 160f * resources.displayMetrics.density
 
-    /** Guests get the sign-in banner + a nudge to Login; members run the action. */
+    /**
+     * Members run the action; guests get a sign-in notification only (no redirect,
+     * per the limited-action model).
+     */
     private fun gated(gateRes: Int, action: () -> Unit) {
-        val shell = requireActivity() as MainActivity
         if (SessionManager.getInstance().isLoggedIn()) {
             action()
         } else {
-            shell.showBanner(getString(gateRes), longDuration = true)
+            (requireActivity() as MainActivity).showBanner(getString(gateRes), longDuration = true)
             SignalManager.getInstance().vibrate()
-            shell.showLogin()
         }
     }
 
-    /** Toggle save/unsave: write through to the backend, then mirror locally. */
+    /** Toggle save/unsave via the shell (backend write-through + notification). */
     private fun toggleFavorite() {
-        val id = couponId
-        val session = SessionManager.getInstance()
-        val currentlyFav = session.isFavorite(id)
-        viewLifecycleOwner.lifecycleScope.launch {
-            val result = if (currentlyFav) favoriteRepository.remove(id) else favoriteRepository.add(id)
-            val shell = activity as? MainActivity ?: return@launch
-            when (result) {
-                is ApiResult.Success -> if (currentlyFav) {
-                    session.removeFavorite(id)
-                    setHeart(false)
-                    shell.showBanner(getString(R.string.detail_removed))
-                } else {
-                    session.addFavorite(id)
-                    setHeart(true)
-                    showSavedPill()
-                    shell.showBanner(getString(R.string.detail_saved))
-                }
-                is ApiResult.Error -> shell.showBanner(getString(R.string.detail_update_failed))
-            }
+        (requireActivity() as MainActivity).toggleFavorite(couponId) { nowFavorite ->
+            setHeart(nowFavorite)
+            if (nowFavorite) showSavedPill()
         }
     }
 
@@ -228,21 +221,37 @@ class CouponDetailFragment : Fragment() {
         (requireActivity() as MainActivity).showBanner(getString(R.string.detail_code_copied))
     }
 
-    private fun openLink(argKey: String) {
+    /** Warn before leaving the app; open the link only if the user accepts. */
+    private fun confirmLeave(argKey: String) {
         val shell = requireActivity() as MainActivity
         val url = requireArguments().getString(argKey)?.takeIf { it.isNotBlank() }
         if (url == null) {
             shell.showBanner(getString(R.string.detail_link_missing))
             return
         }
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.leave_title)
+            .setMessage(R.string.leave_message)
+            .setCancelable(false)
+            .setPositiveButton(R.string.leave_accept) { dialog, _ ->
+                openUrl(url)
+                dialog.dismiss()
+            }
+            .setNegativeButton(R.string.leave_close) { dialog, _ -> dialog.dismiss() }
+            .show()
+    }
+
+    private fun openUrl(url: String) {
         try {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         } catch (e: ActivityNotFoundException) {
-            shell.showBanner(getString(R.string.detail_link_missing))
+            (activity as? MainActivity)?.showBanner(getString(R.string.detail_link_missing))
         }
     }
 
     private fun animateUpOnEnter() {
+        detail_LAY_scrim.alpha = 0f
+        detail_LAY_scrim.animate().alpha(1f).setDuration(200).start()
         detail_LAY_root.post {
             detail_LAY_root.translationY = detail_LAY_root.height.toFloat()
             detail_LAY_root.animate().translationY(0f).setDuration(260).start()
@@ -252,6 +261,7 @@ class CouponDetailFragment : Fragment() {
     private fun animateDownAndDismiss() {
         if (dismissing) return
         dismissing = true
+        detail_LAY_scrim.animate().alpha(0f).setDuration(200).start()
         detail_LAY_root.animate()
             .translationY(detail_LAY_root.height.toFloat())
             .setDuration(220)

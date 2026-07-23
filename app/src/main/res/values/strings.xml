@@ -49,6 +49,11 @@
     <string name="gate_site">Sign in to go to the site</string>
     <string name="gate_offer">Sign in to view the offer</string>
 
+    <string name="leave_title">Leaving IntelliShop</string>
+    <string name="leave_message">This opens an external site in your browser. Continue?</string>
+    <string name="leave_accept">Accept</string>
+    <string name="leave_close">Close</string>
+
     <string name="main_welcome">Welcome, %s</string>
     <string name="sign_out">Sign out</string>
 
