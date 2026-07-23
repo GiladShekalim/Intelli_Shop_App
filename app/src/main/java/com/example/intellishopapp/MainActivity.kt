@@ -179,6 +179,17 @@ class MainActivity : AppCompatActivity() {
             .commit()
     }
 
+    /** Jump to the Coupons tab (used by the Profile shortcut). */
+    fun openCoupons() = selectTab(Tab.COUPONS)
+
+    /** Sign out: drop the session + cookies and return to the guest Home state. */
+    fun signOut() {
+        SessionManager.getInstance().clear()
+        com.example.intellishopapp.network.RetrofitClient.getInstance().clearCookies()
+        selectTab(Tab.HOME)
+        showBanner(getString(R.string.signed_out))
+    }
+
     private fun selectTab(tab: Tab) {
         // A tab press always leaves any overlay (Login/Register/Detail) behind so the
         // chosen page is actually shown instead of staying pinned under it.
