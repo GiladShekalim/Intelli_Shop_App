@@ -118,11 +118,18 @@ class RegisterFragment : Fragment() {
             params.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
             params.setMargins(6, 6, 6, 6)
             button.layoutParams = params
+            // Single tap selects; a double tap on a selected category removes it.
+            var lastTapTime = 0L
             button.setOnClickListener {
+                val now = System.currentTimeMillis()
+                val doubleTap = now - lastTapTime < DOUBLE_TAP_MS
+                lastTapTime = now
                 if (selected.contains(value)) {
-                    selected.remove(value)
-                    button.backgroundTintList = null
-                    button.setTextColor(brand)
+                    if (doubleTap) {
+                        selected.remove(value)
+                        button.backgroundTintList = null
+                        button.setTextColor(brand)
+                    }
                 } else {
                     selected.add(value)
                     button.backgroundTintList = ColorStateList.valueOf(palette.random())
@@ -210,6 +217,7 @@ class RegisterFragment : Fragment() {
     }
 
     companion object {
+        private const val DOUBLE_TAP_MS = 300L
         const val EXTRA_EMAIL = "extra_email"
         const val EXTRA_NAME = "extra_name"
         const val EXTRA_GOOGLE = "extra_google"
