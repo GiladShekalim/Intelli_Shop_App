@@ -39,6 +39,11 @@
 
     <string name="favorites_header">My Coupons</string>
     <string name="favorites_empty">No saved coupons yet</string>
+
+    <string name="profile_account">Account</string>
+    <string name="profile_my_coupons">My Coupons</string>
+    <string name="profile_sign_out">Sign Out</string>
+    <string name="signed_out">Signed out</string>
     <string name="gate_save">Sign in to save coupons</string>
     <string name="gate_copy">Sign in to copy the coupon code</string>
     <string name="gate_site">Sign in to go to the site</string>
