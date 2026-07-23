@@ -15,4 +15,5 @@
     <color name="search_field">#FFEFEFEF</color>
     <color name="banner_bg">#CC81C784</color>
     <color name="banner_text">#FF1B5E20</color>
+    <color name="scrim_dim">#66000000</color>
 </resources>

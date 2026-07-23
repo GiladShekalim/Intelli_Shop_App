@@ -12,4 +12,5 @@
     <color name="search_field">#FF2A2A2A</color>
     <color name="banner_bg">#CC2E7D32</color>
     <color name="banner_text">#FFE8F5E9</color>
+    <color name="scrim_dim">#99000000</color>
 </resources>

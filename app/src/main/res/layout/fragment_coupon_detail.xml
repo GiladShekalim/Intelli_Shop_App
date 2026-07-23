@@ -1,13 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/detail_LAY_root"
+    android:id="@+id/detail_LAY_scrim"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/background_color"
+    android:background="@color/scrim_dim"
     android:clickable="true"
     android:focusable="true">
+
+    <LinearLayout
+        android:id="@+id/detail_LAY_root"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:background="@color/background_color"
+        android:clickable="true"
+        android:focusable="true">
 
     <View
         android:id="@+id/detail_VIEW_handle"
@@ -261,4 +270,5 @@
                 android:text="@string/detail_action_offer" />
         </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+    </LinearLayout>
+</FrameLayout>
