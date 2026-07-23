@@ -10,6 +10,7 @@ import androidx.test.espresso.matcher.ViewMatchers.hasMinimumChildCount
 import androidx.test.espresso.matcher.ViewMatchers.isCompletelyDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
+import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.intellishopapp.utilities.SessionManager
@@ -51,17 +52,19 @@ class CouponDetailTest {
     }
 
     @Test
-    fun guestSave_opensLogin() {
+    fun guestSave_showsNotificationOnly_noLogin() {
         openFirstDetail()
         onView(withId(R.id.detail_BTN_save)).perform(click())
-        onView(withId(R.id.login_ET_email)).check(matches(isDisplayed()))
+        onView(withId(R.id.main_LBL_banner)).check(matches(withText(R.string.gate_save)))
+        onView(withId(R.id.login_ET_email)).check(doesNotExist())
     }
 
     @Test
-    fun guestCopyCode_opensLogin() {
+    fun guestCopyCode_showsNotificationOnly_noLogin() {
         openFirstDetail()
         onView(withId(R.id.detail_BTN_copy)).perform(click())
-        onView(withId(R.id.login_ET_email)).check(matches(isDisplayed()))
+        onView(withId(R.id.main_LBL_banner)).check(matches(withText(R.string.gate_copy)))
+        onView(withId(R.id.login_ET_email)).check(doesNotExist())
     }
 
     @Test

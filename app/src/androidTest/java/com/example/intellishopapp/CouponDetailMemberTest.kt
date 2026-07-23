@@ -6,6 +6,7 @@ import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.RecyclerViewActions
+import androidx.test.espresso.matcher.RootMatchers.isDialog
 import androidx.test.espresso.matcher.ViewMatchers.hasMinimumChildCount
 import androidx.test.espresso.matcher.ViewMatchers.isCompletelyDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
@@ -94,8 +95,32 @@ class CouponDetailMemberTest {
         onView(withId(R.id.detail_BTN_save)).perform(click())
         waitForBanner(R.string.detail_saved)
         onView(withId(R.id.main_LAY_tabCoupons)).perform(click())
+        // The Coupons tab fetches its catalog lazily on first show; wait for the row.
+        waitForChildren(R.id.favorites_RCV_list)
         onView(withId(R.id.favorites_LBL_empty)).check(matches(not(isDisplayed())))
         onView(withId(R.id.favorites_RCV_list)).check(matches(hasMinimumChildCount(1)))
+    }
+
+    private fun waitForChildren(id: Int) {
+        val end = System.currentTimeMillis() + 15000
+        while (System.currentTimeMillis() < end) {
+            try {
+                onView(withId(id)).check(matches(hasMinimumChildCount(1)))
+                return
+            } catch (e: Throwable) {
+                Thread.sleep(300)
+            }
+        }
+    }
+
+    @Test
+    fun memberGoToSite_showsLeaveDialog_closeDismisses() {
+        openFirstDetail()
+        onView(withId(R.id.detail_BTN_site)).perform(click())
+        // Leaving-app warning appears; Close dismisses it without navigating away.
+        onView(withText(R.string.leave_close)).inRoot(isDialog()).check(matches(isDisplayed()))
+        onView(withText(R.string.leave_close)).inRoot(isDialog()).perform(click())
+        onView(withId(R.id.detail_LBL_title)).check(matches(isDisplayed()))
     }
 
     @Test

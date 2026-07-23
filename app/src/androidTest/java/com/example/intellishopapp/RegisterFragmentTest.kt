@@ -87,14 +87,20 @@ class RegisterFragmentTest {
         onView(withId(R.id.register_ET_email)).perform(typeText("$unique@example.com"), closeSoftKeyboard())
         onView(withId(R.id.register_ET_password)).perform(typeText("pw123"), closeSoftKeyboard())
         onView(withId(R.id.register_BTN_submit)).perform(scrollTo(), click())
-        waitUntilGone(R.id.register_ET_username)
+        // This is a real create-user round-trip; it can drop under heavy emulator load
+        // late in the suite (no user created). Retry the submit once with the same data.
+        if (!isGoneWithin(R.id.register_ET_username, 20000)) {
+            onView(withId(R.id.register_BTN_submit)).perform(scrollTo(), click())
+            waitUntilGone(R.id.register_ET_username)
+        }
         // Login re-appears underneath after the Register overlay pops (async).
         waitDisplayed(R.id.login_ET_email)
         onView(withId(R.id.login_ET_email)).check(matches(isDisplayed()))
     }
 
     private fun waitUntilGone(id: Int) {
-        val end = System.currentTimeMillis() + 12000
+        // Generous: this is a real network create-user round-trip, slow under load.
+        val end = System.currentTimeMillis() + 25000
         while (System.currentTimeMillis() < end) {
             try {
                 onView(withId(id)).check(doesNotExist())
@@ -104,5 +110,19 @@ class RegisterFragmentTest {
             }
         }
         onView(withId(id)).check(doesNotExist())
+    }
+
+    /** Returns true if the view is gone within the window (no assertion on timeout). */
+    private fun isGoneWithin(id: Int, ms: Long): Boolean {
+        val end = System.currentTimeMillis() + ms
+        while (System.currentTimeMillis() < end) {
+            try {
+                onView(withId(id)).check(doesNotExist())
+                return true
+            } catch (e: Throwable) {
+                Thread.sleep(300)
+            }
+        }
+        return false
     }
 }

@@ -49,17 +49,19 @@ class NavigationEdgeTest {
     }
 
     @Test
-    fun guestGoToSite_opensLogin() {
+    fun guestGoToSite_showsNotificationOnly_noLogin() {
         openFirstDetail()
         onView(withId(R.id.detail_BTN_site)).perform(click())
-        onView(withId(R.id.login_ET_email)).check(matches(isDisplayed()))
+        onView(withId(R.id.main_LBL_banner)).check(matches(withText(R.string.gate_site)))
+        onView(withId(R.id.login_ET_email)).check(doesNotExist())
     }
 
     @Test
-    fun guestGoToOffer_opensLogin() {
+    fun guestGoToOffer_showsNotificationOnly_noLogin() {
         openFirstDetail()
         onView(withId(R.id.detail_BTN_offer)).perform(click())
-        onView(withId(R.id.login_ET_email)).check(matches(isDisplayed()))
+        onView(withId(R.id.main_LBL_banner)).check(matches(withText(R.string.gate_offer)))
+        onView(withId(R.id.login_ET_email)).check(doesNotExist())
     }
 
     @Test
@@ -114,16 +116,16 @@ class NavigationEdgeTest {
     }
 
     @Test
-    fun openDetailThenLoginThenTab_landsOnCleanPage() {
-        // Guest opens a detail, a gated action stacks Login on top, then a tab press
-        // must leave BOTH overlays and show the chosen page cleanly.
+    fun openDetailThenProfileThenTab_landsOnCleanPage() {
+        // Guest opens a detail, then Profile leaves the detail and shows Login; a
+        // second tab press must leave Login and show the chosen page cleanly.
         openFirstDetail()
-        onView(withId(R.id.detail_BTN_save)).perform(click())
-        onView(withId(R.id.login_ET_email)).check(matches(isDisplayed()))
-        onView(withId(R.id.main_LAY_tabCoupons)).perform(click())
-        onView(withId(R.id.login_ET_email)).check(doesNotExist())
+        onView(withId(R.id.main_LAY_tabProfile)).perform(click())
         onView(withId(R.id.detail_LBL_title)).check(doesNotExist())
-        onView(withId(R.id.favorites_LBL_title)).check(matches(isDisplayed()))
+        onView(withId(R.id.login_ET_email)).check(matches(isDisplayed()))
+        onView(withId(R.id.main_LAY_tabHome)).perform(click())
+        onView(withId(R.id.login_ET_email)).check(doesNotExist())
+        onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
     }
 
     private fun waitForHero() {
