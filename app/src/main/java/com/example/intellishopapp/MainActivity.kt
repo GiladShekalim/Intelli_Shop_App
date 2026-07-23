@@ -22,6 +22,7 @@ import com.example.intellishopapp.ui.HomeFragment
 import com.example.intellishopapp.ui.LoginFragment
 import com.example.intellishopapp.ui.ProfileFragment
 import com.example.intellishopapp.ui.RegisterFragment
+import com.example.intellishopapp.ui.SearchFragment
 import com.example.intellishopapp.utilities.ApiResult
 import com.example.intellishopapp.utilities.SessionManager
 import com.example.intellishopapp.utilities.SignalManager
@@ -108,9 +109,7 @@ class MainActivity : AppCompatActivity() {
         main_LAY_tabCoupons.setOnClickListener { selectTab(Tab.COUPONS) }
         main_LAY_tabProfile.setOnClickListener { selectTab(Tab.PROFILE) }
         main_BTN_burger.setOnClickListener { showMenu() }
-        main_LAY_search.setOnClickListener {
-            showBanner(getString(R.string.search_soon))
-        }
+        main_LAY_search.setOnClickListener { showSearch() }
 
         // Keep the search bar correct whenever an auth overlay is pushed or popped
         // (e.g. system back leaving Login restores it on Home).
@@ -165,6 +164,16 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction()
             .add(R.id.main_FRAME_content, RegisterFragment().apply { arguments = args }, TAG_REGISTER)
             .addToBackStack(TAG_REGISTER)
+            .commit()
+    }
+
+    /** Opens the Search screen over the content (its own field; bottom menu stays). */
+    fun showSearch() {
+        if (supportFragmentManager.findFragmentByTag(TAG_SEARCH) != null) return
+        main_LAY_search.visibility = View.GONE
+        supportFragmentManager.beginTransaction()
+            .add(R.id.main_FRAME_content, SearchFragment(), TAG_SEARCH)
+            .addToBackStack(TAG_SEARCH)
             .commit()
     }
 
@@ -291,6 +300,7 @@ class MainActivity : AppCompatActivity() {
         private const val TAG_LOGIN = "login"
         private const val TAG_REGISTER = "register"
         private const val TAG_DETAIL = "detail"
+        private const val TAG_SEARCH = "search"
         private const val MENU_SIGN_IN = 1
     }
 }
