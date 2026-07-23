@@ -45,13 +45,17 @@ class FavoritesFragment : Fragment() {
         favorites_LBL_empty = view.findViewById(R.id.favorites_LBL_empty)
         favorites_PRG_loading = view.findViewById(R.id.favorites_PRG_loading)
         favorites_RCV_list.layoutManager = LinearLayoutManager(requireContext())
-        loadThenRender()
+        // Load lazily: the fragment is created hidden at launch, so only fetch the
+        // catalog the first time the Coupons tab is actually shown (or if visible now).
+        if (!isHidden) loadThenRender()
     }
 
-    /** Re-filter when the tab is shown again (favorites may have changed). */
+    /** Load on first show; re-filter on later shows (favorites may have changed). */
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
-        if (!hidden && view != null) render()
+        if (!hidden && view != null) {
+            if (catalog == null) loadThenRender() else render()
+        }
     }
 
     private fun loadThenRender() {
@@ -80,12 +84,22 @@ class FavoritesFragment : Fragment() {
         } else {
             favorites_LBL_empty.visibility = View.GONE
             favorites_RCV_list.visibility = View.VISIBLE
-            favorites_RCV_list.adapter =
-                CouponAdapter(items, R.layout.item_favorite_row) { onCouponClicked(it) }
+            favorites_RCV_list.adapter = CouponAdapter(
+                items, R.layout.item_favorite_row,
+                onFavorite = { onFavoriteClicked(it) }
+            ) { onCouponClicked(it) }
         }
     }
 
     private fun onCouponClicked(coupon: CouponDto) {
         (requireActivity() as MainActivity).showCouponDetail(coupon)
+    }
+
+    private fun onFavoriteClicked(coupon: CouponDto) {
+        // On this list the heart is always filled -> tapping removes; re-render so the
+        // row drops out. (Guests never reach here with saved items.)
+        (requireActivity() as MainActivity).toggleFavorite(coupon.discount_id.orEmpty()) {
+            render()
+        }
     }
 }

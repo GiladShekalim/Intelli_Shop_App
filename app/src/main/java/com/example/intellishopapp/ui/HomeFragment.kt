@@ -33,7 +33,13 @@ class HomeFragment : Fragment() {
     private lateinit var home_LBL_empty: MaterialTextView
 
     private val couponRepository = CouponRepository()
-    private val heroAdapter = CouponAdapter(emptyList(), R.layout.item_hero_card) { onCouponClicked(it) }
+    private val heroAdapter = CouponAdapter(
+        emptyList(), R.layout.item_hero_card,
+        onFavorite = { onFavoriteClicked(it) }
+    ) { onCouponClicked(it) }
+
+    // Every card adapter on the page, so a favorite toggle refreshes all hearts.
+    private val cardAdapters = mutableListOf<CouponAdapter>(heroAdapter)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -89,6 +95,7 @@ class HomeFragment : Fragment() {
 
         // A "View More" row per category that has coupons (canonical order).
         home_LAY_sections.removeAllViews()
+        cardAdapters.retainAll(listOf(heroAdapter))
         for (category in Constants.Categories.ALL) {
             val inCategory = coupons.filter { it.category?.contains(category) == true }
             if (inCategory.isNotEmpty()) {
@@ -105,7 +112,12 @@ class HomeFragment : Fragment() {
 
         title.text = category
         row.layoutManager = LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false)
-        row.adapter = CouponAdapter(coupons, R.layout.item_coupon_card) { onCouponClicked(it) }
+        val adapter = CouponAdapter(
+            coupons, R.layout.item_coupon_card,
+            onFavorite = { onFavoriteClicked(it) }
+        ) { onCouponClicked(it) }
+        row.adapter = adapter
+        cardAdapters.add(adapter)
         viewMore.setOnClickListener {
             (requireActivity() as MainActivity).showBanner(getString(R.string.search_soon))
         }
@@ -115,5 +127,12 @@ class HomeFragment : Fragment() {
     private fun onCouponClicked(coupon: CouponDto) {
         // Details open for everyone; the gated actions live inside the sheet.
         (requireActivity() as MainActivity).showCouponDetail(coupon)
+    }
+
+    private fun onFavoriteClicked(coupon: CouponDto) {
+        // Guests get a notification only; members toggle. Refresh every heart after.
+        (requireActivity() as MainActivity).toggleFavorite(coupon.discount_id.orEmpty()) {
+            cardAdapters.forEach { it.notifyDataSetChanged() }
+        }
     }
 }
