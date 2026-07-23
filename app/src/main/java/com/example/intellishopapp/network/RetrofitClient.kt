@@ -6,6 +6,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 /**
  * Single OkHttp/Retrofit stack for the app. Owns the persistent cookie jar so the
@@ -19,9 +20,14 @@ class RetrofitClient private constructor(context: Context) {
 
     private val okHttpClient: OkHttpClient = OkHttpClient.Builder()
         .cookieJar(cookieJar)
+        // Real networks (and a busy dev server) are slow; the 10s defaults are too tight.
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
         .addInterceptor(CsrfInterceptor(cookieJar))
         .addInterceptor(HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+            // BASIC (method/url/status/timing) instead of dumping large response bodies.
+            level = HttpLoggingInterceptor.Level.BASIC
         })
         .build()
 
