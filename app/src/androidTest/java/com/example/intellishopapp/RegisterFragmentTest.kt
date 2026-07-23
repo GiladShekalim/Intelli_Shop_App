@@ -39,7 +39,24 @@ class RegisterFragmentTest {
     private fun openRegister() {
         onView(withId(R.id.main_BTN_burger)).perform(click())
         onView(withText(R.string.menu_sign_in)).inRoot(isPlatformPopup()).perform(click())
+        // Wait for the Login overlay to finish appearing (popup dismiss + fragment
+        // commit are async) before reaching for its register link.
+        waitDisplayed(R.id.login_LBL_registerLink)
         onView(withId(R.id.login_LBL_registerLink)).perform(click())
+        waitDisplayed(R.id.register_ET_username)
+    }
+
+    private fun waitDisplayed(id: Int) {
+        val end = System.currentTimeMillis() + 8000
+        while (System.currentTimeMillis() < end) {
+            try {
+                onView(withId(id)).check(matches(isDisplayed()))
+                return
+            } catch (e: Throwable) {
+                Thread.sleep(150)
+            }
+        }
+        onView(withId(id)).check(matches(isDisplayed()))
     }
 
     @Test
@@ -71,6 +88,8 @@ class RegisterFragmentTest {
         onView(withId(R.id.register_ET_password)).perform(typeText("pw123"), closeSoftKeyboard())
         onView(withId(R.id.register_BTN_submit)).perform(scrollTo(), click())
         waitUntilGone(R.id.register_ET_username)
+        // Login re-appears underneath after the Register overlay pops (async).
+        waitDisplayed(R.id.login_ET_email)
         onView(withId(R.id.login_ET_email)).check(matches(isDisplayed()))
     }
 
