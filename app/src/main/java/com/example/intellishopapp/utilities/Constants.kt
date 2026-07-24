@@ -35,4 +35,16 @@ class Constants {
             "First-time Buyer", "Retiree", "Single", "Renter"
         )
     }
+
+    // Percentage buckets — keys MUST match backend FILTER_CONFIG.PERCENTAGE_BUCKETS.
+    object PercentageBuckets {
+        val ALL = listOf(
+            "up_to_20" to "Up to 20%",
+            "between_20_30" to "20-30%",
+            "between_30_40" to "30-40%",
+            "between_40_50" to "40-50%",
+            "between_50_60" to "50-60%",
+            "more_than_60" to "60%+"
+        )
+    }
 }
