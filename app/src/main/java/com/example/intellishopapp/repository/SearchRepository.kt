@@ -1,5 +1,6 @@
 package com.example.intellishopapp.repository
 
+import com.example.intellishopapp.model.dto.AiFilterRequest
 import com.example.intellishopapp.model.dto.CouponDto
 import com.example.intellishopapp.model.dto.FilterRequest
 import com.example.intellishopapp.network.RetrofitClient
@@ -18,6 +19,24 @@ class SearchRepository {
                 ApiResult.Success(body.discounts)
             } else {
                 ApiResult.Error("Search failed", response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Network error")
+        }
+    }
+
+    /**
+     * AI search: send free text to /ai_filter_helper/ to extract filters, then run
+     * a normal filtered search with them.
+     */
+    suspend fun aiSearch(userText: String): ApiResult<List<CouponDto>> {
+        return try {
+            val aiResponse = api.aiFilterHelper(AiFilterRequest(userText))
+            val aiBody = aiResponse.body()
+            if (!aiResponse.isSuccessful || aiBody?.filters == null) {
+                ApiResult.Error("AI helper failed", aiResponse.code())
+            } else {
+                search(aiBody.filters)
             }
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Network error")

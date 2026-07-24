@@ -1,5 +1,7 @@
 package com.example.intellishopapp.network
 
+import com.example.intellishopapp.model.dto.AiFilterRequest
+import com.example.intellishopapp.model.dto.AiFilterResponse
 import com.example.intellishopapp.model.dto.FavoriteRequest
 import com.example.intellishopapp.model.dto.FavoriteResponse
 import com.example.intellishopapp.model.dto.FilterRequest
@@ -37,6 +39,9 @@ interface ApiService {
 
     @POST("filtered_discounts/")
     suspend fun filteredDiscounts(@Body body: FilterRequest): Response<FilteredDiscountsResponse>
+
+    @POST("ai_filter_helper/")
+    suspend fun aiFilterHelper(@Body body: AiFilterRequest): Response<AiFilterResponse>
 
     @POST("add_favorite/")
     suspend fun addFavorite(@Body body: FavoriteRequest): Response<FavoriteResponse>
