@@ -88,10 +88,9 @@ class ShellNavigationTest {
     }
 
     @Test
-    fun searchBar_showsBanner() {
+    fun searchBar_opensSearch() {
         onView(withId(R.id.main_LAY_search)).perform(click())
-        onView(withId(R.id.main_LBL_banner)).check(matches(isDisplayed()))
-        onView(withId(R.id.main_LBL_banner)).check(matches(withText(R.string.search_soon)))
+        onView(withId(R.id.search_ET_query)).check(matches(isDisplayed()))
     }
 
     @Test
