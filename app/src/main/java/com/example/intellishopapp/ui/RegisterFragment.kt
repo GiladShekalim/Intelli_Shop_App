@@ -169,6 +169,9 @@ class RegisterFragment : Fragment() {
             when (val result = authRepository.register(request)) {
                 is ApiResult.Success -> {
                     if (result.data.status == "success") {
+                        // Persist the sign-up selections locally so Profile can edit them.
+                        SessionManager.getInstance()
+                            .savePreferences(email, selectedStatuses.toList(), selectedInterests.toList())
                         if (googleMode) finishGoogleSignUp(email, password, username)
                         else finishRegister()
                     } else {

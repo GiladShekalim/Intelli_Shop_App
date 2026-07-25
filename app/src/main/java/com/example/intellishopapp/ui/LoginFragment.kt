@@ -79,8 +79,15 @@ class LoginFragment : Fragment() {
             when (val result = authRepository.login(email, password)) {
                 is ApiResult.Success -> {
                     if (result.data.status == "success") {
+                        // Seed statuses/categories saved locally at registration on this device.
+                        val saved = SessionManager.getInstance().loadPreferences(email)
                         SessionManager.getInstance().save(
-                            UserSession(userId = result.data.user_id, email = email)
+                            UserSession(
+                                userId = result.data.user_id,
+                                email = email,
+                                status = saved?.first ?: emptyList(),
+                                hobbies = saved?.second ?: emptyList()
+                            )
                         )
                         onSignedIn()
                     } else {

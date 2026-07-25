@@ -52,6 +52,32 @@ class SessionManager private constructor(context: Context) {
         prefs.edit().putBoolean(Constants.Prefs.NIGHT_MODE, on).apply()
     }
 
+    // --- per-user preferences (statuses + categories), stored locally (no backend) ---
+    // Keyed by email so a user's registration choices survive logout on this device.
+
+    private data class StoredPrefs(val statuses: List<String>, val hobbies: List<String>)
+
+    private fun prefsKey(email: String) = "userprefs_" + email.lowercase()
+
+    fun savePreferences(email: String, statuses: List<String>, hobbies: List<String>) {
+        if (email.isBlank()) return
+        prefs.edit().putString(prefsKey(email), gson.toJson(StoredPrefs(statuses, hobbies))).apply()
+    }
+
+    fun loadPreferences(email: String): Pair<List<String>, List<String>>? {
+        val json = prefs.getString(prefsKey(email), null) ?: return null
+        val stored = runCatching { gson.fromJson(json, StoredPrefs::class.java) }.getOrNull() ?: return null
+        return stored.statuses to stored.hobbies
+    }
+
+    /** Update the live session AND the persistent per-user store together. */
+    fun updatePreferences(statuses: List<String>, hobbies: List<String>) {
+        get()?.let { session ->
+            save(session.copy(status = statuses, hobbies = hobbies))
+            savePreferences(session.email, statuses, hobbies)
+        }
+    }
+
     companion object {
         @Volatile
         private var instance: SessionManager? = null
