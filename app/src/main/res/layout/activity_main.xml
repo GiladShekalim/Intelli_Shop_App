@@ -6,34 +6,22 @@
     android:layout_height="match_parent"
     android:background="@color/background_color">
 
-    <!-- Top bar: burger + title -->
+    <!-- Top bar: a centered search bar with big symmetric side margins -->
     <LinearLayout
         android:id="@+id/main_LAY_topBar"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="8dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ImageButton
-            android:id="@+id/main_BTN_burger"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/menu_open"
-            android:src="@drawable/ic_menu"
-            app:tint="@color/text_primary" />
-
         <LinearLayout
             android:id="@+id/main_LAY_search"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="12dp"
-            android:layout_weight="1"
+            android:layout_marginHorizontal="36dp"
             android:background="@drawable/bg_search"
             android:clickable="true"
             android:focusable="true"
@@ -84,7 +72,7 @@
         android:id="@+id/main_LAY_bottomBar"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:background="@color/background_color"
+        android:background="@color/bottom_bar_bg"
         android:orientation="horizontal"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

@@ -2,10 +2,8 @@ package com.example.intellishopapp
 
 import android.os.Bundle
 import android.view.View
-import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.PopupMenu
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -30,13 +28,12 @@ import com.google.android.material.textview.MaterialTextView
 import kotlinx.coroutines.launch
 
 /**
- * The app shell: a top bar with the burger menu, a content frame that hosts the
+ * The app shell: a top bar with the search bar, a content frame that hosts the
  * Home / Coupons / Profile fragments, and a custom bottom tab bar. Fragments are
  * added once and shown/hidden to preserve their state across tab switches.
  */
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var main_BTN_burger: ImageButton
     private lateinit var main_LAY_search: LinearLayout
     private lateinit var main_LAY_tabHome: LinearLayout
     private lateinit var main_LAY_tabCoupons: LinearLayout
@@ -72,7 +69,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun findViews() {
-        main_BTN_burger = findViewById(R.id.main_BTN_burger)
         main_LAY_search = findViewById(R.id.main_LAY_search)
         main_LAY_tabHome = findViewById(R.id.main_LAY_tabHome)
         main_LAY_tabCoupons = findViewById(R.id.main_LAY_tabCoupons)
@@ -108,7 +104,6 @@ class MainActivity : AppCompatActivity() {
         main_LAY_tabHome.setOnClickListener { selectTab(Tab.HOME) }
         main_LAY_tabCoupons.setOnClickListener { selectTab(Tab.COUPONS) }
         main_LAY_tabProfile.setOnClickListener { selectTab(Tab.PROFILE) }
-        main_BTN_burger.setOnClickListener { showMenu() }
         main_LAY_search.setOnClickListener { showSearch() }
 
         // Keep the search bar correct whenever an auth overlay is pushed or popped
@@ -278,21 +273,6 @@ class MainActivity : AppCompatActivity() {
         label.setTextColor(color)
     }
 
-    private fun showMenu() {
-        val popup = PopupMenu(this, main_BTN_burger)
-        popup.menu.add(0, MENU_SIGN_IN, 0, getString(R.string.menu_sign_in))
-        popup.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                MENU_SIGN_IN -> {
-                    showLogin()
-                    true
-                }
-                else -> false
-            }
-        }
-        popup.show()
-    }
-
     companion object {
         private const val TAG_HOME = "home"
         private const val TAG_COUPONS = "coupons"
@@ -301,6 +281,5 @@ class MainActivity : AppCompatActivity() {
         private const val TAG_REGISTER = "register"
         private const val TAG_DETAIL = "detail"
         private const val TAG_SEARCH = "search"
-        private const val MENU_SIGN_IN = 1
     }
 }
