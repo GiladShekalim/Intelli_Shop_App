@@ -13,10 +13,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.intellishopapp.MainActivity
 import com.example.intellishopapp.R
 import com.example.intellishopapp.adapter.CouponAdapter
+import com.example.intellishopapp.logic.CouponRanker
 import com.example.intellishopapp.model.dto.CouponDto
 import com.example.intellishopapp.repository.CouponRepository
 import com.example.intellishopapp.utilities.ApiResult
 import com.example.intellishopapp.utilities.Constants
+import com.example.intellishopapp.utilities.SessionManager
 import com.google.android.material.textview.MaterialTextView
 import kotlinx.coroutines.launch
 
@@ -89,8 +91,9 @@ class HomeFragment : Fragment() {
     }
 
     private fun showCoupons(coupons: List<CouponDto>) {
-        // Hero: the highest-value coupons.
-        val featured = coupons.sortedByDescending { it.price ?: 0.0 }.take(6)
+        // Hero: personalized top-10 (favourites-weighted, like the backend index_home).
+        // For a guest / no favourites this falls back to the highest-value coupons.
+        val featured = CouponRanker.personalizedTop(coupons, SessionManager.getInstance().favoriteIds(), 10)
         heroAdapter.updateItems(featured)
 
         // A "View More" row per category that has coupons (canonical order).
