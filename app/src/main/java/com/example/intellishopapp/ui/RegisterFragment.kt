@@ -193,7 +193,7 @@ class RegisterFragment : Fragment() {
         when (val login = authRepository.login(email, password)) {
             is ApiResult.Success -> {
                 SessionManager.getInstance().save(
-                    UserSession(userId = login.data.user_id, email = email, username = username)
+                    UserSession(userId = login.data.user_id, email = email, username = username, isGoogle = true)
                 )
                 val shell = requireActivity() as MainActivity
                 shell.showBanner(getString(R.string.welcome_back))

@@ -121,7 +121,8 @@ class LoginFragment : Fragment() {
                             UserSession(
                                 userId = body.user_id ?: "",
                                 email = body.email ?: "",
-                                username = body.username
+                                username = body.username,
+                                isGoogle = true
                             )
                         )
                         onSignedIn()
