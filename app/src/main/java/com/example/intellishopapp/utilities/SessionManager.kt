@@ -44,6 +44,14 @@ class SessionManager private constructor(context: Context) {
         get()?.let { save(it.copy(knownFavoriteIds = it.knownFavoriteIds - discountId)) }
     }
 
+    // --- app theme (Day/Night), app-wide, not tied to a user ---
+
+    fun isNightMode(): Boolean = prefs.getBoolean(Constants.Prefs.NIGHT_MODE, false)
+
+    fun setNightMode(on: Boolean) {
+        prefs.edit().putBoolean(Constants.Prefs.NIGHT_MODE, on).apply()
+    }
+
     companion object {
         @Volatile
         private var instance: SessionManager? = null

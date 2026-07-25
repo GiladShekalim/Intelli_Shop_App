@@ -17,6 +17,7 @@ class Constants {
         const val FILE = "intellishop_prefs"
         const val COOKIES = "cookies"
         const val SESSION = "session"
+        const val NIGHT_MODE = "night_mode"
     }
 
     // Interests — exact backend CATEGORIES values (order and case matter).

@@ -12,5 +12,6 @@ data class UserSession(
     val age: Int? = null,
     val location: String? = null,
     val hobbies: List<String> = emptyList(),
-    val knownFavoriteIds: Set<String> = emptySet()
+    val knownFavoriteIds: Set<String> = emptySet(),
+    val isGoogle: Boolean = false
 )

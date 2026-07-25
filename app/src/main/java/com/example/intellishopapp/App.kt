@@ -1,6 +1,7 @@
 package com.example.intellishopapp
 
 import android.app.Application
+import androidx.appcompat.app.AppCompatDelegate
 import com.example.intellishopapp.network.RetrofitClient
 import com.example.intellishopapp.repository.AuthRepository
 import com.example.intellishopapp.utilities.SessionManager
@@ -19,6 +20,14 @@ class App : Application() {
         RetrofitClient.init(this)
         SessionManager.init(this)
         SignalManager.init(this)
+        // Apply the saved Day/Night preference before any activity is shown.
+        AppCompatDelegate.setDefaultNightMode(
+            if (SessionManager.getInstance().isNightMode()) {
+                AppCompatDelegate.MODE_NIGHT_YES
+            } else {
+                AppCompatDelegate.MODE_NIGHT_NO
+            }
+        )
         CoroutineScope(Dispatchers.IO).launch {
             AuthRepository().ensureCsrfPrimed()
         }
