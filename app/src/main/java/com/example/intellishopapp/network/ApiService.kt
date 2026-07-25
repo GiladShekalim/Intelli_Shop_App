@@ -8,6 +8,7 @@ import com.example.intellishopapp.model.dto.FilterRequest
 import com.example.intellishopapp.model.dto.FilteredDiscountsResponse
 import com.example.intellishopapp.model.dto.GoogleLoginRequest
 import com.example.intellishopapp.model.dto.GoogleLoginResponse
+import com.example.intellishopapp.model.dto.ProfileUpdateResponse
 import com.example.intellishopapp.model.dto.ShowAllDiscountsResponse
 import com.example.intellishopapp.model.dto.LoginRequest
 import com.example.intellishopapp.model.dto.LoginResponse
@@ -16,7 +17,10 @@ import com.example.intellishopapp.model.dto.RegisterResponse
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 
 interface ApiService {
@@ -42,6 +46,17 @@ interface ApiService {
 
     @POST("ai_filter_helper/")
     suspend fun aiFilterHelper(@Body body: AiFilterRequest): Response<AiFilterResponse>
+
+    // profile_view reads form fields and returns JSON when Accept: application/json.
+    @FormUrlEncoded
+    @POST("profile/")
+    suspend fun changePassword(
+        @Header("Accept") accept: String,
+        @Field("action") action: String,
+        @Field("current_password") currentPassword: String,
+        @Field("new_password") newPassword: String,
+        @Field("confirm_password") confirmPassword: String
+    ): Response<ProfileUpdateResponse>
 
     @POST("add_favorite/")
     suspend fun addFavorite(@Body body: FavoriteRequest): Response<FavoriteResponse>
