@@ -57,9 +57,13 @@
 
     <string name="profile_account">Account</string>
     <string name="profile_my_coupons">My Coupons</string>
+    <string name="profile_my_preferences">My Preferences</string>
+    <string name="profile_my_categories">My Categories</string>
     <string name="profile_change_password">Change Password</string>
     <string name="profile_sign_out">Sign Out</string>
     <string name="signed_out">Signed out</string>
+    <string name="pref_added">Added %s</string>
+    <string name="pref_removed">Removed %s</string>
     <string name="profile_mode_day">Day</string>
     <string name="profile_mode_night">Night</string>
     <string name="profile_mode_label">MODE</string>

@@ -18,6 +18,7 @@ import com.example.intellishopapp.ui.CouponDetailFragment
 import com.example.intellishopapp.ui.FavoritesFragment
 import com.example.intellishopapp.ui.HomeFragment
 import com.example.intellishopapp.ui.LoginFragment
+import com.example.intellishopapp.ui.PreferencesFragment
 import com.example.intellishopapp.ui.ProfileFragment
 import com.example.intellishopapp.ui.RegisterFragment
 import com.example.intellishopapp.ui.SearchFragment
@@ -193,6 +194,16 @@ class MainActivity : AppCompatActivity() {
     /** Jump to the Coupons tab (used by the Profile shortcut). */
     fun openCoupons() = selectTab(Tab.COUPONS)
 
+    /** Opens the local preferences/categories editor over the content. */
+    fun showPreferences(type: String) {
+        if (supportFragmentManager.findFragmentByTag(TAG_PREFS) != null) return
+        main_LAY_search.visibility = View.GONE
+        supportFragmentManager.beginTransaction()
+            .add(R.id.main_FRAME_content, PreferencesFragment.newInstance(type), TAG_PREFS)
+            .addToBackStack(TAG_PREFS)
+            .commit()
+    }
+
     /**
      * Toggle a coupon's favorite (from a card heart or the detail sheet). Guests get
      * a sign-in notification only (no redirect); members write through to the backend,
@@ -281,5 +292,6 @@ class MainActivity : AppCompatActivity() {
         private const val TAG_REGISTER = "register"
         private const val TAG_DETAIL = "detail"
         private const val TAG_SEARCH = "search"
+        private const val TAG_PREFS = "prefs"
     }
 }
