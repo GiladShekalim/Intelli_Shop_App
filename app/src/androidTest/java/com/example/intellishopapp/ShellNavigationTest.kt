@@ -82,12 +82,6 @@ class ShellNavigationTest {
     }
 
     @Test
-    fun burger_opensMenu_withSignIn() {
-        onView(withId(R.id.main_BTN_burger)).perform(click())
-        onView(withText(R.string.menu_sign_in)).inRoot(isPlatformPopup()).check(matches(isDisplayed()))
-    }
-
-    @Test
     fun searchBar_opensSearch() {
         onView(withId(R.id.main_LAY_search)).perform(click())
         onView(withId(R.id.search_ET_query)).check(matches(isDisplayed()))

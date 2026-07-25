@@ -35,8 +35,8 @@ class LoginFragmentTest {
     }
 
     private fun openLogin() {
-        onView(withId(R.id.main_BTN_burger)).perform(click())
-        onView(withText(R.string.menu_sign_in)).inRoot(isPlatformPopup()).perform(click())
+        // Guests reach Login via the Profile tab (the burger menu was removed).
+        onView(withId(R.id.main_LAY_tabProfile)).perform(click())
     }
 
     @Test

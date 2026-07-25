@@ -37,10 +37,9 @@ class RegisterFragmentTest {
     }
 
     private fun openRegister() {
-        onView(withId(R.id.main_BTN_burger)).perform(click())
-        onView(withText(R.string.menu_sign_in)).inRoot(isPlatformPopup()).perform(click())
-        // Wait for the Login overlay to finish appearing (popup dismiss + fragment
-        // commit are async) before reaching for its register link.
+        // Guests reach Login (then Register) via the Profile tab (burger removed).
+        onView(withId(R.id.main_LAY_tabProfile)).perform(click())
+        // Wait for the Login overlay to finish appearing before reaching its link.
         waitDisplayed(R.id.login_LBL_registerLink)
         onView(withId(R.id.login_LBL_registerLink)).perform(click())
         waitDisplayed(R.id.register_ET_username)

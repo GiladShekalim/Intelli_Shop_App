@@ -107,15 +107,6 @@ class NavigationEdgeTest {
     }
 
     @Test
-    fun burgerSignIn_thenBack_returnsToHome() {
-        onView(withId(R.id.main_BTN_burger)).perform(click())
-        onView(withText(R.string.menu_sign_in)).inRoot(isPlatformPopup()).perform(click())
-        onView(withId(R.id.login_ET_email)).check(matches(isDisplayed()))
-        pressBack()
-        onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
-    }
-
-    @Test
     fun openDetailThenProfileThenTab_landsOnCleanPage() {
         // Guest opens a detail, then Profile leaves the detail and shows Login; a
         // second tab press must leave Login and show the chosen page cleanly.
