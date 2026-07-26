@@ -218,6 +218,7 @@ class CouponDetailFragment : Fragment() {
         val code = requireArguments().getString(ARG_CODE).orEmpty()
         val clipboard = requireContext().getSystemService(ClipboardManager::class.java)
         clipboard?.setPrimaryClip(ClipData.newPlainText("coupon_code", code))
+        SessionManager.getInstance().addHistory(couponId)
         (requireActivity() as MainActivity).showBanner(getString(R.string.detail_code_copied))
     }
 
@@ -242,6 +243,7 @@ class CouponDetailFragment : Fragment() {
     }
 
     private fun openUrl(url: String) {
+        SessionManager.getInstance().addHistory(couponId)
         try {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         } catch (e: ActivityNotFoundException) {

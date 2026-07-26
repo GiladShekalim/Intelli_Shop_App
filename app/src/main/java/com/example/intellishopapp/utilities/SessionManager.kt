@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import com.example.intellishopapp.model.UserSession
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 /**
  * Holds the current UserSession, mirrored to SharedPreferences so the login
@@ -76,6 +77,27 @@ class SessionManager private constructor(context: Context) {
             save(session.copy(status = statuses, hobbies = hobbies))
             savePreferences(session.email, statuses, hobbies)
         }
+    }
+
+    // --- coupon action history (copy / go to site / go to offer), per-user, local ---
+
+    private fun historyKey(email: String) = "history_" + email.lowercase()
+
+    /** Record that the user acted on a coupon; most-recent first, de-duplicated. */
+    fun addHistory(discountId: String) {
+        val email = get()?.email ?: return
+        if (discountId.isBlank()) return
+        val list = getHistory().toMutableList()
+        list.remove(discountId)
+        list.add(0, discountId)
+        prefs.edit().putString(historyKey(email), gson.toJson(list.take(100))).apply()
+    }
+
+    fun getHistory(): List<String> {
+        val email = get()?.email ?: return emptyList()
+        val json = prefs.getString(historyKey(email), null) ?: return emptyList()
+        val type = object : TypeToken<List<String>>() {}.type
+        return runCatching { gson.fromJson<List<String>>(json, type) }.getOrNull() ?: emptyList()
     }
 
     companion object {
