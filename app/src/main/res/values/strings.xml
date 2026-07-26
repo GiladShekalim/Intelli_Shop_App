@@ -59,6 +59,8 @@
 
     <string name="profile_account">Account</string>
     <string name="profile_my_coupons">My Coupons</string>
+    <string name="profile_coupon_history">Coupon History</string>
+    <string name="history_empty">No coupon activity yet</string>
     <string name="profile_my_preferences">My Preferences</string>
     <string name="profile_my_categories">My Categories</string>
     <string name="profile_change_password">Change Password</string>

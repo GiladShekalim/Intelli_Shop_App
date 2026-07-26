@@ -15,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.intellishopapp.model.dto.CouponDto
 import com.example.intellishopapp.repository.FavoriteRepository
 import com.example.intellishopapp.ui.CouponDetailFragment
+import com.example.intellishopapp.ui.CouponHistoryFragment
 import com.example.intellishopapp.ui.FavoritesFragment
 import com.example.intellishopapp.ui.HomeFragment
 import com.example.intellishopapp.ui.LoginFragment
@@ -235,6 +236,16 @@ class MainActivity : AppCompatActivity() {
     /** Jump to the Coupons tab (used by the Profile shortcut). */
     fun openCoupons() = selectTab(Tab.COUPONS)
 
+    /** Opens the Coupon History page over the content (from the Profile). */
+    fun showCouponHistory() {
+        if (supportFragmentManager.findFragmentByTag(TAG_HISTORY) != null) return
+        main_LAY_topBar.visibility = View.GONE
+        supportFragmentManager.beginTransaction()
+            .add(R.id.main_FRAME_content, CouponHistoryFragment(), TAG_HISTORY)
+            .addToBackStack(TAG_HISTORY)
+            .commit()
+    }
+
     /** Opens the local preferences/categories editor over the content. */
     fun showPreferences(type: String) {
         if (supportFragmentManager.findFragmentByTag(TAG_PREFS) != null) return
@@ -334,5 +345,6 @@ class MainActivity : AppCompatActivity() {
         private const val TAG_DETAIL = "detail"
         private const val TAG_SEARCH = "search"
         private const val TAG_PREFS = "prefs"
+        private const val TAG_HISTORY = "history"
     }
 }
