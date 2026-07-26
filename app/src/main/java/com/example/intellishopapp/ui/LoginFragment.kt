@@ -35,6 +35,7 @@ class LoginFragment : Fragment() {
     private lateinit var login_LAY_progress: View
 
     private val authRepository = AuthRepository()
+    private val favoriteRepository = com.example.intellishopapp.repository.FavoriteRepository()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -89,6 +90,10 @@ class LoginFragment : Fragment() {
                                 hobbies = saved?.second ?: emptyList()
                             )
                         )
+                        // Sync favorites from the backend so they show on any device.
+                        (favoriteRepository.getFavorites() as? ApiResult.Success)?.let {
+                            SessionManager.getInstance().setFavorites(it.data)
+                        }
                         onSignedIn()
                     } else {
                         setLoading(false)

@@ -31,6 +31,7 @@ class FavoritesFragment : Fragment() {
     private lateinit var favorites_PRG_loading: ProgressBar
 
     private val couponRepository = CouponRepository()
+    private val favoriteRepository = com.example.intellishopapp.repository.FavoriteRepository()
     private var catalog: List<CouponDto>? = null
 
     override fun onCreateView(
@@ -50,25 +51,27 @@ class FavoritesFragment : Fragment() {
         if (!isHidden) loadThenRender()
     }
 
-    /** Load on first show; re-filter on later shows (favorites may have changed). */
+    /** Load on first show; refresh from the backend on later shows too. */
     override fun onHiddenChanged(hidden: Boolean) {
         super.onHiddenChanged(hidden)
-        if (!hidden && view != null) {
-            if (catalog == null) loadThenRender() else render()
-        }
+        if (!hidden && view != null) loadThenRender()
     }
 
     private fun loadThenRender() {
-        if (catalog != null) {
-            render()
-            return
-        }
-        favorites_PRG_loading.visibility = View.VISIBLE
+        favorites_PRG_loading.visibility = if (catalog == null) View.VISIBLE else View.GONE
         favorites_LBL_empty.visibility = View.GONE
         viewLifecycleOwner.lifecycleScope.launch {
-            when (val result = couponRepository.getAllCoupons()) {
-                is ApiResult.Success -> catalog = result.data
-                is ApiResult.Error -> catalog = emptyList()
+            if (catalog == null) {
+                catalog = when (val result = couponRepository.getAllCoupons()) {
+                    is ApiResult.Success -> result.data
+                    is ApiResult.Error -> emptyList()
+                }
+            }
+            // Pull the authoritative favorites from the backend (keep local on 401/error).
+            if (SessionManager.getInstance().isLoggedIn()) {
+                (favoriteRepository.getFavorites() as? ApiResult.Success)?.let {
+                    SessionManager.getInstance().setFavorites(it.data)
+                }
             }
             favorites_PRG_loading.visibility = View.GONE
             render()
