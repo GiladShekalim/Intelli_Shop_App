@@ -25,18 +25,15 @@ class SearchRepository {
         }
     }
 
-    /**
-     * AI search: send free text to /ai_filter_helper/ to extract filters, then run
-     * a normal filtered search with them.
-     */
-    suspend fun aiSearch(userText: String): ApiResult<List<CouponDto>> {
+    /** Ask the AI helper to turn free text into a FilterRequest (statuses/interests/…). */
+    suspend fun aiFilters(userText: String): ApiResult<FilterRequest> {
         return try {
             val aiResponse = api.aiFilterHelper(AiFilterRequest(userText))
             val aiBody = aiResponse.body()
             if (!aiResponse.isSuccessful || aiBody?.filters == null) {
                 ApiResult.Error("AI helper failed", aiResponse.code())
             } else {
-                search(aiBody.filters)
+                ApiResult.Success(aiBody.filters)
             }
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Network error")

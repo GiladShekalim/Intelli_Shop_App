@@ -35,7 +35,10 @@ import kotlinx.coroutines.launch
  */
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var main_LAY_search: LinearLayout
+    private lateinit var main_LAY_topBar: LinearLayout
+    private lateinit var main_ET_search: android.widget.EditText
+    private lateinit var main_BTN_ai: com.google.android.material.button.MaterialButton
+    private lateinit var main_BTN_search: com.google.android.material.button.MaterialButton
     private lateinit var main_LAY_tabHome: LinearLayout
     private lateinit var main_LAY_tabCoupons: LinearLayout
     private lateinit var main_LAY_tabProfile: LinearLayout
@@ -70,7 +73,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun findViews() {
-        main_LAY_search = findViewById(R.id.main_LAY_search)
+        main_LAY_topBar = findViewById(R.id.main_LAY_topBar)
+        main_ET_search = findViewById(R.id.main_ET_search)
+        main_BTN_ai = findViewById(R.id.main_BTN_ai)
+        main_BTN_search = findViewById(R.id.main_BTN_search)
         main_LAY_tabHome = findViewById(R.id.main_LAY_tabHome)
         main_LAY_tabCoupons = findViewById(R.id.main_LAY_tabCoupons)
         main_LAY_tabProfile = findViewById(R.id.main_LAY_tabProfile)
@@ -105,20 +111,56 @@ class MainActivity : AppCompatActivity() {
         main_LAY_tabHome.setOnClickListener { selectTab(Tab.HOME) }
         main_LAY_tabCoupons.setOnClickListener { selectTab(Tab.COUPONS) }
         main_LAY_tabProfile.setOnClickListener { selectTab(Tab.PROFILE) }
-        main_LAY_search.setOnClickListener { showSearch() }
+        // Tapping the search field opens the Search page (showing the filters).
+        main_ET_search.setOnClickListener { openSearchWithFilters() }
+        main_ET_search.setOnFocusChangeListener { _, hasFocus -> if (hasFocus) openSearchWithFilters() }
+        main_ET_search.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
+                triggerSearch(ai = false); true
+            } else false
+        }
+        main_BTN_search.setOnClickListener { triggerSearch(ai = false) }
+        main_BTN_ai.setOnClickListener { triggerSearch(ai = true) }
 
-        // Keep the search bar correct whenever an auth overlay is pushed or popped
-        // (e.g. system back leaving Login restores it on Home).
-        supportFragmentManager.addOnBackStackChangedListener { refreshSearchBar() }
+        // Keep the top bar correct whenever an overlay is pushed or popped.
+        supportFragmentManager.addOnBackStackChangedListener { refreshTopBar() }
     }
 
-    /** Any overlay layered over the tabs (Login, Register, or a Coupon Detail). */
+    /** Any overlay layered over the tabs (Login, Register, Detail, Search, Prefs). */
     private fun hasOverlay(): Boolean = supportFragmentManager.backStackEntryCount > 0
 
-    /** Search bar belongs to Home only, and never over an overlay. */
-    private fun refreshSearchBar() {
-        main_LAY_search.visibility =
-            if (currentTab == Tab.HOME && !hasOverlay()) View.VISIBLE else View.GONE
+    private fun isSearchOpen(): Boolean = supportFragmentManager.findFragmentByTag(TAG_SEARCH) != null
+
+    /** The search top bar shows on Home and on the Search page (static), else hidden. */
+    private fun refreshTopBar() {
+        main_LAY_topBar.visibility =
+            if ((currentTab == Tab.HOME && !hasOverlay()) || isSearchOpen()) View.VISIBLE else View.GONE
+    }
+
+    fun searchQueryText(): String = main_ET_search.text?.toString().orEmpty()
+
+    private var pendingSearchAi: Boolean? = null
+
+    fun consumePendingSearch(): Boolean? {
+        val v = pendingSearchAi
+        pendingSearchAi = null
+        return v
+    }
+
+    private fun openSearchWithFilters() {
+        val fragment = supportFragmentManager.findFragmentByTag(TAG_SEARCH) as? SearchFragment
+        if (fragment != null) fragment.showFilters() else showSearch()
+    }
+
+    /** Run a search from the top bar (AI or simple), opening the Search page if needed. */
+    private fun triggerSearch(ai: Boolean) {
+        val fragment = supportFragmentManager.findFragmentByTag(TAG_SEARCH) as? SearchFragment
+        if (fragment != null) {
+            fragment.runShellSearch(ai)
+        } else {
+            pendingSearchAi = ai
+            showSearch()
+        }
     }
 
     private val hideBannerRunnable = Runnable {
@@ -146,7 +188,7 @@ class MainActivity : AppCompatActivity() {
      */
     fun showLogin() {
         if (supportFragmentManager.findFragmentByTag(TAG_LOGIN) != null) return
-        main_LAY_search.visibility = View.GONE
+        main_LAY_topBar.visibility = View.GONE
         supportFragmentManager.beginTransaction()
             .add(R.id.main_FRAME_content, LoginFragment(), TAG_LOGIN)
             .addToBackStack(TAG_LOGIN)
@@ -156,17 +198,16 @@ class MainActivity : AppCompatActivity() {
     /** Shows Register layered over the content. args carry the Google prefill. */
     fun showRegister(args: Bundle?) {
         if (supportFragmentManager.findFragmentByTag(TAG_REGISTER) != null) return
-        main_LAY_search.visibility = View.GONE
+        main_LAY_topBar.visibility = View.GONE
         supportFragmentManager.beginTransaction()
             .add(R.id.main_FRAME_content, RegisterFragment().apply { arguments = args }, TAG_REGISTER)
             .addToBackStack(TAG_REGISTER)
             .commit()
     }
 
-    /** Opens the Search screen over the content (its own field; bottom menu stays). */
+    /** Opens the Search page body (the static top bar drives it and stays visible). */
     fun showSearch() {
         if (supportFragmentManager.findFragmentByTag(TAG_SEARCH) != null) return
-        main_LAY_search.visibility = View.GONE
         supportFragmentManager.beginTransaction()
             .add(R.id.main_FRAME_content, SearchFragment(), TAG_SEARCH)
             .addToBackStack(TAG_SEARCH)
@@ -184,7 +225,7 @@ class MainActivity : AppCompatActivity() {
      */
     fun showCouponDetail(coupon: com.example.intellishopapp.model.dto.CouponDto) {
         if (supportFragmentManager.findFragmentByTag(TAG_DETAIL) != null) return
-        main_LAY_search.visibility = View.GONE
+        main_LAY_topBar.visibility = View.GONE
         supportFragmentManager.beginTransaction()
             .add(R.id.main_FRAME_content, CouponDetailFragment.newInstance(coupon), TAG_DETAIL)
             .addToBackStack(TAG_DETAIL)
@@ -197,7 +238,7 @@ class MainActivity : AppCompatActivity() {
     /** Opens the local preferences/categories editor over the content. */
     fun showPreferences(type: String) {
         if (supportFragmentManager.findFragmentByTag(TAG_PREFS) != null) return
-        main_LAY_search.visibility = View.GONE
+        main_LAY_topBar.visibility = View.GONE
         supportFragmentManager.beginTransaction()
             .add(R.id.main_FRAME_content, PreferencesFragment.newInstance(type), TAG_PREFS)
             .addToBackStack(TAG_PREFS)
@@ -271,7 +312,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateTabColors(tab: Tab) {
-        refreshSearchBar()
+        refreshTopBar()
         val selected = ContextCompat.getColor(this, R.color.brand_primary)
         val normal = ContextCompat.getColor(this, R.color.text_secondary)
         applyTab(main_IMG_tabHome, main_LBL_tabHome, if (tab == Tab.HOME) selected else normal)
