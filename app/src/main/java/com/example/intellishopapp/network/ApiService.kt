@@ -4,6 +4,7 @@ import com.example.intellishopapp.model.dto.AiFilterRequest
 import com.example.intellishopapp.model.dto.AiFilterResponse
 import com.example.intellishopapp.model.dto.FavoriteRequest
 import com.example.intellishopapp.model.dto.FavoriteResponse
+import com.example.intellishopapp.model.dto.FavoritesResponse
 import com.example.intellishopapp.model.dto.FilterRequest
 import com.example.intellishopapp.model.dto.FilteredDiscountsResponse
 import com.example.intellishopapp.model.dto.GoogleLoginRequest
@@ -21,6 +22,7 @@ import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Headers
 import retrofit2.http.POST
 
 interface ApiService {
@@ -57,6 +59,10 @@ interface ApiService {
         @Field("new_password") newPassword: String,
         @Field("confirm_password") confirmPassword: String
     ): Response<ProfileUpdateResponse>
+
+    @GET("favorites/")
+    @Headers("Accept: application/json")
+    suspend fun getFavorites(): Response<FavoritesResponse>
 
     @POST("add_favorite/")
     suspend fun addFavorite(@Body body: FavoriteRequest): Response<FavoriteResponse>

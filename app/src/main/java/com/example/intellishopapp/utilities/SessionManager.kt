@@ -41,6 +41,11 @@ class SessionManager private constructor(context: Context) {
         get()?.let { save(it.copy(knownFavoriteIds = it.knownFavoriteIds + discountId)) }
     }
 
+    /** Replace the local favorite mirror with the authoritative set from the backend. */
+    fun setFavorites(ids: List<String>) {
+        get()?.let { save(it.copy(knownFavoriteIds = ids.toSet())) }
+    }
+
     fun removeFavorite(discountId: String) {
         get()?.let { save(it.copy(knownFavoriteIds = it.knownFavoriteIds - discountId)) }
     }

@@ -15,6 +15,21 @@ class FavoriteRepository {
 
     private val api get() = RetrofitClient.getInstance().apiService
 
+    /** Read the user's favorites from the backend. 401 (no server session) -> Error. */
+    suspend fun getFavorites(): ApiResult<List<String>> {
+        return try {
+            val response = api.getFavorites()
+            val body = response.body()
+            if (response.isSuccessful && body != null) {
+                ApiResult.Success(body.favorites ?: emptyList())
+            } else {
+                ApiResult.Error("Not authenticated", response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Network error")
+        }
+    }
+
     suspend fun add(discountId: String): ApiResult<Unit> =
         runCatching { toResult(api.addFavorite(FavoriteRequest(discountId))) }
             .getOrElse { ApiResult.Error(it.message ?: "Network error") }
