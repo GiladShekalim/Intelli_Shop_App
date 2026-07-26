@@ -9,6 +9,7 @@ import com.example.intellishopapp.model.dto.FilterRequest
 import com.example.intellishopapp.model.dto.FilteredDiscountsResponse
 import com.example.intellishopapp.model.dto.GoogleLoginRequest
 import com.example.intellishopapp.model.dto.GoogleLoginResponse
+import com.example.intellishopapp.model.dto.HistoryResponse
 import com.example.intellishopapp.model.dto.ProfileUpdateResponse
 import com.example.intellishopapp.model.dto.ShowAllDiscountsResponse
 import com.example.intellishopapp.model.dto.LoginRequest
@@ -63,6 +64,13 @@ interface ApiService {
     @GET("favorites/")
     @Headers("Accept: application/json")
     suspend fun getFavorites(): Response<FavoritesResponse>
+
+    @POST("add_history/")
+    suspend fun addHistory(@Body body: FavoriteRequest): Response<FavoriteResponse>
+
+    @GET("history/")
+    @Headers("Accept: application/json")
+    suspend fun getHistory(): Response<HistoryResponse>
 
     @POST("add_favorite/")
     suspend fun addFavorite(@Body body: FavoriteRequest): Response<FavoriteResponse>

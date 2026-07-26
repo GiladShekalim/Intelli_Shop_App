@@ -105,6 +105,12 @@ class SessionManager private constructor(context: Context) {
         return runCatching { gson.fromJson<List<String>>(json, type) }.getOrNull() ?: emptyList()
     }
 
+    /** Replace the local history mirror with the authoritative list from the backend. */
+    fun setHistory(ids: List<String>) {
+        val email = get()?.email ?: return
+        prefs.edit().putString(historyKey(email), gson.toJson(ids.take(100))).apply()
+    }
+
     companion object {
         @Volatile
         private var instance: SessionManager? = null
