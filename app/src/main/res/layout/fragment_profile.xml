@@ -91,7 +91,8 @@
                 android:layout_marginStart="4dp"
                 android:text="@string/profile_mode_label"
                 android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
+                android:textSize="12sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <View
@@ -115,6 +116,36 @@
             android:textColor="@color/text_primary"
             android:textSize="16sp" />
 
+        <!-- My Preferences (statuses) -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/profile_LBL_preferences"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_card"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="16dp"
+            android:text="@string/profile_my_preferences"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp" />
+
+        <!-- My Categories (interests) -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/profile_LBL_categories"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_card"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="16dp"
+            android:text="@string/profile_my_categories"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp" />
+
         <!-- Change password (non-Google users only) -->
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/profile_LBL_password"
@@ -135,12 +166,27 @@
             android:layout_height="0dp"
             android:layout_weight="1" />
 
-        <com.google.android.material.button.MaterialButton
+        <!-- Divider separates the personal options from Sign Out -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="16dp"
+            android:background="@color/divider" />
+
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/profile_BTN_signOut"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="20dp"
-            android:layout_marginVertical="20dp"
-            android:text="@string/profile_sign_out" />
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_card"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="16dp"
+            android:text="@string/profile_sign_out"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp" />
     </LinearLayout>
 </ScrollView>

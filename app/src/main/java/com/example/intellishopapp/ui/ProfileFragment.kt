@@ -15,7 +15,6 @@ import com.example.intellishopapp.R
 import com.example.intellishopapp.repository.ProfileRepository
 import com.example.intellishopapp.utilities.ApiResult
 import com.example.intellishopapp.utilities.SessionManager
-import com.google.android.material.button.MaterialButton
 import com.google.android.material.textview.MaterialTextView
 import kotlinx.coroutines.launch
 
@@ -29,10 +28,12 @@ class ProfileFragment : Fragment() {
     private lateinit var profile_LBL_title: MaterialTextView
     private lateinit var profile_LBL_email: MaterialTextView
     private lateinit var profile_LBL_myCoupons: MaterialTextView
+    private lateinit var profile_LBL_preferences: MaterialTextView
+    private lateinit var profile_LBL_categories: MaterialTextView
     private lateinit var profile_LBL_password: MaterialTextView
     private lateinit var profile_LBL_day: MaterialTextView
     private lateinit var profile_LBL_night: MaterialTextView
-    private lateinit var profile_BTN_signOut: MaterialButton
+    private lateinit var profile_BTN_signOut: MaterialTextView
 
     private val profileRepository = ProfileRepository()
 
@@ -47,14 +48,19 @@ class ProfileFragment : Fragment() {
         profile_LBL_title = view.findViewById(R.id.profile_LBL_title)
         profile_LBL_email = view.findViewById(R.id.profile_LBL_email)
         profile_LBL_myCoupons = view.findViewById(R.id.profile_LBL_myCoupons)
+        profile_LBL_preferences = view.findViewById(R.id.profile_LBL_preferences)
+        profile_LBL_categories = view.findViewById(R.id.profile_LBL_categories)
         profile_LBL_password = view.findViewById(R.id.profile_LBL_password)
         profile_LBL_day = view.findViewById(R.id.profile_LBL_day)
         profile_LBL_night = view.findViewById(R.id.profile_LBL_night)
         profile_BTN_signOut = view.findViewById(R.id.profile_BTN_signOut)
 
-        profile_LBL_myCoupons.setOnClickListener { (requireActivity() as MainActivity).openCoupons() }
+        val shell = requireActivity() as MainActivity
+        profile_LBL_myCoupons.setOnClickListener { shell.openCoupons() }
+        profile_LBL_preferences.setOnClickListener { shell.showPreferences(PreferencesFragment.TYPE_STATUS) }
+        profile_LBL_categories.setOnClickListener { shell.showPreferences(PreferencesFragment.TYPE_CATEGORY) }
         profile_LBL_password.setOnClickListener { showChangePasswordDialog() }
-        profile_BTN_signOut.setOnClickListener { (requireActivity() as MainActivity).signOut() }
+        profile_BTN_signOut.setOnClickListener { shell.signOut() }
         profile_LBL_day.setOnClickListener { setNightMode(false) }
         profile_LBL_night.setOnClickListener { setNightMode(true) }
         bind()
