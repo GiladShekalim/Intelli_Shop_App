@@ -112,7 +112,7 @@
             android:clickable="true"
             android:focusable="true"
             android:padding="16dp"
-            android:text="@string/profile_my_coupons"
+            android:text="@string/profile_coupon_history"
             android:textColor="@color/text_primary"
             android:textSize="16sp" />
 

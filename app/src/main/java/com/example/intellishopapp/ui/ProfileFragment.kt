@@ -56,7 +56,7 @@ class ProfileFragment : Fragment() {
         profile_BTN_signOut = view.findViewById(R.id.profile_BTN_signOut)
 
         val shell = requireActivity() as MainActivity
-        profile_LBL_myCoupons.setOnClickListener { shell.openCoupons() }
+        profile_LBL_myCoupons.setOnClickListener { shell.showCouponHistory() }
         profile_LBL_preferences.setOnClickListener { shell.showPreferences(PreferencesFragment.TYPE_STATUS) }
         profile_LBL_categories.setOnClickListener { shell.showPreferences(PreferencesFragment.TYPE_CATEGORY) }
         profile_LBL_password.setOnClickListener { showChangePasswordDialog() }
