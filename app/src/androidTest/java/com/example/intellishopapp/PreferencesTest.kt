@@ -52,13 +52,14 @@ class PreferencesTest {
     }
 
     @Test
-    fun myCategories_toggle_notifiesAndPersists() {
+    fun myCategories_toggle_showsDisabledNoticeAndDoesNotChange() {
         onView(withId(R.id.main_LAY_tabProfile)).perform(click())
         onView(withId(R.id.profile_LBL_categories)).perform(click())
         onView(allOf(withText("Consumerism"), isDescendantOfA(withId(R.id.pref_LAY_grid))))
             .perform(click())
-        onView(withId(R.id.main_LBL_banner)).check(matches(withText("Added Consumerism")))
-        assertTrue(SessionManager.getInstance().get()?.hobbies?.contains("Consumerism") == true)
+        onView(withId(R.id.main_LBL_banner)).check(matches(withText(R.string.pref_disabled)))
+        // Editing is disabled: the selection must not change.
+        assertTrue(SessionManager.getInstance().get()?.hobbies?.contains("Consumerism") != true)
     }
 
     @Test
