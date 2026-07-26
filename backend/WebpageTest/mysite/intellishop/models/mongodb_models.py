@@ -147,6 +147,21 @@ class User(MongoDBModel):
             return discount_id in user['favorites']
         return False
 
+    @classmethod
+    def add_history(cls, user_id, discount_id):
+        """Record a coupon action; most-recent first, de-duplicated, capped at 100."""
+        cls.update_one({'_id': ObjectId(user_id)}, {'$pull': {'history': discount_id}})
+        return cls.update_one(
+            {'_id': ObjectId(user_id)},
+            {'$push': {'history': {'$each': [discount_id], '$position': 0, '$slice': 100}}}
+        )
+
+    @classmethod
+    def get_history(cls, user_id):
+        """Get user's coupon action history (discount IDs, most recent first)."""
+        user = cls.find_one({'_id': ObjectId(user_id)})
+        return user.get('history', []) if user else []
+
 # Updated Coupon model with new schema
 class Coupon(MongoDBModel):
     collection_name = 'coupons'

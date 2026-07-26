@@ -852,6 +852,36 @@ def search_discounts_by_text(request):
         return JsonResponse({'error': 'Internal server error'}, status=500)
 
 @csrf_exempt
+def add_history_view(request):
+    """Record a coupon action (copy / go to site / go to offer) in user history."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    try:
+        user_id = request.session.get('user_id')
+        if not user_id:
+            return JsonResponse({'error': 'User not authenticated'}, status=401)
+        data = json.loads(request.body)
+        discount_id = data.get('discount_id')
+        if not discount_id:
+            return JsonResponse({'error': 'discount_id is required'}, status=400)
+        User.add_history(user_id, discount_id)
+        return JsonResponse({'status': 'success', 'discount_id': discount_id})
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        logger.error(f"Error in add_history_view: {str(e)}")
+        return JsonResponse({'error': 'Internal server error'}, status=500)
+
+
+def history_view(request):
+    """Return the user's coupon action history as JSON (Android client)."""
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return JsonResponse({'error': 'User not authenticated'}, status=401)
+    return JsonResponse({'history': User.get_history(user_id)})
+
+
+@csrf_exempt
 def add_favorite_view(request):
     """Add a discount to user's favorites"""
     if request.method != 'POST':
