@@ -604,6 +604,12 @@ def coupon_code_view(request, code):
 def favorites_view(request):
     """Display user's favorite coupons"""
     user_id = request.session.get('user_id')
+    # Android client asks for JSON; returns the favorite discount_ids for this user.
+    # (The web form does not send this header, so its HTML behavior is unchanged.)
+    if request.headers.get('Accept') == 'application/json':
+        if not user_id:
+            return JsonResponse({'error': 'User not authenticated'}, status=401)
+        return JsonResponse({'favorites': User.get_favorites(user_id)})
     if not user_id:
         return redirect('login')
     user = User.find_one({'_id': ObjectId(user_id)})
