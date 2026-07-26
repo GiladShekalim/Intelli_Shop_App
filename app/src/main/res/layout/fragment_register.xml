@@ -89,9 +89,18 @@
                 android:textColorHint="@color/text_secondary" />
 
             <com.google.android.material.textview.MaterialTextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
+                android:text="@string/register_prefs_note"
+                android:textColor="#FFD32F2F"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
                 android:text="@string/label_statuses"
                 android:textColor="@color/text_primary"
                 android:textSize="15sp"

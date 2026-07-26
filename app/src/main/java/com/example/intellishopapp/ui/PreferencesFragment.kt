@@ -18,9 +18,9 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.textview.MaterialTextView
 
 /**
- * Local editor for the user's saved statuses ("My Preferences") or categories
- * ("My Categories"). Shows every option with the saved ones first and colored;
- * tapping toggles the selection, notifies, and persists locally (no backend).
+ * Read-only view of the user's saved statuses ("My Preferences") or categories
+ * ("My Categories"), shown like registration (saved ones first, light colors).
+ * Editing is not active yet — tapping an option just shows a notification.
  */
 class PreferencesFragment : Fragment() {
 
@@ -82,23 +82,14 @@ class PreferencesFragment : Fragment() {
             params.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
             params.setMargins(6, 6, 6, 6)
             button.layoutParams = params
-            button.setOnClickListener { onToggle(value, button, brand) }
+            button.setOnClickListener { onToggle() }
             pref_LAY_grid.addView(button)
         }
     }
 
-    private fun onToggle(value: String, button: MaterialButton, brand: Int) {
-        val shell = requireActivity() as MainActivity
-        if (selected.contains(value)) {
-            selected.remove(value)
-            style(button, false, brand)
-            shell.showBanner(getString(R.string.pref_removed, value))
-        } else {
-            selected.add(value)
-            style(button, true, brand)
-            shell.showBanner(getString(R.string.pref_added, value))
-        }
-        persist()
+    private fun onToggle() {
+        // Editing is not active yet: the saved selection is read-only.
+        (requireActivity() as MainActivity).showBanner(getString(R.string.pref_disabled))
     }
 
     private fun style(button: MaterialButton, on: Boolean, brand: Int) {
@@ -111,14 +102,6 @@ class PreferencesFragment : Fragment() {
         }
     }
 
-    private fun persist() {
-        val session = SessionManager.getInstance().get() ?: return
-        if (isStatus) {
-            SessionManager.getInstance().updatePreferences(selected.toList(), session.hobbies)
-        } else {
-            SessionManager.getInstance().updatePreferences(session.status, selected.toList())
-        }
-    }
 
     companion object {
         private const val ARG_TYPE = "type"
