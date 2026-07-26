@@ -75,16 +75,16 @@ class ShellNavigationTest {
     }
 
     @Test
-    fun loginOverlay_hidesSearchBar() {
-        onView(withId(R.id.main_LAY_search)).check(matches(isDisplayed()))
+    fun loginOverlay_hidesTopBar() {
+        onView(withId(R.id.main_LAY_topBar)).check(matches(isDisplayed()))
         onView(withId(R.id.main_LAY_tabProfile)).perform(click())
-        onView(withId(R.id.main_LAY_search)).check(matches(not(isDisplayed())))
+        onView(withId(R.id.main_LAY_topBar)).check(matches(not(isDisplayed())))
     }
 
     @Test
-    fun searchBar_opensSearch() {
-        onView(withId(R.id.main_LAY_search)).perform(click())
-        onView(withId(R.id.search_ET_query)).check(matches(isDisplayed()))
+    fun tapSearchField_opensFilters() {
+        onView(withId(R.id.main_ET_search)).perform(click())
+        onView(withId(R.id.search_LAY_interestGrid)).check(matches(isDisplayed()))
     }
 
     @Test

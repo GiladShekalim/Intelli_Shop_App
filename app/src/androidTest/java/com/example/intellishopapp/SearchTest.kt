@@ -16,10 +16,11 @@ import androidx.test.espresso.matcher.ViewMatchers.isDescendantOfA
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
-import org.hamcrest.Matchers.allOf
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.intellishopapp.utilities.SessionManager
+import org.hamcrest.Matchers.allOf
+import org.hamcrest.Matchers.containsString
 import org.hamcrest.Matchers.not
 import org.junit.Before
 import org.junit.Rule
@@ -27,9 +28,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Search over the shell: open from the top bar, run a text query against the
- * backend, open a result, and dismiss. Uses "hot" which matches most of the
- * sample data. Requires the server.
+ * Search driven by the static top bar (AI Filter / field / Search live in the
+ * shell). Tapping the field shows filters; the buttons run the search; applied
+ * filters show as removable labels. Requires the server.
  */
 @RunWith(AndroidJUnit4::class)
 class SearchTest {
@@ -42,69 +43,71 @@ class SearchTest {
         SessionManager.getInstance().clear()
     }
 
-    private fun openSearch() {
-        onView(withId(R.id.main_LAY_search)).perform(click())
-        onView(withId(R.id.search_ET_query)).check(matches(isDisplayed()))
+    private fun openFilters() {
+        onView(withId(R.id.main_ET_search)).perform(click())
+        onView(withId(R.id.search_LAY_interestGrid)).check(matches(isDisplayed()))
     }
 
     @Test
-    fun searchBar_opensSearchWithPrompt() {
-        openSearch()
-        onView(withId(R.id.search_LBL_empty)).check(matches(isDisplayed()))
+    fun tapField_showsFilters() {
+        openFilters()
     }
 
     @Test
-    fun shortQuery_showsMinCharsBannerNoResults() {
-        openSearch()
-        onView(withId(R.id.search_ET_query)).perform(typeText("h"), closeSoftKeyboard())
-        onView(withId(R.id.search_BTN_go)).perform(click())
+    fun textSearch_showsResults() {
+        openFilters()
+        onView(withId(R.id.main_ET_search)).perform(typeText("hot"), closeSoftKeyboard())
+        onView(withId(R.id.main_BTN_search)).perform(click())
+        waitForChildren(R.id.search_RCV_results)
+        onView(withId(R.id.search_RCV_results)).check(matches(hasMinimumChildCount(1)))
+    }
+
+    @Test
+    fun hebrewSearch_showsResults() {
+        openFilters()
+        onView(withId(R.id.main_ET_search)).perform(replaceText("הנחה"), closeSoftKeyboard())
+        onView(withId(R.id.main_BTN_search)).perform(click())
+        waitForChildren(R.id.search_RCV_results)
+        onView(withId(R.id.search_RCV_results)).check(matches(hasMinimumChildCount(1)))
+    }
+
+    @Test
+    fun shortQuery_showsMinCharsBanner() {
+        openFilters()
+        onView(withId(R.id.main_ET_search)).perform(typeText("h"), closeSoftKeyboard())
+        onView(withId(R.id.main_BTN_search)).perform(click())
         onView(withId(R.id.main_LBL_banner)).check(matches(withText(R.string.search_min_chars)))
-        onView(withId(R.id.search_RCV_results)).check(matches(not(isDisplayed())))
     }
 
     @Test
-    fun textQuery_showsResults() {
-        openSearch()
-        onView(withId(R.id.search_ET_query)).perform(typeText("hot"), closeSoftKeyboard())
-        onView(withId(R.id.search_BTN_go)).perform(click())
-        waitForChildren(R.id.search_RCV_results)
-        onView(withId(R.id.search_RCV_results)).check(matches(hasMinimumChildCount(1)))
-    }
-
-    @Test
-    fun hebrewQuery_showsResults() {
-        openSearch()
-        // Injected directly (no keyboard needed) to prove Hebrew search works end to
-        // end: "הנחה" (discount) matches most of the Hebrew coupon data.
-        onView(withId(R.id.search_ET_query)).perform(replaceText("הנחה"), closeSoftKeyboard())
-        onView(withId(R.id.search_BTN_go)).perform(click())
-        waitForChildren(R.id.search_RCV_results)
-        onView(withId(R.id.search_RCV_results)).check(matches(hasMinimumChildCount(1)))
-    }
-
-    @Test
-    fun aiHelper_emptyQuery_showsBanner() {
-        openSearch()
-        onView(withId(R.id.search_BTN_ai)).perform(click())
-        onView(withId(R.id.main_LBL_banner)).check(matches(withText(R.string.search_ai_empty)))
-    }
-
-    @Test
-    fun aiHelper_completesToTerminalState() {
-        openSearch()
-        onView(withId(R.id.search_ET_query))
+    fun aiSearch_completesToTerminalState() {
+        openFilters()
+        onView(withId(R.id.main_ET_search))
             .perform(replaceText("cheap electronics for students"), closeSoftKeyboard())
-        onView(withId(R.id.search_BTN_ai)).perform(click())
-        // AI round-trips through Groq, then runs a filtered search; either way the
-        // spinner must resolve (results or the empty/failed message).
+        onView(withId(R.id.main_BTN_ai)).perform(click())
         waitUntilGone(R.id.search_PRG_loading)
     }
 
     @Test
+    fun categoryFilter_showsResultsAndRemovableLabel() {
+        openFilters()
+        onView(allOf(withText("Consumerism"), isDescendantOfA(withId(R.id.search_LAY_interestGrid))))
+            .perform(scrollTo(), click())
+        onView(withId(R.id.main_BTN_search)).perform(click())
+        waitForChildren(R.id.search_RCV_results)
+        // The applied filter shows as a label.
+        onView(withId(R.id.search_LAY_labels)).check(matches(hasMinimumChildCount(1)))
+        // Removing it (scoped to the labels row) clears the label and re-runs.
+        onView(allOf(withText(containsString("Consumerism")), isDescendantOfA(withId(R.id.search_LAY_labels))))
+            .perform(click())
+        waitUntilGone(R.id.search_LAY_labelsScroll)
+    }
+
+    @Test
     fun searchResult_opensDetail() {
-        openSearch()
-        onView(withId(R.id.search_ET_query)).perform(typeText("hot"), closeSoftKeyboard())
-        onView(withId(R.id.search_BTN_go)).perform(click())
+        openFilters()
+        onView(withId(R.id.main_ET_search)).perform(typeText("hot"), closeSoftKeyboard())
+        onView(withId(R.id.main_BTN_search)).perform(click())
         waitForChildren(R.id.search_RCV_results)
         onView(withId(R.id.search_RCV_results))
             .perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(0, click()))
@@ -112,29 +115,11 @@ class SearchTest {
     }
 
     @Test
-    fun filters_openShowsCategoryAndStatusGrids() {
-        openSearch()
-        onView(withId(R.id.search_BTN_filters)).perform(click())
-        onView(withId(R.id.search_LAY_interestGrid)).check(matches(hasMinimumChildCount(1)))
-        onView(withId(R.id.search_LAY_statusGrid)).check(matches(hasMinimumChildCount(1)))
-    }
-
-    @Test
-    fun filters_applyCategory_showsResults() {
-        openSearch()
-        onView(withId(R.id.search_BTN_filters)).perform(click())
-        onView(allOf(withText("Consumerism"), isDescendantOfA(withId(R.id.search_LAY_interestGrid))))
-            .perform(scrollTo(), click())
-        onView(withId(R.id.search_BTN_apply)).perform(scrollTo(), click())
-        waitForChildren(R.id.search_RCV_results)
-        onView(withId(R.id.search_RCV_results)).check(matches(hasMinimumChildCount(1)))
-    }
-
-    @Test
     fun backFromSearch_returnsToHome() {
-        openSearch()
+        openFilters()
+        onView(withId(R.id.main_ET_search)).perform(closeSoftKeyboard())
         pressBack()
-        onView(withId(R.id.search_ET_query)).check(doesNotExist())
+        onView(withId(R.id.search_LAY_interestGrid)).check(doesNotExist())
         onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
     }
 
