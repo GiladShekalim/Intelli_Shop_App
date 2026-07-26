@@ -25,6 +25,8 @@
     <string name="search_filter_percent">Minimum discount</string>
     <string name="search_apply">Apply</string>
     <string name="search_clear">Clear</string>
+    <string name="search_label_price">Max %s</string>
+    <string name="search_label_remove">%s  ×</string>
     <string name="view_more">View More</string>
     <string name="empty_coupons">No coupons available</string>
     <string name="gate_sign_up">Sign up free to view</string>

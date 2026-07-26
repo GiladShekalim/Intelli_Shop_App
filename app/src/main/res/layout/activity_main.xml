@@ -6,46 +6,67 @@
     android:layout_height="match_parent"
     android:background="@color/background_color">
 
-    <!-- Top bar: a centered search bar with big symmetric side margins -->
+    <!-- Static top bar: AI Filter (purple) | search field (light green) | Search (green) -->
     <LinearLayout
         android:id="@+id/main_LAY_topBar"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="6dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <LinearLayout
-            android:id="@+id/main_LAY_search"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_marginHorizontal="36dp"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/main_BTN_ai"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:paddingHorizontal="10dp"
+            android:text="@string/search_ai"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            app:backgroundTint="@color/ai_purple"
+            app:cornerRadius="12dp" />
+
+        <EditText
+            android:id="@+id/main_ET_search"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="8dp"
             android:background="@drawable/bg_search"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="14dp">
+            android:paddingHorizontal="16dp"
+            android:hint="@string/search_hint"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:maxLines="1"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary"
+            android:autofillHints="@null"
+            android:importantForAutofill="no" />
 
-            <com.google.android.material.textview.MaterialTextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="@string/search_hint"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp" />
-
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:contentDescription="@string/search_hint"
-                android:src="@drawable/ic_search"
-                app:tint="@color/text_secondary" />
-        </LinearLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/main_BTN_search"
+            style="@style/Widget.MaterialComponents.Button.Icon"
+            android:layout_width="52dp"
+            android:layout_height="48dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minWidth="0dp"
+            android:paddingHorizontal="0dp"
+            android:contentDescription="@string/search_go"
+            app:backgroundTint="@color/search_btn_bg"
+            app:cornerRadius="12dp"
+            app:icon="@drawable/ic_search"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="22dp"
+            app:iconTint="@color/brand_primary" />
     </LinearLayout>
 
     <!-- Content: fragments show/hide here -->
