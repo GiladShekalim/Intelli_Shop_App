@@ -97,7 +97,10 @@ class PreferencesFragment : Fragment() {
             button.backgroundTintList = ColorStateList.valueOf(palette.random())
             button.setTextColor(0xFF212121.toInt())
         } else {
-            button.backgroundTintList = null
+            // Keep the outlined look on a light surface (a null tint renders dark).
+            button.backgroundTintList = ColorStateList.valueOf(
+                ContextCompat.getColor(requireContext(), R.color.card_background)
+            )
             button.setTextColor(brand)
         }
     }
