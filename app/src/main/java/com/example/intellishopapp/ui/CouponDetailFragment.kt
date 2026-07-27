@@ -16,6 +16,8 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import com.bumptech.glide.Glide
 import com.example.intellishopapp.MainActivity
 import com.example.intellishopapp.R
@@ -55,6 +57,7 @@ class CouponDetailFragment : Fragment() {
     private lateinit var detail_BTN_offer: MaterialButton
 
     private val couponId: String get() = requireArguments().getString(ARG_ID).orEmpty()
+    private val historyRepository = com.example.intellishopapp.repository.HistoryRepository()
 
     private var dragStartY = 0f
     private var dismissing = false
@@ -218,7 +221,7 @@ class CouponDetailFragment : Fragment() {
         val code = requireArguments().getString(ARG_CODE).orEmpty()
         val clipboard = requireContext().getSystemService(ClipboardManager::class.java)
         clipboard?.setPrimaryClip(ClipData.newPlainText("coupon_code", code))
-        SessionManager.getInstance().addHistory(couponId)
+        recordHistory()
         (requireActivity() as MainActivity).showBanner(getString(R.string.detail_code_copied))
     }
 
@@ -242,8 +245,14 @@ class CouponDetailFragment : Fragment() {
             .show()
     }
 
-    private fun openUrl(url: String) {
+    /** Record an action locally (immediate) and write it through to the backend. */
+    private fun recordHistory() {
         SessionManager.getInstance().addHistory(couponId)
+        viewLifecycleOwner.lifecycleScope.launch { historyRepository.add(couponId) }
+    }
+
+    private fun openUrl(url: String) {
+        recordHistory()
         try {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         } catch (e: ActivityNotFoundException) {

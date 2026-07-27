@@ -33,6 +33,7 @@ class CouponHistoryFragment : Fragment() {
     private lateinit var history_BTN_close: ImageButton
 
     private val couponRepository = CouponRepository()
+    private val historyRepository = com.example.intellishopapp.repository.HistoryRepository()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -52,13 +53,18 @@ class CouponHistoryFragment : Fragment() {
     }
 
     private fun load() {
-        val ids = SessionManager.getInstance().getHistory()
-        if (ids.isEmpty()) {
-            showEmpty()
-            return
-        }
         history_PRG_loading.visibility = View.VISIBLE
         viewLifecycleOwner.lifecycleScope.launch {
+            // Pull the authoritative history from the backend (keep local on 401/error).
+            (historyRepository.get() as? ApiResult.Success)?.let {
+                SessionManager.getInstance().setHistory(it.data)
+            }
+            val ids = SessionManager.getInstance().getHistory()
+            if (ids.isEmpty()) {
+                history_PRG_loading.visibility = View.GONE
+                showEmpty()
+                return@launch
+            }
             when (val result = couponRepository.getAllCoupons()) {
                 is ApiResult.Success -> {
                     history_PRG_loading.visibility = View.GONE
