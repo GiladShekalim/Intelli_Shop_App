@@ -58,6 +58,27 @@ class SessionManager private constructor(context: Context) {
         prefs.edit().putBoolean(Constants.Prefs.NIGHT_MODE, on).apply()
     }
 
+    // --- in-app notifications (the sliding banner), on by default ---
+
+    fun isNotificationsEnabled(): Boolean =
+        prefs.getBoolean(Constants.Prefs.NOTIFICATIONS, true)
+
+    fun setNotificationsEnabled(on: Boolean) {
+        prefs.edit().putBoolean(Constants.Prefs.NOTIFICATIONS, on).apply()
+    }
+
+    // --- Google account photo, kept per email so it survives sign-out on this device ---
+
+    private fun photoKey(email: String) = "photo_" + email.lowercase()
+
+    fun savePhotoUrl(email: String, url: String?) {
+        if (email.isBlank() || url.isNullOrBlank()) return
+        prefs.edit().putString(photoKey(email), url).apply()
+    }
+
+    fun getPhotoUrl(email: String): String? =
+        if (email.isBlank()) null else prefs.getString(photoKey(email), null)
+
     // --- per-user preferences (statuses + categories), stored locally (no backend) ---
     // Keyed by email so a user's registration choices survive logout on this device.
 

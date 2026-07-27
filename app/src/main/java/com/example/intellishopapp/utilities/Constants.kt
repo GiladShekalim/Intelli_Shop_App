@@ -18,6 +18,7 @@ class Constants {
         const val COOKIES = "cookies"
         const val SESSION = "session"
         const val NIGHT_MODE = "night_mode"
+        const val NOTIFICATIONS = "notifications"
     }
 
     // Interests — exact backend CATEGORIES values (order and case matter).

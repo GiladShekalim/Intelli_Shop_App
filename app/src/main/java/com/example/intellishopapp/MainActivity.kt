@@ -178,6 +178,8 @@ class MainActivity : AppCompatActivity() {
      * also swipe it up to dismiss it early.
      */
     fun showBanner(message: String, longDuration: Boolean = false) {
+        // Muted from Profile > Settings > Notifications.
+        if (!SessionManager.getInstance().isNotificationsEnabled()) return
         main_LBL_banner.removeCallbacks(hideBannerRunnable)
         main_LBL_banner.animate().cancel()
         main_LBL_banner.text = message
