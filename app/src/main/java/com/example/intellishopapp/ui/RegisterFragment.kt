@@ -127,7 +127,9 @@ class RegisterFragment : Fragment() {
                 if (selected.contains(value)) {
                     if (doubleTap) {
                         selected.remove(value)
-                        button.backgroundTintList = null
+                        button.backgroundTintList = ColorStateList.valueOf(
+                            ContextCompat.getColor(requireContext(), R.color.card_background)
+                        )
                         button.setTextColor(brand)
                     }
                 } else {
@@ -173,7 +175,7 @@ class RegisterFragment : Fragment() {
                         SessionManager.getInstance()
                             .savePreferences(email, selectedStatuses.toList(), selectedInterests.toList())
                         if (googleMode) finishGoogleSignUp(email, password, username)
-                        else finishRegister()
+                        else finishRegister(email)
                     } else {
                         setLoading(false)
                         showError(result.data.message ?: getString(R.string.error_register_failed))
@@ -187,8 +189,13 @@ class RegisterFragment : Fragment() {
         }
     }
 
-    private fun finishRegister() {
-        (requireActivity() as MainActivity).showBanner(getString(R.string.register_success))
+    private fun finishRegister(email: String) {
+        val shell = requireActivity() as MainActivity
+        // Celebrate, hand the email to Login, then drop back to it. The fireworks live
+        // in the shell so they keep playing over the Login screen.
+        shell.playFireworks()
+        shell.prefillLoginEmail(email)
+        shell.showBanner(getString(R.string.register_success))
         parentFragmentManager.popBackStack()
     }
 

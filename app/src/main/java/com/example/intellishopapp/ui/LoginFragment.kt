@@ -157,6 +157,14 @@ class LoginFragment : Fragment() {
         }
     }
 
+    /** Called after a fresh sign-up so the user only has to type their password. */
+    fun prefillEmail(email: String) {
+        if (view == null) return
+        login_ET_email.setText(email)
+        login_ET_password.text?.clear()
+        login_ET_password.requestFocus()
+    }
+
     private fun onSignedIn() {
         (requireActivity() as MainActivity).showBanner(getString(R.string.welcome_back))
         parentFragmentManager.popBackStack()
