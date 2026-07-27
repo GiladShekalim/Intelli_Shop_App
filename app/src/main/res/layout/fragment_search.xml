@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/search_LAY_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -56,12 +57,19 @@
             android:layout_gravity="center"
             android:visibility="gone" />
 
-        <ScrollView
+        <LinearLayout
             android:id="@+id/search_LAY_filters"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:orientation="vertical"
             android:background="@color/background_color"
             android:visibility="gone">
+
+            <!-- Only the parameters scroll; the actions below stay put -->
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -134,14 +142,39 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp" />
 
+            </LinearLayout>
+            </ScrollView>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/divider" />
+
+            <!-- Static actions -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="12dp">
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/search_BTN_clear"
                     style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
                     android:text="@string/search_clear" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/search_BTN_doSearch"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:text="@string/search_go"
+                    app:backgroundTint="@color/brand_primary" />
             </LinearLayout>
-        </ScrollView>
+        </LinearLayout>
     </FrameLayout>
 </LinearLayout>

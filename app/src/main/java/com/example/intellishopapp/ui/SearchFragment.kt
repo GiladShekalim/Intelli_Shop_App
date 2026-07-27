@@ -45,6 +45,7 @@ class SearchFragment : Fragment() {
     private lateinit var search_LAY_percentGrid: GridLayout
     private lateinit var search_ET_price: EditText
     private lateinit var search_BTN_clear: MaterialButton
+    private lateinit var search_BTN_doSearch: MaterialButton
     private lateinit var search_LAY_labelsScroll: View
     private lateinit var search_LAY_labels: LinearLayout
 
@@ -67,6 +68,7 @@ class SearchFragment : Fragment() {
         findViews(view)
         search_RCV_results.layoutManager = LinearLayoutManager(requireContext())
         search_BTN_clear.setOnClickListener { clearFilters() }
+        search_BTN_doSearch.setOnClickListener { runShellSearch(ai = false) }
         buildMultiGrid(search_LAY_interestGrid, Constants.Categories.ALL, selectedInterests)
         buildMultiGrid(search_LAY_statusGrid, Constants.ConsumerStatus.ALL, selectedStatuses)
         buildBucketGrid()
@@ -88,6 +90,7 @@ class SearchFragment : Fragment() {
         search_LAY_percentGrid = view.findViewById(R.id.search_LAY_percentGrid)
         search_ET_price = view.findViewById(R.id.search_ET_price)
         search_BTN_clear = view.findViewById(R.id.search_BTN_clear)
+        search_BTN_doSearch = view.findViewById(R.id.search_BTN_doSearch)
         search_LAY_labelsScroll = view.findViewById(R.id.search_LAY_labelsScroll)
         search_LAY_labels = view.findViewById(R.id.search_LAY_labels)
     }
@@ -327,7 +330,10 @@ class SearchFragment : Fragment() {
             button.backgroundTintList = ColorStateList.valueOf(brand)
             button.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
         } else {
-            button.backgroundTintList = null
+            // Keep the outlined look on a light surface (a null tint renders dark).
+            button.backgroundTintList = ColorStateList.valueOf(
+                ContextCompat.getColor(requireContext(), R.color.card_background)
+            )
             button.setTextColor(brand)
         }
     }
