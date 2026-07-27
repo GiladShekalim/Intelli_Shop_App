@@ -3,6 +3,8 @@ package com.example.intellishopapp
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
+import androidx.test.espresso.action.ViewActions.replaceText
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.RecyclerViewActions
@@ -82,17 +84,17 @@ class CouponDetailMemberTest {
     @Test
     fun memberSave_showsSavedBannerNotLogin() {
         openFirstDetail()
-        onView(withId(R.id.detail_BTN_save)).perform(click())
-        // The save round-trips before the banner shows; wait for it.
+        onView(withId(R.id.detail_BTN_favorite)).perform(click())
+        // The save round-trips before the banner shows; wait for it. The single main
+        // notification is the only confirmation (the extra pill was removed).
         waitForBanner(R.string.detail_saved)
         onView(withId(R.id.login_ET_email)).check(doesNotExist())
-        onView(withId(R.id.detail_LAY_savedPill)).check(matches(isDisplayed()))
     }
 
     @Test
     fun memberSave_thenCouponsTab_showsSavedCoupon() {
         openFirstDetail()
-        onView(withId(R.id.detail_BTN_save)).perform(click())
+        onView(withId(R.id.detail_BTN_favorite)).perform(click())
         waitForBanner(R.string.detail_saved)
         onView(withId(R.id.main_LAY_tabCoupons)).perform(click())
         // The Coupons tab fetches its catalog lazily on first show; wait for the row.
@@ -125,7 +127,7 @@ class CouponDetailMemberTest {
 
     @Test
     fun memberCopyCode_showsCopiedBannerNotLogin() {
-        openFirstDetail()
+        openCouponWithCode()
         onView(withId(R.id.detail_BTN_copy)).perform(click())
         onView(withId(R.id.login_ET_email)).check(doesNotExist())
         onView(withId(R.id.main_LBL_banner)).check(matches(withText(R.string.detail_code_copied)))
@@ -155,4 +157,16 @@ class CouponDetailMemberTest {
             }
         }
     }
+
+    /** Opens a coupon that HAS a code (text search matches coupon_code). */
+    private fun openCouponWithCode() {
+        onView(withId(R.id.main_ET_search)).perform(click())
+        onView(withId(R.id.main_ET_search)).perform(replaceText("HOT29"), closeSoftKeyboard())
+        onView(withId(R.id.main_BTN_search)).perform(click())
+        waitForChildren(R.id.search_RCV_results)
+        onView(withId(R.id.search_RCV_results))
+            .perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(0, click()))
+        waitCompletelyDisplayed(R.id.detail_BTN_offer)
+    }
+
 }

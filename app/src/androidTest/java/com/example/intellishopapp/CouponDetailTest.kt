@@ -3,6 +3,8 @@ package com.example.intellishopapp
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
+import androidx.test.espresso.action.ViewActions.replaceText
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.RecyclerViewActions
@@ -14,6 +16,7 @@ import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.intellishopapp.utilities.SessionManager
+import org.hamcrest.Matchers.not
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -43,28 +46,67 @@ class CouponDetailTest {
         waitCompletelyDisplayed(R.id.detail_BTN_offer)
     }
 
+    /** Opens a coupon that HAS a code (text search matches coupon_code). */
+    private fun openCouponWithCode() {
+        onView(withId(R.id.main_ET_search)).perform(click())
+        onView(withId(R.id.main_ET_search)).perform(replaceText("HOT29"), closeSoftKeyboard())
+        onView(withId(R.id.main_BTN_search)).perform(click())
+        waitForChildren(R.id.search_RCV_results)
+        onView(withId(R.id.search_RCV_results))
+            .perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(0, click()))
+        waitCompletelyDisplayed(R.id.detail_BTN_offer)
+    }
+
     @Test
     fun detail_showsStoreAndActions() {
         openFirstDetail()
         onView(withId(R.id.detail_LBL_store)).check(matches(isDisplayed()))
-        onView(withId(R.id.detail_BTN_save)).check(matches(isDisplayed()))
+        onView(withId(R.id.detail_BTN_favorite)).check(matches(isDisplayed()))
+        // Every coupon in the data has links, so these actions are always offered.
+        onView(withId(R.id.detail_BTN_site)).check(matches(isDisplayed()))
+        onView(withId(R.id.detail_BTN_offer)).check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun detail_hidesCopyWhenCouponHasNoCode() {
+        // The highest-value coupon (first hero item) has no coupon_code.
+        openFirstDetail()
+        onView(withId(R.id.detail_BTN_copy)).check(matches(not(isDisplayed())))
+    }
+
+    @Test
+    fun detail_showsCopyWhenCouponHasCode() {
+        openCouponWithCode()
         onView(withId(R.id.detail_BTN_copy)).check(matches(isDisplayed()))
     }
 
     @Test
     fun guestSave_showsNotificationOnly_noLogin() {
         openFirstDetail()
-        onView(withId(R.id.detail_BTN_save)).perform(click())
+        onView(withId(R.id.detail_BTN_favorite)).perform(click())
         onView(withId(R.id.main_LBL_banner)).check(matches(withText(R.string.gate_save)))
         onView(withId(R.id.login_ET_email)).check(doesNotExist())
     }
 
     @Test
     fun guestCopyCode_showsNotificationOnly_noLogin() {
-        openFirstDetail()
+        openCouponWithCode()
         onView(withId(R.id.detail_BTN_copy)).perform(click())
         onView(withId(R.id.main_LBL_banner)).check(matches(withText(R.string.gate_copy)))
         onView(withId(R.id.login_ET_email)).check(doesNotExist())
+    }
+
+    private fun waitForChildren(id: Int) {
+        val end = System.currentTimeMillis() + 15000
+        while (System.currentTimeMillis() < end) {
+            try {
+                onView(withId(id)).check(matches(hasMinimumChildCount(1)))
+                return
+            } catch (e: Throwable) {
+                Thread.sleep(300)
+            }
+        }
+        onView(withId(id)).check(matches(hasMinimumChildCount(1)))
     }
 
     @Test

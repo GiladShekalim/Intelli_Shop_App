@@ -58,7 +58,7 @@ class FavoritesSyncTest {
         onView(withId(R.id.home_LAY_hero))
             .perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(0, click()))
         waitCompletelyDisplayed(R.id.detail_BTN_offer)
-        onView(withId(R.id.detail_BTN_save)).perform(click())
+        onView(withId(R.id.detail_BTN_favorite)).perform(click())
         waitForBanner(R.string.detail_saved)
 
         // Fake a fresh device: wipe ONLY the local favorite mirror (keep session+cookie).
