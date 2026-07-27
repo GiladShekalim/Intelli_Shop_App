@@ -123,6 +123,8 @@ class MainActivity : AppCompatActivity() {
         main_BTN_search.setOnClickListener { triggerSearch(ai = false) }
         main_BTN_ai.setOnClickListener { triggerSearch(ai = true) }
 
+        initBannerSwipe()
+
         // Keep the top bar correct whenever an overlay is pushed or popped.
         supportFragmentManager.addOnBackStackChangedListener { refreshTopBar() }
     }
@@ -164,23 +166,75 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private val hideBannerRunnable = Runnable {
-        main_LBL_banner.animate().alpha(0f).setDuration(180).withEndAction {
-            main_LBL_banner.visibility = View.GONE
-        }.start()
-    }
+    /** How far the banner travels when sliding in from / out to the top. */
+    private val bannerSlide by lazy { 150f * resources.displayMetrics.density }
+    private var bannerDragStartY = 0f
+
+    private val hideBannerRunnable = Runnable { hideBanner() }
 
     /**
-     * Shows the top banner. Short (~2s) for happy-flow messages, long (~4s) for
-     * sign-in prompts. Light green, fades in and auto-hides.
+     * Shows the notification in the upper area: it slides down into place, waits
+     * (~2s happy flow / ~4s sign-in prompts), then slides back up. The user can
+     * also swipe it up to dismiss it early.
      */
     fun showBanner(message: String, longDuration: Boolean = false) {
+        main_LBL_banner.removeCallbacks(hideBannerRunnable)
+        main_LBL_banner.animate().cancel()
         main_LBL_banner.text = message
         main_LBL_banner.visibility = View.VISIBLE
         main_LBL_banner.alpha = 0f
-        main_LBL_banner.animate().alpha(1f).setDuration(180).start()
-        main_LBL_banner.removeCallbacks(hideBannerRunnable)
+        main_LBL_banner.translationY = -bannerSlide
+        main_LBL_banner.animate().translationY(0f).alpha(1f).setDuration(260).start()
         main_LBL_banner.postDelayed(hideBannerRunnable, if (longDuration) 4000L else 2000L)
+    }
+
+    /** Slides the notification back up and out. */
+    private fun hideBanner() {
+        main_LBL_banner.removeCallbacks(hideBannerRunnable)
+        main_LBL_banner.animate().cancel()
+        main_LBL_banner.animate()
+            .translationY(-bannerSlide)
+            .alpha(0f)
+            .setDuration(220)
+            .withEndAction {
+                main_LBL_banner.visibility = View.GONE
+                main_LBL_banner.translationY = 0f
+            }
+            .start()
+    }
+
+    /** Swipe the notification upward to dismiss it early. */
+    private fun initBannerSwipe() {
+        main_LBL_banner.setOnTouchListener { _, event ->
+            when (event.actionMasked) {
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    bannerDragStartY = event.rawY
+                    main_LBL_banner.removeCallbacks(hideBannerRunnable)
+                    true
+                }
+                android.view.MotionEvent.ACTION_MOVE -> {
+                    val dy = event.rawY - bannerDragStartY
+                    if (dy < 0) main_LBL_banner.translationY = dy
+                    true
+                }
+                android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
+                    val dy = event.rawY - bannerDragStartY
+                    val density = resources.displayMetrics.density
+                    when {
+                        // Swiped up -> dismiss.
+                        dy < -40f * density -> hideBanner()
+                        // A plain tap dismisses it too, so it never just eats a tap.
+                        kotlin.math.abs(dy) < 8f * density -> hideBanner()
+                        else -> {
+                            main_LBL_banner.animate().translationY(0f).setDuration(150).start()
+                            main_LBL_banner.postDelayed(hideBannerRunnable, 1500L)
+                        }
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
     }
 
     /**
@@ -235,6 +289,47 @@ class MainActivity : AppCompatActivity() {
 
     /** Jump to the Coupons tab (used by the Profile shortcut). */
     fun openCoupons() = selectTab(Tab.COUPONS)
+
+    /**
+     * Celebratory fireworks rising from the bottom. Lives in the shell overlay so it
+     * keeps playing while the screen underneath changes (register -> login).
+     */
+    fun playFireworks() {
+        val fx = findViewById<android.widget.FrameLayout>(R.id.main_LAY_fx) ?: return
+        val colors = listOf(
+            0xFFFFC107.toInt(), 0xFFFF5252.toInt(), 0xFF69F0AE.toInt(),
+            0xFF40C4FF.toInt(), 0xFFE040FB.toInt(), 0xFFFFFFFF.toInt()
+        )
+        val width = resources.displayMetrics.widthPixels
+        val height = resources.displayMetrics.heightPixels
+        repeat(30) { i ->
+            val size = (10..24).random()
+            val spark = View(this)
+            spark.setBackgroundResource(R.drawable.bg_spark)
+            spark.backgroundTintList =
+                android.content.res.ColorStateList.valueOf(colors.random())
+            val params = android.widget.FrameLayout.LayoutParams(size, size)
+            params.gravity = android.view.Gravity.BOTTOM or android.view.Gravity.START
+            params.leftMargin = (width * 0.08 + Math.random() * width * 0.84).toInt()
+            spark.layoutParams = params
+            fx.addView(spark)
+            spark.animate()
+                .translationY(-(height * (0.45 + Math.random() * 0.45)).toFloat())
+                .translationXBy((-140..140).random().toFloat())
+                .alpha(0f)
+                .scaleX(1.9f)
+                .scaleY(1.9f)
+                .setStartDelay(i * 45L)
+                .setDuration((900..1500).random().toLong())
+                .withEndAction { fx.removeView(spark) }
+                .start()
+        }
+    }
+
+    /** Put the just-registered email into the Login form so only the password is needed. */
+    fun prefillLoginEmail(email: String) {
+        (supportFragmentManager.findFragmentByTag(TAG_LOGIN) as? LoginFragment)?.prefillEmail(email)
+    }
 
     /** Opens the Coupon History page over the content (from the Profile). */
     fun showCouponHistory() {
