@@ -81,33 +81,6 @@
                     android:scaleType="centerCrop"
                     android:src="@drawable/ic_image_placeholder" />
 
-                <LinearLayout
-                    android:id="@+id/detail_LAY_savedPill"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:background="@drawable/bg_pill_saved"
-                    android:paddingHorizontal="18dp"
-                    android:paddingVertical="10dp"
-                    android:visibility="gone">
-
-                    <androidx.appcompat.widget.AppCompatImageView
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
-                        android:layout_marginEnd="8dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_heart_filled"
-                        app:tint="@color/white" />
-
-                    <com.google.android.material.textview.MaterialTextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/detail_saved_pill"
-                        android:textColor="@color/white"
-                        android:textStyle="bold" />
-                </LinearLayout>
             </FrameLayout>
 
             <LinearLayout
@@ -220,20 +193,12 @@
         android:orientation="vertical"
         android:padding="10dp">
 
+        <!-- Only actions that this coupon actually has are shown (see the fragment) -->
         <LinearLayout
+            android:id="@+id/detail_LAY_actions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/detail_BTN_save"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="4dp"
-                android:text="@string/detail_action_save"
-                app:icon="@drawable/ic_heart_outline"
-                app:iconGravity="textStart" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/detail_BTN_copy"
@@ -241,15 +206,12 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginStart="4dp"
+                android:layout_marginEnd="3dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingHorizontal="4dp"
+                android:textSize="12sp"
                 android:text="@string/detail_action_copy" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="6dp">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/detail_BTN_site"
@@ -257,7 +219,11 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginEnd="4dp"
+                android:layout_marginHorizontal="3dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingHorizontal="4dp"
+                android:textSize="12sp"
                 android:text="@string/detail_action_site" />
 
             <com.google.android.material.button.MaterialButton
@@ -266,7 +232,11 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginStart="4dp"
+                android:layout_marginStart="3dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingHorizontal="4dp"
+                android:textSize="12sp"
                 android:text="@string/detail_action_offer" />
         </LinearLayout>
     </LinearLayout>

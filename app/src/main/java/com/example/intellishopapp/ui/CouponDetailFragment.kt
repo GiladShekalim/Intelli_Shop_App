@@ -42,7 +42,7 @@ class CouponDetailFragment : Fragment() {
     private lateinit var detail_LAY_header: LinearLayout
     private lateinit var detail_VIEW_handle: View
     private lateinit var detail_IMG_hero: View
-    private lateinit var detail_LAY_savedPill: View
+    private lateinit var detail_LAY_actions: View
     private lateinit var detail_BTN_close: ImageButton
     private lateinit var detail_BTN_favorite: ImageButton
     private lateinit var detail_LBL_store: MaterialTextView
@@ -51,7 +51,6 @@ class CouponDetailFragment : Fragment() {
     private lateinit var detail_LBL_description: MaterialTextView
     private lateinit var detail_LBL_code: MaterialTextView
     private lateinit var detail_LBL_terms: MaterialTextView
-    private lateinit var detail_BTN_save: MaterialButton
     private lateinit var detail_BTN_copy: MaterialButton
     private lateinit var detail_BTN_site: MaterialButton
     private lateinit var detail_BTN_offer: MaterialButton
@@ -73,6 +72,7 @@ class CouponDetailFragment : Fragment() {
         findViews(view)
         setupSheet()
         bindContent()
+        showAvailableActions()
         setHeart(SessionManager.getInstance().isFavorite(couponId))
         initActions()
         animateUpOnEnter()
@@ -91,7 +91,7 @@ class CouponDetailFragment : Fragment() {
         detail_LAY_header = view.findViewById(R.id.detail_LAY_header)
         detail_VIEW_handle = view.findViewById(R.id.detail_VIEW_handle)
         detail_IMG_hero = view.findViewById(R.id.detail_IMG_hero)
-        detail_LAY_savedPill = view.findViewById(R.id.detail_LAY_savedPill)
+        detail_LAY_actions = view.findViewById(R.id.detail_LAY_actions)
         detail_BTN_close = view.findViewById(R.id.detail_BTN_close)
         detail_BTN_favorite = view.findViewById(R.id.detail_BTN_favorite)
         detail_LBL_store = view.findViewById(R.id.detail_LBL_store)
@@ -100,7 +100,6 @@ class CouponDetailFragment : Fragment() {
         detail_LBL_description = view.findViewById(R.id.detail_LBL_description)
         detail_LBL_code = view.findViewById(R.id.detail_LBL_code)
         detail_LBL_terms = view.findViewById(R.id.detail_LBL_terms)
-        detail_BTN_save = view.findViewById(R.id.detail_BTN_save)
         detail_BTN_copy = view.findViewById(R.id.detail_BTN_copy)
         detail_BTN_site = view.findViewById(R.id.detail_BTN_site)
         detail_BTN_offer = view.findViewById(R.id.detail_BTN_offer)
@@ -136,6 +135,17 @@ class CouponDetailFragment : Fragment() {
             .into(detail_IMG_hero as android.widget.ImageView)
     }
 
+    /** Only show an action this coupon actually has (no code -> no Copy, etc.). */
+    private fun showAvailableActions() {
+        val args = requireArguments()
+        fun has(key: String) = !args.getString(key).isNullOrBlank()
+        detail_BTN_copy.visibility = if (has(ARG_CODE)) View.VISIBLE else View.GONE
+        detail_BTN_site.visibility = if (has(ARG_SITE)) View.VISIBLE else View.GONE
+        detail_BTN_offer.visibility = if (has(ARG_OFFER)) View.VISIBLE else View.GONE
+        val any = has(ARG_CODE) || has(ARG_SITE) || has(ARG_OFFER)
+        detail_LAY_actions.visibility = if (any) View.VISIBLE else View.GONE
+    }
+
     /** Terms body: conditions plus a "Valid until" line; a fallback if neither. */
     private fun termsText(args: Bundle): String {
         val terms = args.getString(ARG_TERMS)?.takeIf { it.isNotBlank() }
@@ -148,7 +158,6 @@ class CouponDetailFragment : Fragment() {
     private fun initActions() {
         detail_BTN_close.setOnClickListener { animateDownAndDismiss() }
 
-        detail_BTN_save.setOnClickListener { gated(R.string.gate_save) { toggleFavorite() } }
         detail_BTN_favorite.setOnClickListener { gated(R.string.gate_save) { toggleFavorite() } }
         detail_BTN_copy.setOnClickListener { gated(R.string.gate_copy) { copyCode() } }
         detail_BTN_site.setOnClickListener { gated(R.string.gate_site) { confirmLeave(ARG_SITE) } }
@@ -198,9 +207,10 @@ class CouponDetailFragment : Fragment() {
 
     /** Toggle save/unsave via the shell (backend write-through + notification). */
     private fun toggleFavorite() {
+        // Fill the heart immediately, then reconcile with the result.
+        setHeart(!SessionManager.getInstance().isFavorite(couponId))
         (requireActivity() as MainActivity).toggleFavorite(couponId) { nowFavorite ->
             setHeart(nowFavorite)
-            if (nowFavorite) showSavedPill()
         }
     }
 
@@ -210,12 +220,6 @@ class CouponDetailFragment : Fragment() {
         )
     }
 
-    private fun showSavedPill() {
-        detail_LAY_savedPill.visibility = View.VISIBLE
-        detail_LAY_savedPill.postDelayed({
-            if (isAdded) detail_LAY_savedPill.visibility = View.GONE
-        }, 1500)
-    }
 
     private fun copyCode() {
         val code = requireArguments().getString(ARG_CODE).orEmpty()
