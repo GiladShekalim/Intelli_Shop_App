@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -16,6 +17,7 @@ import com.example.intellishopapp.adapter.CouponAdapter
 import com.example.intellishopapp.logic.CouponRanker
 import com.example.intellishopapp.model.dto.CouponDto
 import com.example.intellishopapp.repository.CouponRepository
+import com.example.intellishopapp.repository.HistoryRepository
 import com.example.intellishopapp.utilities.ApiResult
 import com.example.intellishopapp.utilities.Constants
 import com.example.intellishopapp.utilities.SessionManager
@@ -23,25 +25,47 @@ import com.google.android.material.textview.MaterialTextView
 import kotlinx.coroutines.launch
 
 /**
- * Guest-browsable home, styled like the Figma: a featured hero row on top and a
- * horizontal "View More" row per category below. Anyone can browse and open a
- * coupon; the sign-in gate lives on the actions inside the detail sheet.
+ * Guest-browsable home: the personal suggestions as the hero row, then Recently
+ * Viewed, Top Deals, and a horizontal row per category. Anyone can browse and open
+ * a coupon; the sign-in gate lives on the actions inside the detail sheet.
  */
 class HomeFragment : Fragment() {
 
+    private lateinit var home_LBL_bestMatches: MaterialTextView
     private lateinit var home_LAY_hero: RecyclerView
+    private lateinit var home_LAY_hero2: RecyclerView
     private lateinit var home_LAY_sections: LinearLayout
     private lateinit var home_PRG_loading: ProgressBar
     private lateinit var home_LBL_empty: MaterialTextView
 
     private val couponRepository = CouponRepository()
+    private val historyRepository = HistoryRepository()
     private val heroAdapter = CouponAdapter(
+        emptyList(), R.layout.item_hero_card,
+        onFavorite = { onFavoriteClicked(it) }
+    ) { onCouponClicked(it) }
+    private val heroAdapter2 = CouponAdapter(
         emptyList(), R.layout.item_hero_card,
         onFavorite = { onFavoriteClicked(it) }
     ) { onCouponClicked(it) }
 
     // Every card adapter on the page, so a favorite toggle refreshes all hearts.
-    private val cardAdapters = mutableListOf<CouponAdapter>(heroAdapter)
+    private val cardAdapters = mutableListOf(heroAdapter, heroAdapter2)
+
+    private var loadedCoupons: List<CouponDto> = emptyList()
+    private var shownHistory: List<String> = emptyList()
+
+    /**
+     * Closing a coupon detail pops the back stack. If that visit added to the
+     * history, rebuild so Recently Viewed picks it up straight away.
+     */
+    private val backStackListener = FragmentManager.OnBackStackChangedListener {
+        if (view != null && loadedCoupons.isNotEmpty() &&
+            SessionManager.getInstance().getHistory() != shownHistory
+        ) {
+            showCoupons(loadedCoupons)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -53,11 +77,19 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         findViews(view)
         initViews()
+        parentFragmentManager.addOnBackStackChangedListener(backStackListener)
         loadCoupons()
     }
 
+    override fun onDestroyView() {
+        parentFragmentManager.removeOnBackStackChangedListener(backStackListener)
+        super.onDestroyView()
+    }
+
     private fun findViews(view: View) {
+        home_LBL_bestMatches = view.findViewById(R.id.home_LBL_bestMatches)
         home_LAY_hero = view.findViewById(R.id.home_LAY_hero)
+        home_LAY_hero2 = view.findViewById(R.id.home_LAY_hero2)
         home_LAY_sections = view.findViewById(R.id.home_LAY_sections)
         home_PRG_loading = view.findViewById(R.id.home_PRG_loading)
         home_LBL_empty = view.findViewById(R.id.home_LBL_empty)
@@ -67,6 +99,9 @@ class HomeFragment : Fragment() {
         home_LAY_hero.layoutManager =
             LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false)
         home_LAY_hero.adapter = heroAdapter
+        home_LAY_hero2.layoutManager =
+            LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false)
+        home_LAY_hero2.adapter = heroAdapter2
     }
 
     private fun loadCoupons() {
@@ -79,6 +114,13 @@ class HomeFragment : Fragment() {
                     if (result.data.isEmpty()) {
                         home_LBL_empty.visibility = View.VISIBLE
                     } else {
+                        // Refresh the history mirror first so Recently Viewed reflects
+                        // what this user did on any device. A guest gets 401 and keeps
+                        // whatever is stored locally.
+                        val history = historyRepository.get()
+                        if (history is ApiResult.Success) {
+                            SessionManager.getInstance().setHistory(history.data)
+                        }
                         showCoupons(result.data)
                     }
                 }
@@ -91,14 +133,37 @@ class HomeFragment : Fragment() {
     }
 
     private fun showCoupons(coupons: List<CouponDto>) {
-        // Hero: personalized top-10 (favourites-weighted, like the backend index_home).
-        // For a guest / no favourites this falls back to the highest-value coupons.
-        val featured = CouponRanker.personalizedTop(coupons, SessionManager.getInstance().favoriteIds(), 10)
-        heroAdapter.updateItems(featured)
+        loadedCoupons = coupons
+        val session = SessionManager.getInstance()
 
-        // A "View More" row per category that has coupons (canonical order).
+        // Hero: the personal suggestions, best match first, capped at 10 — the same
+        // profile filter + favourites weighting the backend's index_home applies. Shown
+        // as a greeting over two big-card rows of five.
+        val name = session.get()?.username?.takeIf { it.isNotBlank() }
+        home_LBL_bestMatches.text =
+            if (name != null) getString(R.string.home_best_matches, name)
+            else getString(R.string.home_best_matches_guest)
+
+        val suggestions = CouponRanker.personalizedTop(
+            coupons,
+            session.favoriteIds(),
+            10,
+            session.get()?.status.orEmpty(),
+            session.get()?.hobbies.orEmpty()
+        )
+        heroAdapter.updateItems(suggestions.take(5))
+        heroAdapter2.updateItems(suggestions.drop(5).take(5))
+
         home_LAY_sections.removeAllViews()
-        cardAdapters.retainAll(listOf(heroAdapter))
+        cardAdapters.retainAll(listOf(heroAdapter, heroAdapter2))
+
+        // Recently viewed, newest first. Hidden until there is something to show.
+        addRecentlyViewedSection(coupons)
+
+        // Last Minute: offers closest to their expiration date, soonest first.
+        addSection(getString(R.string.home_last_minute), CouponRanker.lastMinute(coupons, 10))
+
+        // Then one row per category that has coupons (canonical order).
         for (category in Constants.Categories.ALL) {
             val inCategory = coupons.filter { it.category?.contains(category) == true }
             if (inCategory.isNotEmpty()) {
@@ -107,13 +172,23 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun addSection(category: String, coupons: List<CouponDto>) {
+    /** Resolves the stored history ids against the loaded coupons, keeping history order. */
+    private fun addRecentlyViewedSection(coupons: List<CouponDto>) {
+        val byId = coupons.associateBy { it.discount_id }
+        shownHistory = SessionManager.getInstance().getHistory()
+        val viewed = shownHistory.mapNotNull { byId[it] }
+        if (viewed.isNotEmpty()) {
+            addSection(getString(R.string.home_recently_viewed), viewed)
+        }
+    }
+
+    private fun addSection(title: String, coupons: List<CouponDto>) {
+        if (coupons.isEmpty()) return
         val section = layoutInflater.inflate(R.layout.section_coupon_row, home_LAY_sections, false)
-        val title = section.findViewById<MaterialTextView>(R.id.section_LBL_title)
-        val viewMore = section.findViewById<MaterialTextView>(R.id.section_LBL_viewMore)
+        val label = section.findViewById<MaterialTextView>(R.id.section_LBL_title)
         val row = section.findViewById<RecyclerView>(R.id.section_LAY_row)
 
-        title.text = category
+        label.text = title
         row.layoutManager = LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false)
         val adapter = CouponAdapter(
             coupons, R.layout.item_coupon_card,
@@ -121,9 +196,6 @@ class HomeFragment : Fragment() {
         ) { onCouponClicked(it) }
         row.adapter = adapter
         cardAdapters.add(adapter)
-        viewMore.setOnClickListener {
-            (requireActivity() as MainActivity).showBanner(getString(R.string.search_soon))
-        }
         home_LAY_sections.addView(section)
     }
 

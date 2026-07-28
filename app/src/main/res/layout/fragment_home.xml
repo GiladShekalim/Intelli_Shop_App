@@ -16,14 +16,42 @@
             android:orientation="vertical"
             android:paddingBottom="12dp">
 
+            <!-- Personal suggestions: a centered greeting over two big-card rows. -->
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/home_LBL_bestMatches"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:paddingHorizontal="16dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="10dp"
+                android:textColor="@color/brand_primary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/home_LAY_hero"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:clipToPadding="false"
                 android:orientation="horizontal"
+                android:paddingHorizontal="8dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/home_LAY_hero2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:orientation="horizontal"
                 android:paddingHorizontal="8dp"
-                android:paddingTop="10dp" />
+                android:paddingTop="4dp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="16dp"
+                android:background="@color/divider" />
 
             <LinearLayout
                 android:id="@+id/home_LAY_sections"

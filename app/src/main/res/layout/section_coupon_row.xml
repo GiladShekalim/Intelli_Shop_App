@@ -5,34 +5,17 @@
     android:orientation="vertical"
     android:paddingTop="12dp">
 
-    <LinearLayout
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/section_LBL_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
+        android:ellipsize="end"
+        android:maxLines="1"
         android:paddingHorizontal="16dp"
-        android:paddingBottom="6dp">
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/section_LBL_title"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="@color/text_primary"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/section_LBL_viewMore"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="4dp"
-            android:text="@string/view_more"
-            android:textColor="@color/brand_primary"
-            android:textSize="13sp" />
-    </LinearLayout>
+        android:paddingBottom="6dp"
+        android:textColor="@color/text_primary"
+        android:textSize="16sp"
+        android:textStyle="bold" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/section_LAY_row"
