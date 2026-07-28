@@ -12,17 +12,18 @@
         android:layout_height="match_parent"
         android:fillViewport="true">
 
+        <!-- match_parent + fillViewport keeps the form vertically centred on tall
+             screens while still scrolling when the keyboard shrinks the viewport. -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
+            android:layout_height="match_parent"
+            android:gravity="center"
             android:orientation="vertical"
             android:padding="28dp">
 
             <com.google.android.material.textview.MaterialTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
                 android:layout_marginBottom="28dp"
                 android:text="@string/login_title"
                 android:textColor="@color/brand_primary"
