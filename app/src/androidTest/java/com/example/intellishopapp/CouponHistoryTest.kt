@@ -67,6 +67,38 @@ class CouponHistoryTest {
         onView(withId(R.id.history_RCV_list)).check(matches(hasMinimumChildCount(1)))
     }
 
+    @Test
+    fun favoriteFromHistoryRow_saves() {
+        RetrofitClient.getInstance().clearCookies()
+        openCouponWithCode()
+        onView(withId(R.id.detail_BTN_close)).perform(click())
+        onView(withId(R.id.main_LAY_tabProfile)).perform(click())
+        onView(withId(R.id.profile_LBL_myCoupons)).perform(click())
+        waitForChildren(R.id.history_RCV_list)
+        // The heart on a history row now works: tapping it saves the coupon.
+        onView(withId(R.id.history_RCV_list)).perform(
+            RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(
+                0, clickChildViewWithId(R.id.item_BTN_favorite)
+            )
+        )
+        waitForBanner(R.string.detail_saved)
+    }
+
+    private fun waitForBanner(textRes: Int) {
+        val end = System.currentTimeMillis() + 6000
+        while (System.currentTimeMillis() < end) {
+            try {
+                onView(withId(R.id.main_LBL_banner))
+                    .check(matches(androidx.test.espresso.matcher.ViewMatchers.withText(textRes)))
+                return
+            } catch (e: Throwable) {
+                Thread.sleep(150)
+            }
+        }
+        onView(withId(R.id.main_LBL_banner))
+            .check(matches(androidx.test.espresso.matcher.ViewMatchers.withText(textRes)))
+    }
+
     private fun waitForHero() {
         val end = System.currentTimeMillis() + 15000
         while (System.currentTimeMillis() < end) {

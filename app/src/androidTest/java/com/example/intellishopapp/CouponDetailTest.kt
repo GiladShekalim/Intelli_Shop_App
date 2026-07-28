@@ -68,6 +68,15 @@ class CouponDetailTest {
     }
 
     @Test
+    fun detail_showsValidUntilAsDayMonthYear() {
+        openFirstDetail()
+        // Every coupon carries a date; it is shown reformatted as dd/MM/yyyy.
+        onView(withId(R.id.detail_LBL_valid)).check(matches(isDisplayed()))
+        onView(withId(R.id.detail_LBL_valid))
+            .check(matches(withText(org.hamcrest.Matchers.containsString("/"))))
+    }
+
+    @Test
     fun detail_hidesCopyWhenCouponHasNoCode() {
         // The highest-value coupon (first hero item) has no coupon_code.
         openFirstDetail()

@@ -44,6 +44,20 @@ class HomeGuestTest {
     }
 
     @Test
+    fun home_showsBestMatchesGreeting() {
+        waitForHero()
+        onView(withId(R.id.home_LBL_bestMatches)).check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun home_showsTwoBigCardRows() {
+        waitForHero()
+        // With the full catalog, the 10 suggestions fill both rows of five.
+        onView(withId(R.id.home_LAY_hero)).check(matches(hasMinimumChildCount(1)))
+        onView(withId(R.id.home_LAY_hero2)).check(matches(hasMinimumChildCount(1)))
+    }
+
+    @Test
     fun guestTapCoupon_opensDetail() {
         waitForHero()
         onView(withId(R.id.home_LAY_hero))

@@ -8,12 +8,14 @@ import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.RootMatchers.isPlatformPopup
+import androidx.test.espresso.matcher.ViewMatchers.hasErrorText
 import androidx.test.espresso.matcher.ViewMatchers.hasMinimumChildCount
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import com.example.intellishopapp.utilities.SessionManager
 import org.junit.Before
 import org.junit.Rule
@@ -30,6 +32,8 @@ class RegisterFragmentTest {
 
     @get:Rule
     val scenario = ActivityScenarioRule(MainActivity::class.java)
+
+    private val context = InstrumentationRegistry.getInstrumentation().targetContext
 
     @Before
     fun ensureGuest() {
@@ -72,10 +76,38 @@ class RegisterFragmentTest {
     }
 
     @Test
-    fun register_emptyFields_showsError() {
+    fun register_emptyFields_showsFieldErrors() {
         openRegister()
         onView(withId(R.id.register_BTN_submit)).perform(scrollTo(), click())
-        onView(withId(R.id.register_LBL_error)).check(matches(isDisplayed()))
+        // Required fields flag inline and the form does not advance. Scroll the top
+        // field back into view first (submit sat at the bottom of the scroll).
+        onView(withId(R.id.register_ET_username)).perform(scrollTo())
+        onView(withId(R.id.register_ET_username))
+            .check(matches(hasErrorText(context.getString(R.string.error_username_required))))
+    }
+
+    @Test
+    fun register_invalidEmail_showsEmailError() {
+        openRegister()
+        onView(withId(R.id.register_ET_username)).perform(typeText("someone"), closeSoftKeyboard())
+        onView(withId(R.id.register_ET_email)).perform(typeText("not-an-email"), closeSoftKeyboard())
+        onView(withId(R.id.register_ET_password)).perform(typeText("pw1234"), closeSoftKeyboard())
+        onView(withId(R.id.register_BTN_submit)).perform(scrollTo(), click())
+        onView(withId(R.id.register_ET_email)).perform(scrollTo())
+        onView(withId(R.id.register_ET_email))
+            .check(matches(hasErrorText(context.getString(R.string.error_email_invalid))))
+    }
+
+    @Test
+    fun register_shortPassword_showsPasswordError() {
+        openRegister()
+        onView(withId(R.id.register_ET_username)).perform(typeText("someone"), closeSoftKeyboard())
+        onView(withId(R.id.register_ET_email)).perform(typeText("ok@example.com"), closeSoftKeyboard())
+        onView(withId(R.id.register_ET_password)).perform(typeText("abc"), closeSoftKeyboard())
+        onView(withId(R.id.register_BTN_submit)).perform(scrollTo(), click())
+        onView(withId(R.id.register_ET_password)).perform(scrollTo())
+        onView(withId(R.id.register_ET_password))
+            .check(matches(hasErrorText(context.getString(R.string.error_password_short))))
     }
 
     @Test
@@ -84,7 +116,7 @@ class RegisterFragmentTest {
         val unique = "test_reg" + System.currentTimeMillis()
         onView(withId(R.id.register_ET_username)).perform(typeText(unique), closeSoftKeyboard())
         onView(withId(R.id.register_ET_email)).perform(typeText("$unique@example.com"), closeSoftKeyboard())
-        onView(withId(R.id.register_ET_password)).perform(typeText("pw123"), closeSoftKeyboard())
+        onView(withId(R.id.register_ET_password)).perform(typeText("pw1234"), closeSoftKeyboard())
         onView(withId(R.id.register_BTN_submit)).perform(scrollTo(), click())
         // This is a real create-user round-trip; it can drop under heavy emulator load
         // late in the suite (no user created). Retry the submit once with the same data.

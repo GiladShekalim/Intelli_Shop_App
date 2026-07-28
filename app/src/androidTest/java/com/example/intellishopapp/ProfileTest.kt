@@ -119,6 +119,18 @@ class ProfileTest {
     }
 
     @Test
+    fun favoritesTab_isLabelledFavorites() {
+        onView(withId(R.id.main_LBL_tabCoupons)).check(matches(withText(R.string.tab_coupons)))
+        onView(withId(R.id.main_LBL_tabCoupons)).check(matches(withText("Favorites")))
+    }
+
+    @Test
+    fun activityCard_usesRedeemedOffersLabel() {
+        openProfile()
+        onView(withId(R.id.profile_LBL_myCoupons)).check(matches(withText("Redeemed Offers")))
+    }
+
+    @Test
     fun settingsCard_holdsEveryOption() {
         openProfile()
         onView(withId(R.id.profile_LAY_settings)).check(matches(isDisplayed()))

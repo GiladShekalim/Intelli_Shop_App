@@ -101,4 +101,45 @@ class CouponFormatterTest {
     fun title_passesThrough() {
         assertEquals("Big Sale", CouponFormatter.title(coupon(10.0, "percentage", title = "Big Sale")))
     }
+
+    // --- date display + expiry ---
+
+    private val today = java.time.LocalDate.of(2026, 1, 15)
+
+    @Test
+    fun validUntil_reformatsIsoToDayMonthYear() {
+        assertEquals("17/08/2025", CouponFormatter.validUntilDisplay("2025-08-17"))
+    }
+
+    @Test
+    fun validUntil_blankIsEmpty() {
+        assertEquals("", CouponFormatter.validUntilDisplay(null))
+        assertEquals("", CouponFormatter.validUntilDisplay("  "))
+    }
+
+    @Test
+    fun validUntil_unparseableFallsBackToRaw() {
+        assertEquals("someday", CouponFormatter.validUntilDisplay("someday"))
+    }
+
+    @Test
+    fun isExpired_pastDateIsExpired() {
+        assertEquals(true, CouponFormatter.isExpired("2026-01-14", today))
+    }
+
+    @Test
+    fun isExpired_todayIsNotExpired() {
+        assertEquals(false, CouponFormatter.isExpired("2026-01-15", today))
+    }
+
+    @Test
+    fun isExpired_futureDateIsNotExpired() {
+        assertEquals(false, CouponFormatter.isExpired("2026-02-01", today))
+    }
+
+    @Test
+    fun isExpired_blankOrBadDateIsNotExpired() {
+        assertEquals(false, CouponFormatter.isExpired(null, today))
+        assertEquals(false, CouponFormatter.isExpired("nonsense", today))
+    }
 }

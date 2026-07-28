@@ -12,12 +12,13 @@ class CouponRankerTest {
         id: String,
         price: Double? = 0.0,
         category: List<String>? = null,
-        statuses: List<String>? = null
+        statuses: List<String>? = null,
+        validUntil: String? = null
     ) = CouponDto(
         discount_id = id, title = id, price = price, discount_type = "fixed_amount",
         description = null, image_link = null, discount_link = null,
         terms_and_conditions = null, club_name = null, category = category,
-        valid_until = null, usage_limit = null, coupon_code = null,
+        valid_until = validUntil, usage_limit = null, coupon_code = null,
         provider_link = null, consumer_statuses = statuses
     )
 
@@ -78,5 +79,95 @@ class CouponRankerTest {
     @Test
     fun emptyInput_returnsEmpty() {
         assertTrue(CouponRanker.personalizedTop(emptyList(), setOf("x"), 10).isEmpty())
+    }
+
+    // --- profile pre-filter (backend step 1): narrow to statuses / interests ---
+
+    @Test
+    fun profileFilter_dropsCouponsOutsideStatusAndInterests() {
+        val all = listOf(
+            coupon("match-cat", price = 1.0, category = listOf("Travel and Vacation")),
+            coupon("match-status", price = 1.0, statuses = listOf("Student")),
+            coupon("unrelated", price = 999.0, category = listOf("Cars"))
+        )
+        val ranked = CouponRanker.personalizedTop(
+            all, emptySet(), 10,
+            statuses = listOf("Student"),
+            hobbies = listOf("Travel and Vacation")
+        )
+        val ids = ranked.map { it.discount_id }
+        assertTrue(ids.contains("match-cat"))
+        assertTrue(ids.contains("match-status"))
+        // Highest price, but nothing to do with the profile.
+        assertTrue(!ids.contains("unrelated"))
+    }
+
+    @Test
+    fun profileFilter_keepsFavoritesEvenWhenOutsideTheProfile() {
+        val all = listOf(
+            coupon("in-profile", price = 1.0, category = listOf("Cars")),
+            coupon("fav-outside", price = 1.0, category = listOf("Insurance"))
+        )
+        val ranked = CouponRanker.personalizedTop(
+            all, setOf("fav-outside"), 10, hobbies = listOf("Cars")
+        )
+        // The favourite is merged back in and boosted above the profile match.
+        assertEquals("fav-outside", ranked.first().discount_id)
+        assertEquals(2, ranked.size)
+    }
+
+    @Test
+    fun emptyProfile_ranksEverything() {
+        val all = listOf(
+            coupon("a", price = 5.0, category = listOf("Cars")),
+            coupon("b", price = 9.0, category = listOf("Insurance"))
+        )
+        assertEquals(2, CouponRanker.personalizedTop(all, emptySet(), 10).size)
+    }
+
+    @Test
+    fun profileFilter_noMatches_returnsEmpty() {
+        val all = listOf(coupon("a", price = 5.0, category = listOf("Cars")))
+        val ranked = CouponRanker.personalizedTop(
+            all, emptySet(), 10, hobbies = listOf("Travel and Vacation")
+        )
+        assertTrue(ranked.isEmpty())
+    }
+
+    // --- last minute (closest expiration first) ---
+
+    private val today = java.time.LocalDate.of(2026, 1, 1)
+
+    @Test
+    fun lastMinute_soonestExpirationFirst() {
+        val all = listOf(
+            coupon("far", validUntil = "2026-12-31"),
+            coupon("soon", validUntil = "2026-01-10"),
+            coupon("mid", validUntil = "2026-06-15")
+        )
+        assertEquals(
+            listOf("soon", "mid", "far"),
+            CouponRanker.lastMinute(all, 10, today).map { it.discount_id }
+        )
+    }
+
+    @Test
+    fun lastMinute_dropsExpiredAndUndated() {
+        val all = listOf(
+            coupon("expired", validUntil = "2025-12-31"),
+            coupon("valid", validUntil = "2026-02-01"),
+            coupon("undated", validUntil = null)
+        )
+        val ids = CouponRanker.lastMinute(all, 10, today).map { it.discount_id }
+        assertEquals(listOf("valid"), ids)
+    }
+
+    @Test
+    fun lastMinute_keepsTodayAndRespectsLimit() {
+        val all = (1..20).map { coupon("c$it", validUntil = "2026-01-%02d".format(it)) }
+        val result = CouponRanker.lastMinute(all, 3, today)
+        assertEquals(3, result.size)
+        // Jan 1 is today (not expired) and comes first.
+        assertEquals("c1", result.first().discount_id)
     }
 }

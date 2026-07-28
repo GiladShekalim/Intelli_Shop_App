@@ -57,7 +57,10 @@ class FavoritesSyncTest {
         waitForHero()
         onView(withId(R.id.home_LAY_hero))
             .perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(0, click()))
-        waitCompletelyDisplayed(R.id.detail_BTN_offer)
+        // Settle on the favorite button itself: it is always present, whereas the
+        // offer button is hidden for coupons that carry no offer link (the top
+        // personalized coupon varies per user).
+        waitCompletelyDisplayed(R.id.detail_BTN_favorite)
         onView(withId(R.id.detail_BTN_favorite)).perform(click())
         waitForBanner(R.string.detail_saved)
 
