@@ -49,6 +49,7 @@ class CouponDetailFragment : Fragment() {
     private lateinit var detail_LBL_discount: MaterialTextView
     private lateinit var detail_LBL_couponTitle: MaterialTextView
     private lateinit var detail_LBL_description: MaterialTextView
+    private lateinit var detail_LBL_valid: MaterialTextView
     private lateinit var detail_LBL_code: MaterialTextView
     private lateinit var detail_LBL_terms: MaterialTextView
     private lateinit var detail_BTN_copy: MaterialButton
@@ -75,6 +76,8 @@ class CouponDetailFragment : Fragment() {
         showAvailableActions()
         setHeart(SessionManager.getInstance().isFavorite(couponId))
         initActions()
+        // Opening the sheet is what counts as viewing the coupon.
+        recordHistory()
         animateUpOnEnter()
         // Back should slide the sheet down, not fall through to the shell.
         requireActivity().onBackPressedDispatcher.addCallback(
@@ -98,6 +101,7 @@ class CouponDetailFragment : Fragment() {
         detail_LBL_discount = view.findViewById(R.id.detail_LBL_discount)
         detail_LBL_couponTitle = view.findViewById(R.id.detail_LBL_couponTitle)
         detail_LBL_description = view.findViewById(R.id.detail_LBL_description)
+        detail_LBL_valid = view.findViewById(R.id.detail_LBL_valid)
         detail_LBL_code = view.findViewById(R.id.detail_LBL_code)
         detail_LBL_terms = view.findViewById(R.id.detail_LBL_terms)
         detail_BTN_copy = view.findViewById(R.id.detail_BTN_copy)
@@ -125,6 +129,7 @@ class CouponDetailFragment : Fragment() {
         detail_LBL_code.text =
             args.getString(ARG_CODE)?.takeIf { it.isNotBlank() }
                 ?: getString(R.string.detail_no_code)
+        bindValidUntil(args.getString(ARG_VALID))
         detail_LBL_terms.text = termsText(args)
 
         Glide.with(this)
@@ -146,14 +151,32 @@ class CouponDetailFragment : Fragment() {
         detail_LAY_actions.visibility = if (any) View.VISIBLE else View.GONE
     }
 
-    /** Terms body: conditions plus a "Valid until" line; a fallback if neither. */
-    private fun termsText(args: Bundle): String {
-        val terms = args.getString(ARG_TERMS)?.takeIf { it.isNotBlank() }
-        val valid = args.getString(ARG_VALID)?.takeIf { it.isNotBlank() }
-            ?.let { getString(R.string.detail_valid_until, it) }
-        return listOfNotNull(terms, valid).joinToString("\n\n")
-            .ifBlank { getString(R.string.detail_no_terms) }
+    /**
+     * The valid-until line: date as dd/MM/yyyy, always bold. Once the date has passed
+     * it reads "Expired" and turns red. Hidden if the coupon carries no date.
+     */
+    private fun bindValidUntil(raw: String?) {
+        if (raw.isNullOrBlank()) {
+            detail_LBL_valid.visibility = View.GONE
+            return
+        }
+        val display = CouponFormatter.validUntilDisplay(raw)
+        val expired = CouponFormatter.isExpired(raw)
+        detail_LBL_valid.visibility = View.VISIBLE
+        detail_LBL_valid.text =
+            getString(if (expired) R.string.detail_expired else R.string.detail_valid_until, display)
+        detail_LBL_valid.setTextColor(
+            androidx.core.content.ContextCompat.getColor(
+                requireContext(),
+                if (expired) R.color.expired_red else R.color.text_primary
+            )
+        )
     }
+
+    /** Terms body: the conditions text, or a fallback when there is none. */
+    private fun termsText(args: Bundle): String =
+        args.getString(ARG_TERMS)?.takeIf { it.isNotBlank() }
+            ?: getString(R.string.detail_no_terms)
 
     private fun initActions() {
         detail_BTN_close.setOnClickListener { animateDownAndDismiss() }
@@ -225,8 +248,23 @@ class CouponDetailFragment : Fragment() {
         val code = requireArguments().getString(ARG_CODE).orEmpty()
         val clipboard = requireContext().getSystemService(ClipboardManager::class.java)
         clipboard?.setPrimaryClip(ClipData.newPlainText("coupon_code", code))
-        recordHistory()
+        markCopied()
         (requireActivity() as MainActivity).showBanner(getString(R.string.detail_code_copied))
+    }
+
+    /**
+     * Fill the Copy button green once used. It stays green (and still re-copies) for
+     * as long as this sheet is open; reopening creates a fresh sheet, so it resets.
+     */
+    private fun markCopied() {
+        val ctx = requireContext()
+        detail_BTN_copy.backgroundTintList = android.content.res.ColorStateList.valueOf(
+            androidx.core.content.ContextCompat.getColor(ctx, R.color.brand_primary)
+        )
+        detail_BTN_copy.setTextColor(
+            androidx.core.content.ContextCompat.getColor(ctx, R.color.white)
+        )
+        detail_BTN_copy.strokeWidth = 0
     }
 
     /** Warn before leaving the app; open the link only if the user accepts. */
@@ -249,14 +287,13 @@ class CouponDetailFragment : Fragment() {
             .show()
     }
 
-    /** Record an action locally (immediate) and write it through to the backend. */
+    /** Record the view locally (immediate) and write it through to the backend. */
     private fun recordHistory() {
         SessionManager.getInstance().addHistory(couponId)
         viewLifecycleOwner.lifecycleScope.launch { historyRepository.add(couponId) }
     }
 
     private fun openUrl(url: String) {
-        recordHistory()
         try {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         } catch (e: ActivityNotFoundException) {
