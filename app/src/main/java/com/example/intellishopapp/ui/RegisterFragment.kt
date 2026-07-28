@@ -150,10 +150,7 @@ class RegisterFragment : Fragment() {
         val ageText = register_ET_age.text?.toString()?.trim().orEmpty()
         val location = register_ET_location.text?.toString()?.trim().orEmpty()
 
-        if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
-            showError(getString(R.string.error_fill_required))
-            return
-        }
+        if (!validate(username, email, password)) return
 
         val request = RegisterRequest(
             username = username,
@@ -187,6 +184,38 @@ class RegisterFragment : Fragment() {
                 }
             }
         }
+    }
+
+    /**
+     * Username, email and password are required; the email must look like one and the
+     * password must be long enough. Errors show on the offending field. Google users
+     * have no password field, so that check is skipped for them.
+     */
+    private fun validate(username: String, email: String, password: String): Boolean {
+        var ok = true
+        if (username.isEmpty()) {
+            register_ET_username.error = getString(R.string.error_username_required)
+            ok = false
+        }
+        when {
+            email.isEmpty() -> {
+                register_ET_email.error = getString(R.string.error_email_required); ok = false
+            }
+            !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                register_ET_email.error = getString(R.string.error_email_invalid); ok = false
+            }
+        }
+        if (!googleMode) {
+            when {
+                password.isEmpty() -> {
+                    register_ET_password.error = getString(R.string.error_password_required); ok = false
+                }
+                password.length < MIN_PASSWORD -> {
+                    register_ET_password.error = getString(R.string.error_password_short); ok = false
+                }
+            }
+        }
+        return ok
     }
 
     private fun finishRegister(email: String) {
@@ -228,6 +257,7 @@ class RegisterFragment : Fragment() {
 
     companion object {
         private const val DOUBLE_TAP_MS = 300L
+        private const val MIN_PASSWORD = 6
         const val EXTRA_EMAIL = "extra_email"
         const val EXTRA_NAME = "extra_name"
         const val EXTRA_GOOGLE = "extra_google"
