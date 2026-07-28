@@ -50,8 +50,16 @@ class PreferencesFragment : Fragment() {
         pref_LAY_grid = view.findViewById(R.id.pref_LAY_grid)
         pref_BTN_close.setOnClickListener { parentFragmentManager.popBackStack() }
 
-        val session = SessionManager.getInstance().get()
-        selected.addAll(if (isStatus) session?.status.orEmpty() else session?.hobbies.orEmpty())
+        val manager = SessionManager.getInstance()
+        val session = manager.get()
+        // Prefer the live session; a bare login leaves it empty, so fall back to the
+        // per-email store saved at registration so the choices still show selected.
+        val fromSession = if (isStatus) session?.status.orEmpty() else session?.hobbies.orEmpty()
+        val chosen = fromSession.ifEmpty {
+            val stored = manager.loadPreferences(session?.email.orEmpty())
+            if (isStatus) stored?.first.orEmpty() else stored?.second.orEmpty()
+        }
+        selected.addAll(chosen)
         pref_LBL_title.setText(
             if (isStatus) R.string.profile_my_preferences else R.string.profile_my_categories
         )
