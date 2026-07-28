@@ -112,22 +112,26 @@ class LoginFragment : Fragment() {
         login_LBL_error.visibility = View.GONE
         setLoading(true)
         viewLifecycleOwner.lifecycleScope.launch {
-            val idToken = try {
-                GoogleAuthHelper.getIdToken(requireContext())
+            val account = try {
+                GoogleAuthHelper.getAccount(requireContext())
             } catch (e: Exception) {
-                Log.e("GoogleAuth", "getIdToken failed", e)
+                Log.e("GoogleAuth", "getAccount failed", e)
                 setLoading(false)
                 showError("Google: ${e.message}")
                 return@launch
             }
-            if (idToken == null) {
+            if (account == null) {
                 setLoading(false)
                 showError(getString(R.string.error_google_failed))
                 return@launch
             }
-            when (val result = authRepository.googleLogin(idToken)) {
+            when (val result = authRepository.googleLogin(account.idToken)) {
                 is ApiResult.Success -> {
                     val body = result.data
+                    // Keyed by email so the avatar is there whether the user signs in
+                    // now or finishes registration first.
+                    SessionManager.getInstance()
+                        .savePhotoUrl(body.email.orEmpty(), account.photoUrl)
                     if (!body.is_new) {
                         SessionManager.getInstance().save(
                             UserSession(

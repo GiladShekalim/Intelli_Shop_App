@@ -23,7 +23,10 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
  */
 object GoogleAuthHelper {
 
-    suspend fun getIdToken(context: Context): String? {
+    /** What Google hands back: the token the backend verifies, plus the account photo. */
+    data class GoogleAccount(val idToken: String, val photoUrl: String?)
+
+    suspend fun getAccount(context: Context): GoogleAccount? {
         val credentialManager = CredentialManager.create(context)
 
         val googleIdOption = GetGoogleIdOption.Builder()
@@ -33,30 +36,31 @@ object GoogleAuthHelper {
             .build()
 
         return try {
-            requestToken(context, credentialManager, googleIdOption)
+            requestAccount(context, credentialManager, googleIdOption)
         } catch (e: NoCredentialException) {
             // No account offered by the one-tap path -> show the explicit chooser.
             val signInOption = GetSignInWithGoogleOption
                 .Builder(Constants.Api.GOOGLE_WEB_CLIENT_ID)
                 .build()
-            requestToken(context, credentialManager, signInOption)
+            requestAccount(context, credentialManager, signInOption)
         }
     }
 
-    private suspend fun requestToken(
+    private suspend fun requestAccount(
         context: Context,
         credentialManager: CredentialManager,
         option: CredentialOption
-    ): String? {
+    ): GoogleAccount? {
         val request = GetCredentialRequest.Builder().addCredentialOption(option).build()
-        return extractIdToken(credentialManager.getCredential(context, request).credential)
+        return extractAccount(credentialManager.getCredential(context, request).credential)
     }
 
-    private fun extractIdToken(credential: Credential): String? =
+    private fun extractAccount(credential: Credential): GoogleAccount? =
         if (credential is CustomCredential &&
             credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
         ) {
-            GoogleIdTokenCredential.createFrom(credential.data).idToken
+            val googleCredential = GoogleIdTokenCredential.createFrom(credential.data)
+            GoogleAccount(googleCredential.idToken, googleCredential.profilePictureUri?.toString())
         } else {
             null
         }
