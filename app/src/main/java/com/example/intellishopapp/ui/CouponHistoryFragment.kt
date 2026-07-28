@@ -86,7 +86,18 @@ class CouponHistoryFragment : Fragment() {
         }
         history_LBL_empty.visibility = View.GONE
         history_RCV_list.visibility = View.VISIBLE
-        history_RCV_list.adapter = CouponAdapter(coupons, R.layout.item_favorite_row) { onCouponClicked(it) }
+        val adapter = CouponAdapter(
+            coupons, R.layout.item_favorite_row,
+            onFavorite = { onFavoriteClicked(it) }
+        ) { onCouponClicked(it) }
+        history_RCV_list.adapter = adapter
+    }
+
+    private fun onFavoriteClicked(coupon: CouponDto) {
+        // The row stays in history either way; just flip the heart to the new state.
+        (requireActivity() as MainActivity).toggleFavorite(coupon.discount_id.orEmpty()) {
+            history_RCV_list.adapter?.notifyDataSetChanged()
+        }
     }
 
     private fun showEmpty() {
