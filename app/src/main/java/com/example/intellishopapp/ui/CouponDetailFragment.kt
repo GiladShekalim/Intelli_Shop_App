@@ -50,7 +50,6 @@ class CouponDetailFragment : Fragment() {
     private lateinit var detail_LBL_couponTitle: MaterialTextView
     private lateinit var detail_LBL_description: MaterialTextView
     private lateinit var detail_LBL_valid: MaterialTextView
-    private lateinit var detail_LBL_code: MaterialTextView
     private lateinit var detail_LBL_terms: MaterialTextView
     private lateinit var detail_BTN_copy: MaterialButton
     private lateinit var detail_BTN_site: MaterialButton
@@ -102,7 +101,6 @@ class CouponDetailFragment : Fragment() {
         detail_LBL_couponTitle = view.findViewById(R.id.detail_LBL_couponTitle)
         detail_LBL_description = view.findViewById(R.id.detail_LBL_description)
         detail_LBL_valid = view.findViewById(R.id.detail_LBL_valid)
-        detail_LBL_code = view.findViewById(R.id.detail_LBL_code)
         detail_LBL_terms = view.findViewById(R.id.detail_LBL_terms)
         detail_BTN_copy = view.findViewById(R.id.detail_BTN_copy)
         detail_BTN_site = view.findViewById(R.id.detail_BTN_site)
@@ -126,9 +124,6 @@ class CouponDetailFragment : Fragment() {
         detail_LBL_description.text =
             args.getString(ARG_DESC)?.takeIf { it.isNotBlank() }
                 ?: getString(R.string.detail_no_description)
-        detail_LBL_code.text =
-            args.getString(ARG_CODE)?.takeIf { it.isNotBlank() }
-                ?: getString(R.string.detail_no_code)
         bindValidUntil(args.getString(ARG_VALID))
         detail_LBL_terms.text = termsText(args)
 
@@ -223,7 +218,8 @@ class CouponDetailFragment : Fragment() {
         if (SessionManager.getInstance().isLoggedIn()) {
             action()
         } else {
-            (requireActivity() as MainActivity).showBanner(getString(gateRes), longDuration = true)
+            (requireActivity() as MainActivity)
+                .showBanner(getString(gateRes), longDuration = true, opensLogin = true)
             SignalManager.getInstance().vibrate()
         }
     }
