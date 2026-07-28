@@ -7,6 +7,7 @@ import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.RootMatchers.isDialog
+import androidx.test.espresso.matcher.ViewMatchers.isChecked
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
@@ -17,6 +18,7 @@ import com.example.intellishopapp.network.RetrofitClient
 import com.example.intellishopapp.utilities.SessionManager
 import org.hamcrest.Matchers.not
 import org.junit.After
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -36,6 +38,8 @@ class ProfileTest {
     @Before
     fun signInMember() {
         RetrofitClient.getInstance().clearCookies()
+        // Notifications are app-wide, so pin them on before each test.
+        SessionManager.getInstance().setNotificationsEnabled(true)
         SessionManager.getInstance().save(
             UserSession(userId = "test-member", email = "member@test.local", username = "TestMember")
         )
@@ -45,6 +49,8 @@ class ProfileTest {
     fun cleanUp() {
         SessionManager.getInstance().clear()
         SessionManager.getInstance().setNightMode(false)
+        // Never leave the rest of the suite muted.
+        SessionManager.getInstance().setNotificationsEnabled(true)
     }
 
     private fun openProfile() {
@@ -108,7 +114,50 @@ class ProfileTest {
     @Test
     fun toggleNight_persistsPreference() {
         openProfile()
-        onView(withId(R.id.profile_LBL_night)).perform(click())
+        onView(withId(R.id.profile_SW_night)).perform(click())
         assertTrue(SessionManager.getInstance().isNightMode())
+    }
+
+    @Test
+    fun settingsCard_holdsEveryOption() {
+        openProfile()
+        onView(withId(R.id.profile_LAY_settings)).check(matches(isDisplayed()))
+        onView(withId(R.id.profile_SW_night)).check(matches(isDisplayed()))
+        onView(withId(R.id.profile_SW_notifications)).check(matches(isDisplayed()))
+        onView(withId(R.id.profile_LBL_password)).check(matches(isDisplayed()))
+        onView(withId(R.id.profile_BTN_signOut)).check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun notificationsOn_byDefault() {
+        openProfile()
+        onView(withId(R.id.profile_SW_notifications)).check(matches(isChecked()))
+    }
+
+    @Test
+    fun notificationsOn_showsTheBanner() {
+        openProfile()
+        scenario.scenario.onActivity { it.showBanner("hello") }
+        onView(withId(R.id.main_LBL_banner)).check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun notificationsOff_silencesTheBanner() {
+        openProfile()
+        onView(withId(R.id.profile_SW_notifications)).perform(click())
+        assertFalse(SessionManager.getInstance().isNotificationsEnabled())
+        scenario.scenario.onActivity { it.showBanner("hello") }
+        onView(withId(R.id.main_LBL_banner)).check(matches(not(isDisplayed())))
+    }
+
+    @Test
+    fun notificationsBackOn_showsTheBannerAgain() {
+        openProfile()
+        // Off, then on again: the preference round-trips and the banner returns.
+        onView(withId(R.id.profile_SW_notifications)).perform(click())
+        onView(withId(R.id.profile_SW_notifications)).perform(click())
+        assertTrue(SessionManager.getInstance().isNotificationsEnabled())
+        scenario.scenario.onActivity { it.showBanner("hello") }
+        onView(withId(R.id.main_LBL_banner)).check(matches(isDisplayed()))
     }
 }
