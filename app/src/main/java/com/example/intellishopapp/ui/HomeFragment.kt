@@ -152,7 +152,18 @@ class HomeFragment : Fragment() {
             session.get()?.hobbies.orEmpty()
         )
         heroAdapter.updateItems(suggestions.take(5))
-        heroAdapter2.updateItems(suggestions.drop(5).take(5))
+        val secondRow = suggestions.drop(5).take(5)
+        heroAdapter2.updateItems(secondRow)
+        // Nudge the second row half a card to the left so it visibly reads as
+        // scrollable. Absolute (scrollToPositionWithOffset) so repeated binds don't
+        // accumulate the offset.
+        if (secondRow.isNotEmpty()) {
+            home_LAY_hero2.post {
+                val halfCard = (150 * resources.displayMetrics.density).toInt()
+                (home_LAY_hero2.layoutManager as? LinearLayoutManager)
+                    ?.scrollToPositionWithOffset(0, -halfCard)
+            }
+        }
 
         home_LAY_sections.removeAllViews()
         cardAdapters.retainAll(listOf(heroAdapter, heroAdapter2))
