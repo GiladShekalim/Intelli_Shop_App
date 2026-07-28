@@ -58,10 +58,16 @@ class MainActivity : AppCompatActivity() {
 
     private enum class Tab { HOME, COUPONS, PROFILE }
     private var currentTab = Tab.HOME
+    private var restoredTab: Tab? = null
     private val favoriteRepository = FavoriteRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Survive the activity recreate that a Day/Night switch triggers, so the user
+        // stays on the tab they were on (e.g. Profile) instead of dropping to Home.
+        restoredTab = savedInstanceState?.getInt(STATE_TAB, -1)
+            ?.takeIf { it in Tab.entries.indices }
+            ?.let { Tab.entries[it] }
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_LAY_root)) { v, insets ->
@@ -102,12 +108,20 @@ class MainActivity : AppCompatActivity() {
                 .add(R.id.main_FRAME_content, favoritesFragment, TAG_COUPONS).hide(favoritesFragment)
                 .add(R.id.main_FRAME_content, homeFragment, TAG_HOME)
                 .commit()
+            activeFragment = homeFragment
+            currentTab = Tab.HOME
         } else {
-            // Recreated (e.g. rotation): normalise to Home.
-            fm.beginTransaction().hide(favoritesFragment).hide(profileFragment).show(homeFragment).commit()
+            // Recreated (e.g. a Day/Night switch): restore the tab we were on.
+            val start = restoredTab ?: Tab.HOME
+            val target = fragmentForTab(start)
+            fm.beginTransaction()
+                .hide(homeFragment).hide(favoritesFragment).hide(profileFragment)
+                .show(target)
+                .commit()
+            activeFragment = target
+            currentTab = start
         }
-        activeFragment = homeFragment
-        updateTabColors(Tab.HOME)
+        paintTabs()
 
         main_LAY_tabHome.setOnClickListener { selectTab(Tab.HOME) }
         main_LAY_tabCoupons.setOnClickListener { selectTab(Tab.COUPONS) }
@@ -125,14 +139,20 @@ class MainActivity : AppCompatActivity() {
 
         initBannerSwipe()
 
-        // Keep the top bar correct whenever an overlay is pushed or popped.
-        supportFragmentManager.addOnBackStackChangedListener { refreshTopBar() }
+        // Keep the top bar and the tab highlight correct whenever an overlay is
+        // pushed or popped (e.g. the Login overlay a guest opens from Profile).
+        supportFragmentManager.addOnBackStackChangedListener { paintTabs() }
     }
 
     /** Any overlay layered over the tabs (Login, Register, Detail, Search, Prefs). */
     private fun hasOverlay(): Boolean = supportFragmentManager.backStackEntryCount > 0
 
     private fun isSearchOpen(): Boolean = supportFragmentManager.findFragmentByTag(TAG_SEARCH) != null
+
+    /** The sign-in / sign-up overlay a guest reaches from the Profile tab. */
+    private fun isAuthOpen(): Boolean =
+        supportFragmentManager.findFragmentByTag(TAG_LOGIN) != null ||
+            supportFragmentManager.findFragmentByTag(TAG_REGISTER) != null
 
     /** The search top bar shows on Home and on the Search page (static), else hidden. */
     private fun refreshTopBar() {
@@ -406,31 +426,43 @@ class MainActivity : AppCompatActivity() {
             showLogin()
             return
         }
-        val target = when (tab) {
-            Tab.HOME -> homeFragment
-            Tab.COUPONS -> favoritesFragment
-            Tab.PROFILE -> profileFragment
-        }
+        val target = fragmentForTab(tab)
         if (target !== activeFragment) {
             supportFragmentManager.beginTransaction().hide(activeFragment).show(target).commit()
             activeFragment = target
         }
         currentTab = tab
-        updateTabColors(tab)
+        paintTabs()
     }
 
-    private fun updateTabColors(tab: Tab) {
+    /**
+     * Highlights the active tab. While a guest is on the Login / Register overlay the
+     * Profile tab stays highlighted (that is where they tapped to get there).
+     */
+    private fun paintTabs() {
         refreshTopBar()
+        val highlight = if (isAuthOpen()) Tab.PROFILE else currentTab
         val selected = ContextCompat.getColor(this, R.color.brand_primary)
         val normal = ContextCompat.getColor(this, R.color.text_secondary)
-        applyTab(main_IMG_tabHome, main_LBL_tabHome, if (tab == Tab.HOME) selected else normal)
-        applyTab(main_IMG_tabCoupons, main_LBL_tabCoupons, if (tab == Tab.COUPONS) selected else normal)
-        applyTab(main_IMG_tabProfile, main_LBL_tabProfile, if (tab == Tab.PROFILE) selected else normal)
+        applyTab(main_IMG_tabHome, main_LBL_tabHome, if (highlight == Tab.HOME) selected else normal)
+        applyTab(main_IMG_tabCoupons, main_LBL_tabCoupons, if (highlight == Tab.COUPONS) selected else normal)
+        applyTab(main_IMG_tabProfile, main_LBL_tabProfile, if (highlight == Tab.PROFILE) selected else normal)
     }
 
     private fun applyTab(icon: ImageView, label: MaterialTextView, color: Int) {
         icon.setColorFilter(color)
         label.setTextColor(color)
+    }
+
+    private fun fragmentForTab(tab: Tab): Fragment = when (tab) {
+        Tab.HOME -> homeFragment
+        Tab.COUPONS -> favoritesFragment
+        Tab.PROFILE -> profileFragment
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(STATE_TAB, currentTab.ordinal)
     }
 
     companion object {
@@ -443,5 +475,6 @@ class MainActivity : AppCompatActivity() {
         private const val TAG_SEARCH = "search"
         private const val TAG_PREFS = "prefs"
         private const val TAG_HISTORY = "history"
+        private const val STATE_TAB = "state_tab"
     }
 }

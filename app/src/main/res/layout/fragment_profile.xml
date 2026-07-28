@@ -9,19 +9,20 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp">
 
-        <!-- Header: avatar + name + email. The avatar carries the Google account
-             photo when there is one, otherwise the default person icon. -->
+        <!-- Header: avatar + name + email, centred with generous breathing room.
+             The avatar carries the Google account photo when there is one. -->
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/profile_IMG_avatar"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
+            android:layout_width="104dp"
+            android:layout_height="104dp"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="28dp"
+            android:layout_marginTop="40dp"
             android:background="@drawable/bg_avatar_circle"
             android:contentDescription="@string/tab_profile"
-            android:padding="22dp"
+            android:padding="24dp"
             android:src="@drawable/ic_tab_profile"
             app:tint="@color/brand_primary" />
 
@@ -29,79 +30,96 @@
             android:id="@+id/profile_LBL_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="16dp"
             android:gravity="center"
             android:text="@string/tab_profile"
             android:textColor="@color/brand_primary"
-            android:textSize="22sp"
+            android:textSize="24sp"
             android:textStyle="bold" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/profile_LBL_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="4dp"
             android:gravity="center"
             android:textColor="@color/text_secondary"
             android:textSize="14sp" />
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="24dp"
-            android:background="@color/divider" />
-
-        <!-- My Coupons -->
+        <!-- Activity group -->
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/profile_LBL_myCoupons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:text="@string/profile_activity"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="8dp"
             android:background="@drawable/bg_card"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="16dp"
-            android:text="@string/profile_coupon_history"
-            android:textColor="@color/text_primary"
-            android:textSize="16sp" />
+            android:orientation="vertical">
 
-        <!-- My Preferences (statuses) -->
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/profile_LBL_preferences"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/bg_card"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="16dp"
-            android:text="@string/profile_my_preferences"
-            android:textColor="@color/text_primary"
-            android:textSize="16sp" />
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/profile_LBL_myCoupons"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="16dp"
+                android:text="@string/profile_coupon_history"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp" />
 
-        <!-- My Categories (interests) -->
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/profile_LBL_categories"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/bg_card"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="16dp"
-            android:text="@string/profile_my_categories"
-            android:textColor="@color/text_primary"
-            android:textSize="16sp" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginHorizontal="16dp"
+                android:background="@color/divider" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/profile_LBL_preferences"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="16dp"
+                android:text="@string/profile_my_preferences"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginHorizontal="16dp"
+                android:background="@color/divider" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/profile_LBL_categories"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="16dp"
+                android:text="@string/profile_my_categories"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp" />
+        </LinearLayout>
 
         <!-- Settings: everything that changes how the app behaves lives in one card -->
         <com.google.android.material.textview.MaterialTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="32dp"
             android:text="@string/profile_settings"
             android:textColor="@color/text_secondary"
             android:textSize="14sp"
@@ -111,7 +129,6 @@
             android:id="@+id/profile_LAY_settings"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
             android:layout_marginTop="8dp"
             android:background="@drawable/bg_card"
             android:orientation="vertical"
@@ -212,6 +229,6 @@
 
         <Space
             android:layout_width="match_parent"
-            android:layout_height="24dp" />
+            android:layout_height="32dp" />
     </LinearLayout>
 </ScrollView>
