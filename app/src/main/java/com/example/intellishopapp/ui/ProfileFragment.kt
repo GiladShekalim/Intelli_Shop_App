@@ -93,12 +93,31 @@ class ProfileFragment : Fragment() {
         profile_DIV_password.visibility = if (hidePassword) View.GONE else View.VISIBLE
         profile_SW_night.isChecked = SessionManager.getInstance().isNightMode()
         profile_SW_notifications.isChecked = SessionManager.getInstance().isNotificationsEnabled()
-        bindAvatar(session?.email.orEmpty())
+        bindAvatar(session)
     }
 
-    /** Google users get their account photo; everyone else keeps the default icon. */
-    private fun bindAvatar(email: String) {
-        val photoUrl = SessionManager.getInstance().getPhotoUrl(email) ?: return
+    /**
+     * The avatar must match the signed-in user: only a Google account shows its
+     * photo; email/password users (no upload feature) show the default icon. The
+     * fragment is reused across sign-ins, so the non-Google branch actively resets
+     * the image — otherwise a previous Google user's photo would linger.
+     */
+    private fun bindAvatar(session: com.example.intellishopapp.model.UserSession?) {
+        val photoUrl = session
+            ?.takeIf { it.isGoogle }
+            ?.let { SessionManager.getInstance().getPhotoUrl(it.email) }
+            ?.takeIf { it.isNotBlank() }
+
+        if (photoUrl == null) {
+            Glide.with(this).clear(profile_IMG_avatar)
+            val pad = (24 * resources.displayMetrics.density).toInt()
+            profile_IMG_avatar.setPadding(pad, pad, pad, pad)
+            profile_IMG_avatar.setImageResource(R.drawable.ic_tab_profile)
+            profile_IMG_avatar.imageTintList = android.content.res.ColorStateList.valueOf(
+                androidx.core.content.ContextCompat.getColor(requireContext(), R.color.brand_primary)
+            )
+            return
+        }
         profile_IMG_avatar.setPadding(0, 0, 0, 0)
         profile_IMG_avatar.imageTintList = null
         Glide.with(this)
