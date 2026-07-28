@@ -39,14 +39,12 @@
     <string name="detail_title">Coupon Details</string>
     <string name="detail_close">Back</string>
     <string name="detail_about">About this offer</string>
-    <string name="detail_code">Coupon code</string>
     <string name="detail_terms">Terms and validity</string>
     <string name="detail_saved_pill">Saved to My Coupons</string>
     <string name="detail_action_save">Save</string>
     <string name="detail_action_copy">Copy code</string>
     <string name="detail_action_site">Go To Site</string>
     <string name="detail_action_offer">Go To Offer</string>
-    <string name="detail_no_code">No code needed</string>
     <string name="detail_no_terms">No terms provided.</string>
     <string name="detail_no_description">No description provided.</string>
     <string name="detail_valid_until">Valid until: %s</string>
@@ -84,10 +82,11 @@
     <string name="pw_fill_all">Fill in all password fields</string>
     <string name="pw_mismatch">New passwords do not match</string>
     <string name="pw_changed">Password updated</string>
-    <string name="gate_save">Sign in to save coupons</string>
-    <string name="gate_copy">Sign in to copy the coupon code</string>
-    <string name="gate_site">Sign in to go to the site</string>
-    <string name="gate_offer">Sign in to view the offer</string>
+    <string name="gate_save">Sign-Up to save coupons</string>
+    <string name="gate_copy">Sign-Up to copy the coupon code</string>
+    <string name="gate_site">Sign-Up to go to the site</string>
+    <string name="gate_offer">Sign-Up to view the offer</string>
+    <string name="gate_word">Sign-Up</string>
 
     <string name="leave_title">Leaving IntelliShop</string>
     <string name="leave_message">This opens an external site in your browser. Continue?</string>

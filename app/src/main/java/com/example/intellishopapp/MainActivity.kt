@@ -192,17 +192,23 @@ class MainActivity : AppCompatActivity() {
 
     private val hideBannerRunnable = Runnable { hideBanner() }
 
+    // When true, tapping the current banner opens the Login page instead of just
+    // dismissing it (used by the guest sign-in prompts).
+    private var bannerOpensLogin = false
+
     /**
      * Shows the notification in the upper area: it slides down into place, waits
      * (~2s happy flow / ~4s sign-in prompts), then slides back up. The user can
-     * also swipe it up to dismiss it early.
+     * also swipe it up to dismiss it early. When [opensLogin] is set, the "Sign-Up"
+     * word is emphasised and tapping the banner goes to the Login page.
      */
-    fun showBanner(message: String, longDuration: Boolean = false) {
+    fun showBanner(message: String, longDuration: Boolean = false, opensLogin: Boolean = false) {
         // Muted from Profile > Settings > Notifications.
         if (!SessionManager.getInstance().isNotificationsEnabled()) return
+        bannerOpensLogin = opensLogin
         main_LBL_banner.removeCallbacks(hideBannerRunnable)
         main_LBL_banner.animate().cancel()
-        main_LBL_banner.text = message
+        main_LBL_banner.text = if (opensLogin) emphasizeSignUp(message) else message
         main_LBL_banner.visibility = View.VISIBLE
         main_LBL_banner.alpha = 0f
         main_LBL_banner.translationY = -bannerSlide
@@ -210,8 +216,21 @@ class MainActivity : AppCompatActivity() {
         main_LBL_banner.postDelayed(hideBannerRunnable, if (longDuration) 4000L else 2000L)
     }
 
+    /** Bold + underline the "Sign-Up" word inside a gate message. */
+    private fun emphasizeSignUp(message: String): CharSequence {
+        val word = getString(R.string.gate_word)
+        val start = message.indexOf(word)
+        if (start < 0) return message
+        val span = android.text.SpannableString(message)
+        val end = start + word.length
+        span.setSpan(android.text.style.StyleSpan(android.graphics.Typeface.BOLD), start, end, 0)
+        span.setSpan(android.text.style.UnderlineSpan(), start, end, 0)
+        return span
+    }
+
     /** Slides the notification back up and out. */
     private fun hideBanner() {
+        bannerOpensLogin = false
         main_LBL_banner.removeCallbacks(hideBannerRunnable)
         main_LBL_banner.animate().cancel()
         main_LBL_banner.animate()
@@ -245,8 +264,12 @@ class MainActivity : AppCompatActivity() {
                     when {
                         // Swiped up -> dismiss.
                         dy < -40f * density -> hideBanner()
-                        // A plain tap dismisses it too, so it never just eats a tap.
-                        kotlin.math.abs(dy) < 8f * density -> hideBanner()
+                        // A plain tap: gate banners go to Login; others just dismiss.
+                        kotlin.math.abs(dy) < 8f * density -> {
+                            val toLogin = bannerOpensLogin
+                            hideBanner()
+                            if (toLogin) selectTab(Tab.PROFILE)
+                        }
                         else -> {
                             main_LBL_banner.animate().translationY(0f).setDuration(150).start()
                             main_LBL_banner.postDelayed(hideBannerRunnable, 1500L)
@@ -382,7 +405,7 @@ class MainActivity : AppCompatActivity() {
         if (discountId.isBlank()) return
         val session = SessionManager.getInstance()
         if (!session.isLoggedIn()) {
-            showBanner(getString(R.string.gate_save), longDuration = true)
+            showBanner(getString(R.string.gate_save), longDuration = true, opensLogin = true)
             SignalManager.getInstance().vibrate()
             return
         }
