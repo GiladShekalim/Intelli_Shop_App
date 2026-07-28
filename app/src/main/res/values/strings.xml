@@ -57,7 +57,6 @@
     <string name="favorites_header">My Coupons</string>
     <string name="favorites_empty">Like a coupon to save it here</string>
 
-    <string name="profile_account">Account</string>
     <string name="profile_my_coupons">My Coupons</string>
     <string name="profile_coupon_history">Coupon History</string>
     <string name="history_empty">No coupon activity yet</string>
@@ -70,9 +69,9 @@
     <string name="pref_removed">Removed %s</string>
     <string name="pref_disabled">Editing preferences and categories is not available yet</string>
     <string name="register_prefs_note">* Preferences and categories cannot be changed after sign-up</string>
-    <string name="profile_mode_day">Day</string>
-    <string name="profile_mode_night">Night</string>
-    <string name="profile_mode_label">MODE</string>
+    <string name="profile_settings">Settings</string>
+    <string name="profile_night_mode">Night Mode</string>
+    <string name="profile_notifications">Notifications</string>
     <string name="pw_current">Current password</string>
     <string name="pw_new">New password</string>
     <string name="pw_confirm">Confirm new password</string>

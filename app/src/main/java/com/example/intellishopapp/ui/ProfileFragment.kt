@@ -7,9 +7,11 @@ import android.view.ViewGroup
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.content.ContextCompat
+import androidx.appcompat.widget.AppCompatImageView
+import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.Glide
 import com.example.intellishopapp.MainActivity
 import com.example.intellishopapp.R
 import com.example.intellishopapp.repository.ProfileRepository
@@ -19,9 +21,10 @@ import com.google.android.material.textview.MaterialTextView
 import kotlinx.coroutines.launch
 
 /**
- * The signed-in user's profile (Figma layout): avatar, name, email, a Day/Night
- * toggle, My Coupons, Change Password (non-Google users), and Sign Out. Reachable
- * only when logged in.
+ * The signed-in user's profile: avatar, name, email, the personal lists (coupon
+ * history, preferences, categories) and a Settings card holding night mode,
+ * notifications, Change Password (non-Google users) and Sign Out. Reachable only
+ * when logged in.
  */
 class ProfileFragment : Fragment() {
 
@@ -31,8 +34,10 @@ class ProfileFragment : Fragment() {
     private lateinit var profile_LBL_preferences: MaterialTextView
     private lateinit var profile_LBL_categories: MaterialTextView
     private lateinit var profile_LBL_password: MaterialTextView
-    private lateinit var profile_LBL_day: MaterialTextView
-    private lateinit var profile_LBL_night: MaterialTextView
+    private lateinit var profile_DIV_password: View
+    private lateinit var profile_SW_night: SwitchCompat
+    private lateinit var profile_SW_notifications: SwitchCompat
+    private lateinit var profile_IMG_avatar: AppCompatImageView
     private lateinit var profile_BTN_signOut: MaterialTextView
 
     private val profileRepository = ProfileRepository()
@@ -51,8 +56,10 @@ class ProfileFragment : Fragment() {
         profile_LBL_preferences = view.findViewById(R.id.profile_LBL_preferences)
         profile_LBL_categories = view.findViewById(R.id.profile_LBL_categories)
         profile_LBL_password = view.findViewById(R.id.profile_LBL_password)
-        profile_LBL_day = view.findViewById(R.id.profile_LBL_day)
-        profile_LBL_night = view.findViewById(R.id.profile_LBL_night)
+        profile_DIV_password = view.findViewById(R.id.profile_DIV_password)
+        profile_SW_night = view.findViewById(R.id.profile_SW_night)
+        profile_SW_notifications = view.findViewById(R.id.profile_SW_notifications)
+        profile_IMG_avatar = view.findViewById(R.id.profile_IMG_avatar)
         profile_BTN_signOut = view.findViewById(R.id.profile_BTN_signOut)
 
         val shell = requireActivity() as MainActivity
@@ -61,8 +68,11 @@ class ProfileFragment : Fragment() {
         profile_LBL_categories.setOnClickListener { shell.showPreferences(PreferencesFragment.TYPE_CATEGORY) }
         profile_LBL_password.setOnClickListener { showChangePasswordDialog() }
         profile_BTN_signOut.setOnClickListener { shell.signOut() }
-        profile_LBL_day.setOnClickListener { setNightMode(false) }
-        profile_LBL_night.setOnClickListener { setNightMode(true) }
+        // Click (not checked-change) so re-binding the switch never fires the listener.
+        profile_SW_night.setOnClickListener { setNightMode(profile_SW_night.isChecked) }
+        profile_SW_notifications.setOnClickListener {
+            SessionManager.getInstance().setNotificationsEnabled(profile_SW_notifications.isChecked)
+        }
         bind()
     }
 
@@ -78,22 +88,29 @@ class ProfileFragment : Fragment() {
             ?: getString(R.string.tab_profile)
         profile_LBL_email.text = session?.email.orEmpty()
         // Google accounts have an auto-generated password; hide the change-password row.
-        profile_LBL_password.visibility = if (session?.isGoogle == true) View.GONE else View.VISIBLE
-        updateModeLabels()
+        val hidePassword = session?.isGoogle == true
+        profile_LBL_password.visibility = if (hidePassword) View.GONE else View.VISIBLE
+        profile_DIV_password.visibility = if (hidePassword) View.GONE else View.VISIBLE
+        profile_SW_night.isChecked = SessionManager.getInstance().isNightMode()
+        profile_SW_notifications.isChecked = SessionManager.getInstance().isNotificationsEnabled()
+        bindAvatar(session?.email.orEmpty())
     }
 
-    private fun updateModeLabels() {
-        val night = SessionManager.getInstance().isNightMode()
-        val brand = ContextCompat.getColor(requireContext(), R.color.brand_primary)
-        val secondary = ContextCompat.getColor(requireContext(), R.color.text_secondary)
-        profile_LBL_day.setTextColor(if (night) secondary else brand)
-        profile_LBL_night.setTextColor(if (night) brand else secondary)
+    /** Google users get their account photo; everyone else keeps the default icon. */
+    private fun bindAvatar(email: String) {
+        val photoUrl = SessionManager.getInstance().getPhotoUrl(email) ?: return
+        profile_IMG_avatar.setPadding(0, 0, 0, 0)
+        profile_IMG_avatar.imageTintList = null
+        Glide.with(this)
+            .load(photoUrl)
+            .circleCrop()
+            .placeholder(R.drawable.ic_tab_profile)
+            .into(profile_IMG_avatar)
     }
 
     private fun setNightMode(night: Boolean) {
         if (SessionManager.getInstance().isNightMode() == night) return
         SessionManager.getInstance().setNightMode(night)
-        updateModeLabels()
         // Recreates activities to apply the theme.
         AppCompatDelegate.setDefaultNightMode(
             if (night) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
