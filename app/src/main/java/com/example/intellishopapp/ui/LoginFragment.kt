@@ -140,16 +140,22 @@ class LoginFragment : Fragment() {
                     SessionManager.getInstance()
                         .savePhotoUrl(body.email.orEmpty(), account.photoUrl)
                     if (!body.is_new) {
-                        // Seed the statuses/categories chosen at sign-up so the
-                        // My Preferences page shows them selected (email login does too).
-                        val saved = SessionManager.getInstance().loadPreferences(body.email.orEmpty())
+                        // Prefer the profile the backend returns (works on any device);
+                        // fall back to what was saved locally at registration.
+                        val emailValue = body.email.orEmpty()
+                        val saved = SessionManager.getInstance().loadPreferences(emailValue)
+                        val statuses = body.statuses?.takeIf { it.isNotEmpty() }
+                            ?: saved?.first ?: emptyList()
+                        val hobbies = body.hobbies?.takeIf { it.isNotEmpty() }
+                            ?: saved?.second ?: emptyList()
+                        SessionManager.getInstance().savePreferences(emailValue, statuses, hobbies)
                         SessionManager.getInstance().save(
                             UserSession(
                                 userId = body.user_id ?: "",
-                                email = body.email ?: "",
+                                email = emailValue,
                                 username = body.username,
-                                status = saved?.first ?: emptyList(),
-                                hobbies = saved?.second ?: emptyList(),
+                                status = statuses,
+                                hobbies = hobbies,
                                 isGoogle = true
                             )
                         )
