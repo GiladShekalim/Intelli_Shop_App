@@ -1135,6 +1135,10 @@ def google_login(request):
             'user_id': str(user['_id']),
             'username': user.get('username', ''),
             'email': email,
+            # Same as the email/password login: let the client personalize the home
+            # feed (pool pre-filter) on any device.
+            'statuses': user.get('status', []),
+            'hobbies': user.get('hobbies', []),
         })
 
     return JsonResponse({
