@@ -24,15 +24,25 @@ object CouponRanker {
         val favoriteCoupons = all.filter { it.discount_id != null && favoriteIds.contains(it.discount_id) }
 
         // Backend step 1+4: narrow to the user's profile, then merge favourites back
-        // in so a favourite outside the profile is never dropped.
-        val pool = if (statuses.isEmpty() && hobbies.isEmpty()) {
-            all
-        } else {
-            val matching = all.filter { coupon ->
-                statuses.any { coupon.consumer_statuses?.contains(it) == true } ||
-                    hobbies.any { coupon.category?.contains(it) == true }
+        // in so a favourite outside the profile is never dropped. Matches the backend
+        // query: when BOTH statuses and interests are set a coupon must satisfy each
+        // (AND); when only one is set only that one applies.
+        fun matchesStatus(c: CouponDto) = statuses.any { c.consumer_statuses?.contains(it) == true }
+        fun matchesInterest(c: CouponDto) = hobbies.any { c.category?.contains(it) == true }
+        val pool = when {
+            statuses.isEmpty() && hobbies.isEmpty() -> all
+            statuses.isNotEmpty() && hobbies.isNotEmpty() -> {
+                val matching = all.filter { matchesStatus(it) && matchesInterest(it) }
+                (matching + favoriteCoupons).distinctBy { it.discount_id ?: it }
             }
-            (matching + favoriteCoupons).distinctBy { it.discount_id ?: it }
+            statuses.isNotEmpty() -> {
+                val matching = all.filter { matchesStatus(it) }
+                (matching + favoriteCoupons).distinctBy { it.discount_id ?: it }
+            }
+            else -> {
+                val matching = all.filter { matchesInterest(it) }
+                (matching + favoriteCoupons).distinctBy { it.discount_id ?: it }
+            }
         }
 
         val categoryCount = HashMap<String, Int>()

@@ -84,10 +84,15 @@ class CouponRankerTest {
     // --- profile pre-filter (backend step 1): narrow to statuses / interests ---
 
     @Test
-    fun profileFilter_dropsCouponsOutsideStatusAndInterests() {
+    fun profileFilter_bothSet_requiresStatusAndInterest() {
         val all = listOf(
-            coupon("match-cat", price = 1.0, category = listOf("Travel and Vacation")),
-            coupon("match-status", price = 1.0, statuses = listOf("Student")),
+            // Matches BOTH -> kept.
+            coupon("both", price = 1.0, category = listOf("Travel and Vacation"), statuses = listOf("Student")),
+            // Matches only the interest -> dropped under AND.
+            coupon("cat-only", price = 999.0, category = listOf("Travel and Vacation")),
+            // Matches only the status -> dropped under AND.
+            coupon("status-only", price = 999.0, statuses = listOf("Student")),
+            // Matches neither -> dropped.
             coupon("unrelated", price = 999.0, category = listOf("Cars"))
         )
         val ranked = CouponRanker.personalizedTop(
@@ -95,11 +100,20 @@ class CouponRankerTest {
             statuses = listOf("Student"),
             hobbies = listOf("Travel and Vacation")
         )
-        val ids = ranked.map { it.discount_id }
-        assertTrue(ids.contains("match-cat"))
-        assertTrue(ids.contains("match-status"))
-        // Highest price, but nothing to do with the profile.
-        assertTrue(!ids.contains("unrelated"))
+        // AND semantics, matching the backend query (status $in AND category $in).
+        assertEquals(listOf("both"), ranked.map { it.discount_id })
+    }
+
+    @Test
+    fun profileFilter_onlyStatusSet_filtersByStatusAlone() {
+        val all = listOf(
+            coupon("student", price = 1.0, statuses = listOf("Student")),
+            coupon("senior", price = 999.0, statuses = listOf("Senior"))
+        )
+        val ranked = CouponRanker.personalizedTop(
+            all, emptySet(), 10, statuses = listOf("Student")
+        )
+        assertEquals(listOf("student"), ranked.map { it.discount_id })
     }
 
     @Test
