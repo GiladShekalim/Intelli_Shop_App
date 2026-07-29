@@ -80,14 +80,21 @@ class LoginFragment : Fragment() {
             when (val result = authRepository.login(email, password)) {
                 is ApiResult.Success -> {
                     if (result.data.status == "success") {
-                        // Seed statuses/categories saved locally at registration on this device.
+                        // Prefer the profile the backend returns (works on any device);
+                        // fall back to what was saved locally at registration.
                         val saved = SessionManager.getInstance().loadPreferences(email)
+                        val statuses = result.data.statuses?.takeIf { it.isNotEmpty() }
+                            ?: saved?.first ?: emptyList()
+                        val hobbies = result.data.hobbies?.takeIf { it.isNotEmpty() }
+                            ?: saved?.second ?: emptyList()
+                        // Keep the local store in step so it stays a valid fallback.
+                        SessionManager.getInstance().savePreferences(email, statuses, hobbies)
                         SessionManager.getInstance().save(
                             UserSession(
                                 userId = result.data.user_id,
                                 email = email,
-                                status = saved?.first ?: emptyList(),
-                                hobbies = saved?.second ?: emptyList()
+                                status = statuses,
+                                hobbies = hobbies
                             )
                         )
                         // Sync favorites from the backend so they show on any device.
