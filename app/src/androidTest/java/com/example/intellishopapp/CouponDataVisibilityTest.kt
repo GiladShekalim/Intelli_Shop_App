@@ -58,7 +58,7 @@ class CouponDataVisibilityTest {
 
         onView(withId(R.id.detail_LBL_couponTitle)).check(matches(withNonEmptyText()))
         onView(withId(R.id.detail_LBL_description)).check(matches(withNonEmptyText()))
-        onView(withId(R.id.detail_LBL_code)).check(matches(withNonEmptyText()))
+        // The coupon-code text block was removed; the code lives on the Copy button now.
         onView(withId(R.id.detail_LBL_terms)).check(matches(withNonEmptyText()))
         onView(withId(R.id.detail_IMG_hero)).check(matches(allOf(isDisplayed(), hasDrawable())))
     }

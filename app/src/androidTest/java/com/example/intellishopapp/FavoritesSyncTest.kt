@@ -9,6 +9,7 @@ import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.RecyclerViewActions
 import androidx.test.espresso.matcher.ViewMatchers.hasMinimumChildCount
 import androidx.test.espresso.matcher.ViewMatchers.isCompletelyDisplayed
+import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.rules.ActivityScenarioRule
@@ -53,10 +54,17 @@ class FavoritesSyncTest {
         onView(withId(R.id.login_BTN_submit)).perform(click())
         waitUntilGone(R.id.login_ET_email)
 
-        // Save the first coupon (real backend write-through).
+        // Save the first coupon (real backend write-through). Opening the detail can
+        // lag under full-suite load, and a tap may not register the first time, so
+        // retry the open until the sheet is actually up.
         waitForHero()
         onView(withId(R.id.home_LAY_hero))
             .perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(0, click()))
+        if (!isDisplayedWithin(R.id.detail_LBL_title, 6000)) {
+            onView(withId(R.id.home_LAY_hero))
+                .perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(0, click()))
+        }
+        waitDisplayed(R.id.detail_LBL_title)
         // Settle on the favorite button itself: it is always present, whereas the
         // offer button is hidden for coupons that carry no offer link (the top
         // personalized coupon varies per user).
@@ -123,7 +131,7 @@ class FavoritesSyncTest {
     }
 
     private fun waitCompletelyDisplayed(id: Int) {
-        val end = System.currentTimeMillis() + 4000
+        val end = System.currentTimeMillis() + 8000
         while (System.currentTimeMillis() < end) {
             try {
                 onView(withId(id)).check(matches(isCompletelyDisplayed()))
@@ -133,5 +141,32 @@ class FavoritesSyncTest {
             }
         }
         onView(withId(id)).check(matches(isCompletelyDisplayed()))
+    }
+
+    private fun waitDisplayed(id: Int) {
+        val end = System.currentTimeMillis() + 8000
+        while (System.currentTimeMillis() < end) {
+            try {
+                onView(withId(id)).check(matches(isDisplayed()))
+                return
+            } catch (e: Throwable) {
+                Thread.sleep(150)
+            }
+        }
+        onView(withId(id)).check(matches(isDisplayed()))
+    }
+
+    /** True if the view becomes displayed within the window (no assertion on timeout). */
+    private fun isDisplayedWithin(id: Int, ms: Long): Boolean {
+        val end = System.currentTimeMillis() + ms
+        while (System.currentTimeMillis() < end) {
+            try {
+                onView(withId(id)).check(matches(isDisplayed()))
+                return true
+            } catch (e: Throwable) {
+                Thread.sleep(200)
+            }
+        }
+        return false
     }
 }

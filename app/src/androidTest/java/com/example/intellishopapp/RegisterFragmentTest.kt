@@ -110,6 +110,68 @@ class RegisterFragmentTest {
             .check(matches(hasErrorText(context.getString(R.string.error_password_short))))
     }
 
+    // --- edge cases ---
+
+    @Test
+    fun register_emailMissingAt_showsInvalid() {
+        openRegister()
+        onView(withId(R.id.register_ET_username)).perform(typeText("someone"), closeSoftKeyboard())
+        onView(withId(R.id.register_ET_email)).perform(typeText("abc.com"), closeSoftKeyboard())
+        onView(withId(R.id.register_ET_password)).perform(typeText("pw1234"), closeSoftKeyboard())
+        onView(withId(R.id.register_BTN_submit)).perform(scrollTo(), click())
+        onView(withId(R.id.register_ET_email)).perform(scrollTo())
+        onView(withId(R.id.register_ET_email))
+            .check(matches(hasErrorText(context.getString(R.string.error_email_invalid))))
+    }
+
+    @Test
+    fun register_emailMissingDomain_showsInvalid() {
+        openRegister()
+        onView(withId(R.id.register_ET_username)).perform(typeText("someone"), closeSoftKeyboard())
+        onView(withId(R.id.register_ET_email)).perform(typeText("abc@"), closeSoftKeyboard())
+        onView(withId(R.id.register_ET_password)).perform(typeText("pw1234"), closeSoftKeyboard())
+        onView(withId(R.id.register_BTN_submit)).perform(scrollTo(), click())
+        onView(withId(R.id.register_ET_email)).perform(scrollTo())
+        onView(withId(R.id.register_ET_email))
+            .check(matches(hasErrorText(context.getString(R.string.error_email_invalid))))
+    }
+
+    @Test
+    fun register_whitespaceUsername_showsRequired() {
+        openRegister()
+        onView(withId(R.id.register_ET_username)).perform(typeText("   "), closeSoftKeyboard())
+        onView(withId(R.id.register_ET_email)).perform(typeText("ok@example.com"), closeSoftKeyboard())
+        onView(withId(R.id.register_ET_password)).perform(typeText("pw1234"), closeSoftKeyboard())
+        onView(withId(R.id.register_BTN_submit)).perform(scrollTo(), click())
+        onView(withId(R.id.register_ET_username)).perform(scrollTo())
+        // A whitespace-only username is trimmed to empty and flagged required.
+        onView(withId(R.id.register_ET_username))
+            .check(matches(hasErrorText(context.getString(R.string.error_username_required))))
+    }
+
+    @Test
+    fun register_passwordExactlyFiveChars_showsShort() {
+        openRegister()
+        onView(withId(R.id.register_ET_username)).perform(typeText("someone"), closeSoftKeyboard())
+        onView(withId(R.id.register_ET_email)).perform(typeText("ok@example.com"), closeSoftKeyboard())
+        onView(withId(R.id.register_ET_password)).perform(typeText("12345"), closeSoftKeyboard())
+        onView(withId(R.id.register_BTN_submit)).perform(scrollTo(), click())
+        onView(withId(R.id.register_ET_password)).perform(scrollTo())
+        onView(withId(R.id.register_ET_password))
+            .check(matches(hasErrorText(context.getString(R.string.error_password_short))))
+    }
+
+    @Test
+    fun register_blankEmail_showsRequired() {
+        openRegister()
+        onView(withId(R.id.register_ET_username)).perform(typeText("someone"), closeSoftKeyboard())
+        onView(withId(R.id.register_ET_password)).perform(typeText("pw1234"), closeSoftKeyboard())
+        onView(withId(R.id.register_BTN_submit)).perform(scrollTo(), click())
+        onView(withId(R.id.register_ET_email)).perform(scrollTo())
+        onView(withId(R.id.register_ET_email))
+            .check(matches(hasErrorText(context.getString(R.string.error_email_required))))
+    }
+
     @Test
     fun register_newUser_popsBackToLogin() {
         openRegister()

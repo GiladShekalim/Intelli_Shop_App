@@ -90,6 +90,24 @@ class CouponDetailTest {
     }
 
     @Test
+    fun detail_hasNoCouponCodeTextSection() {
+        // The code lives on the Copy button now; there is no "Coupon code" text block.
+        openCouponWithCode()
+        onView(withText("Coupon code")).check(doesNotExist())
+    }
+
+    @Test
+    fun guestSaveBanner_tapOpensLogin() {
+        openFirstDetail()
+        onView(withId(R.id.detail_BTN_favorite)).perform(click())
+        onView(withId(R.id.main_LBL_banner)).check(matches(withText(R.string.gate_save)))
+        // Tapping the sign-up notification routes to the Login page.
+        onView(withId(R.id.main_LBL_banner)).perform(click())
+        waitCompletelyDisplayed(R.id.login_ET_email)
+        onView(withId(R.id.login_ET_email)).check(matches(isDisplayed()))
+    }
+
+    @Test
     fun guestSave_showsNotificationOnly_noLogin() {
         openFirstDetail()
         onView(withId(R.id.detail_BTN_favorite)).perform(click())
