@@ -885,6 +885,20 @@ def history_view(request):
     return JsonResponse({'history': User.get_history(user_id)})
 
 
+def check_username_view(request):
+    """
+    Live username-availability check for the registration screen. Public (runs
+    before a user exists). Read-only: it never creates or changes anything, so it
+    cannot affect existing users. Registration itself still rejects duplicates, so
+    this is only a UX hint. A blank query is reported as unavailable.
+    """
+    username = request.GET.get('username', '').strip()
+    if not username:
+        return JsonResponse({'available': False})
+    exists = User.get_by_username(username) is not None
+    return JsonResponse({'available': not exists})
+
+
 @csrf_exempt
 def add_favorite_view(request):
     """Add a discount to user's favorites"""

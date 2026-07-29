@@ -26,6 +26,7 @@ urlpatterns = [
     path('remove_favorite/', views.remove_favorite_view, name='remove_favorite'),
     path('add_history/', views.add_history_view, name='add_history'),
     path('history/', views.history_view, name='history'),
+    path('check_username/', views.check_username_view, name='check_username'),
     path('check_favorite/<str:discount_id>/', views.check_favorite_view, name='check_favorite'),
     path('api/club_names/', views.get_club_names, name='get_club_names'),
     path('debug_favorites/', views.debug_favorites, name='debug_favorites'),
