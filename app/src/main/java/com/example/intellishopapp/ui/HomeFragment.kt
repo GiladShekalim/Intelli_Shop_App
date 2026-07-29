@@ -60,7 +60,9 @@ class HomeFragment : Fragment() {
      * history, rebuild so Recently Viewed picks it up straight away.
      */
     private val backStackListener = FragmentManager.OnBackStackChangedListener {
-        if (view != null && loadedCoupons.isNotEmpty() &&
+        // isAdded guards against the callback firing while the fragment is detached
+        // (showCoupons touches requireContext()/getString()).
+        if (isAdded && view != null && loadedCoupons.isNotEmpty() &&
             SessionManager.getInstance().getHistory() != shownHistory
         ) {
             showCoupons(loadedCoupons)
