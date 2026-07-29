@@ -201,7 +201,11 @@ def login_view(request):
                         'status': 'success',
                         'message': f"Welcome back {user['username']}",
                         'redirect': '/home/',
-                        'user_id': str(user['_id'])
+                        'user_id': str(user['_id']),
+                        # Android reads these to run the home personalization (pool
+                        # pre-filter) on any device. The web client ignores them.
+                        'statuses': user.get('status', []),
+                        'hobbies': user.get('hobbies', [])
                     })
                 else:
                     print("6. Password mismatch")
