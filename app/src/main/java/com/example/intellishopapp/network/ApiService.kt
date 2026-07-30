@@ -10,6 +10,7 @@ import com.example.intellishopapp.model.dto.FilteredDiscountsResponse
 import com.example.intellishopapp.model.dto.GoogleLoginRequest
 import com.example.intellishopapp.model.dto.GoogleLoginResponse
 import com.example.intellishopapp.model.dto.HistoryResponse
+import com.example.intellishopapp.model.dto.ProfileResponse
 import com.example.intellishopapp.model.dto.ProfileUpdateResponse
 import com.example.intellishopapp.model.dto.ShowAllDiscountsResponse
 import com.example.intellishopapp.model.dto.LoginRequest
@@ -71,6 +72,21 @@ interface ApiService {
         @Field("current_password") currentPassword: String,
         @Field("new_password") newPassword: String,
         @Field("confirm_password") confirmPassword: String
+    ): Response<ProfileUpdateResponse>
+
+    // Reads the user's saved statuses/interests so the editors reflect the backend.
+    @GET("profile/")
+    @Headers("Accept: application/json")
+    suspend fun getProfile(): Response<ProfileResponse>
+
+    // Saves both dimensions together so neither is accidentally cleared.
+    @FormUrlEncoded
+    @POST("profile/")
+    suspend fun updatePreferences(
+        @Header("Accept") accept: String,
+        @Field("action") action: String,
+        @Field("status") statuses: List<String>,
+        @Field("hobbies") hobbies: List<String>
     ): Response<ProfileUpdateResponse>
 
     @GET("favorites/")
