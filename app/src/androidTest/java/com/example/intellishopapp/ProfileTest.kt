@@ -131,6 +131,22 @@ class ProfileTest {
     }
 
     @Test
+    fun activityCard_hasSentOffersRow_thatOpensThePage() {
+        SessionManager.getInstance().setReceivedShares(emptyList())
+        openProfile()
+        onView(withId(R.id.profile_LBL_sentOffers)).check(matches(withText("Sent Offers by friends")))
+        onView(withId(R.id.profile_LBL_sentOffers)).perform(click())
+        // The page loads asynchronously (backend read); wait for the empty state.
+        val end = System.currentTimeMillis() + 15000
+        while (System.currentTimeMillis() < end) {
+            try {
+                onView(withId(R.id.sent_LBL_empty)).check(matches(isDisplayed())); break
+            } catch (e: Throwable) { Thread.sleep(300) }
+        }
+        onView(withId(R.id.sent_LBL_empty)).check(matches(isDisplayed()))
+    }
+
+    @Test
     fun settingsCard_holdsEveryOption() {
         openProfile()
         onView(withId(R.id.profile_LAY_settings)).check(matches(isDisplayed()))
