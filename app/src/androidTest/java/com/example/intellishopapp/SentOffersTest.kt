@@ -1,8 +1,10 @@
 package com.example.intellishopapp
 
+import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.contrib.RecyclerViewActions
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
@@ -64,6 +66,29 @@ class SentOffersTest {
         openSentOffers()
         waitForText("alice")
         onView(withText("alice")).check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun longPressOffer_opensRemoveDialog() {
+        SessionManager.getInstance().setReceivedShares(
+            listOf(SharedItemDto(from_user_id = "u1", from_username = "alice", discount_id = "1"))
+        )
+        openSentOffers()
+        waitForText("alice")
+        // Home is behind the overlay and reuses section_LAY_row, so scope to this page.
+        onView(
+            org.hamcrest.Matchers.allOf(
+                withId(R.id.section_LAY_row),
+                androidx.test.espresso.matcher.ViewMatchers.isDescendantOfA(withId(R.id.sent_LAY_sections))
+            )
+        ).perform(
+            RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(
+                0, androidx.test.espresso.action.ViewActions.longClick()
+            )
+        )
+        onView(withText(R.string.sent_remove_title))
+            .inRoot(androidx.test.espresso.matcher.RootMatchers.isDialog())
+            .check(matches(isDisplayed()))
     }
 
     private fun waitDisplayed(id: Int) {

@@ -68,9 +68,28 @@ class CouponHistoryTest {
     }
 
     @Test
+    fun openingWithoutRedeeming_staysEmpty() {
+        // Merely opening a coupon (a "view") must NOT land it in Redeemed Offers.
+        openCouponWithCode()
+        onView(withId(R.id.detail_BTN_close)).perform(click())
+        onView(withId(R.id.main_LAY_tabProfile)).perform(click())
+        onView(withId(R.id.profile_LBL_myCoupons)).perform(click())
+        val end = System.currentTimeMillis() + 12000
+        while (System.currentTimeMillis() < end) {
+            try {
+                onView(withId(R.id.history_LBL_empty)).check(matches(isDisplayed())); break
+            } catch (e: Throwable) { Thread.sleep(300) }
+        }
+        onView(withId(R.id.history_LBL_empty)).check(matches(isDisplayed()))
+    }
+
+    @Test
     fun favoriteFromHistoryRow_saves() {
         RetrofitClient.getInstance().clearCookies()
         openCouponWithCode()
+        // Redeem it (copy) so it lands in Redeemed Offers, then leave.
+        onView(withId(R.id.detail_BTN_copy)).perform(click())
+        waitForBannerGone()
         onView(withId(R.id.detail_BTN_close)).perform(click())
         onView(withId(R.id.main_LAY_tabProfile)).perform(click())
         onView(withId(R.id.profile_LBL_myCoupons)).perform(click())

@@ -26,9 +26,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Proves Coupon History is read from the BACKEND per user: real login, copy a
- * coupon (records to the server), wipe the local mirror, then Coupon History still
- * shows it (re-fetched). Uses lala@gmail.com/lala.
+ * Proves Redeemed Offers is read from the BACKEND per user: real login, copy a
+ * coupon (redeems it on the server), wipe the local mirror, then Redeemed Offers
+ * still shows it (re-fetched). Uses lala@gmail.com/lala.
  */
 @RunWith(AndroidJUnit4::class)
 class HistorySyncTest {
@@ -62,10 +62,10 @@ class HistorySyncTest {
         waitForBannerGone()
         waitForBanner(R.string.detail_code_copied)
 
-        // Fake a fresh device: wipe the local history mirror (keep session + cookie).
-        SessionManager.getInstance().setHistory(emptyList())
+        // Fake a fresh device: wipe the local redeemed mirror (keep session + cookie).
+        SessionManager.getInstance().setRedeemed(emptyList())
 
-        // Coupon History re-fetches from the backend -> the coupon still shows.
+        // Redeemed Offers re-fetches from the backend -> the coupon still shows.
         onView(withId(R.id.main_LAY_tabProfile)).perform(click())
         onView(withId(R.id.profile_LBL_myCoupons)).perform(click())
         waitForChildren(R.id.history_RCV_list)
