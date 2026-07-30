@@ -497,20 +497,38 @@ def filter_search(request):
 
 @csrf_exempt
 def profile_view(request):
-    
-    # Get user from session
+
+    # Get user from session. JSON clients (Android) get a real 401 instead of the
+    # HTML login redirect the web form expects.
+    json_client = request.headers.get('Accept') == 'application/json'
     user_id = request.session.get('user_id')
     if not user_id:
+        if json_client:
+            return JsonResponse({'error': 'User not authenticated'}, status=401)
         return redirect('login')
-    
+
     user = User.find_one({'_id': ObjectId(user_id)})
     if not user:
+        if json_client:
+            return JsonResponse({'error': 'User not authenticated'}, status=401)
         return redirect('login')
+
+    # Android client sends this header; the web form does not (so its behavior is unchanged).
+    wants_json = request.headers.get('Accept') == 'application/json'
+
+    # JSON GET: the app reads the user's current profile (statuses/interests) so the
+    # editors always reflect the backend, synced across devices. Web GET is unchanged.
+    if request.method == 'GET' and wants_json:
+        return JsonResponse({
+            'status': 'success',
+            'username': user.get('username', ''),
+            'email': user.get('email', ''),
+            'statuses': user.get('status', []),
+            'hobbies': user.get('hobbies', []),
+        })
 
     if request.method == 'POST':
         action = request.POST.get('action')
-        # Android client sends this header; the web form does not (so its behavior is unchanged).
-        wants_json = request.headers.get('Accept') == 'application/json'
         success = True
         message = ''
 
@@ -539,6 +557,16 @@ def profile_view(request):
                     message = 'Current password is incorrect'
                 else:
                     message = 'New passwords do not match'
+
+        elif action == 'update_preferences':
+            # Both dimensions are sent together so neither is accidentally cleared.
+            statuses = request.POST.getlist('status')
+            hobbies = request.POST.getlist('hobbies')
+            User.update_one(
+                {'_id': ObjectId(user_id)},
+                {'status': statuses, 'hobbies': hobbies}
+            )
+            message = 'Preferences updated'
 
         elif action == 'delete_account':
             # Add email verification here
