@@ -15,15 +15,16 @@ import com.example.intellishopapp.network.RetrofitClient
 import com.example.intellishopapp.utilities.SessionManager
 import org.hamcrest.Matchers.allOf
 import org.junit.After
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * The local My Preferences / My Categories editors: they show all options and a
- * tap toggles + notifies + persists (no backend). Uses a directly-set session.
+ * The My Preferences / My Categories editors: options render, a tap toggles a
+ * selection, and Save persists it (optimistically to the session; the backend
+ * round-trip is proven in PreferencesSyncTest). Uses a directly-set session.
  */
 @RunWith(AndroidJUnit4::class)
 class PreferencesTest {
@@ -31,39 +32,101 @@ class PreferencesTest {
     @get:Rule
     val scenario = ActivityScenarioRule(MainActivity::class.java)
 
-    @Before
-    fun signInMember() {
-        RetrofitClient.getInstance().clearCookies()
-        SessionManager.getInstance().save(
-            UserSession(userId = "test-member", email = "member@test.local", username = "M")
-        )
-    }
-
     @After
     fun cleanUp() {
         SessionManager.getInstance().clear()
     }
 
+    private fun signIn(
+        statuses: List<String> = emptyList(),
+        hobbies: List<String> = emptyList(),
+        google: Boolean = false
+    ) {
+        RetrofitClient.getInstance().clearCookies()
+        SessionManager.getInstance().save(
+            UserSession(
+                userId = "m", email = "member@test.local", username = "M",
+                status = statuses, hobbies = hobbies, isGoogle = google
+            )
+        )
+    }
+
+    private fun openCategories() {
+        onView(withId(R.id.main_LAY_tabProfile)).perform(click())
+        onView(withId(R.id.profile_LBL_categories)).perform(click())
+    }
+
     @Test
     fun myPreferences_showsOptions() {
+        signIn()
         onView(withId(R.id.main_LAY_tabProfile)).perform(click())
         onView(withId(R.id.profile_LBL_preferences)).perform(click())
         onView(withId(R.id.pref_LAY_grid)).check(matches(hasMinimumChildCount(1)))
     }
 
     @Test
-    fun myCategories_toggle_showsDisabledNoticeAndDoesNotChange() {
-        onView(withId(R.id.main_LAY_tabProfile)).perform(click())
-        onView(withId(R.id.profile_LBL_categories)).perform(click())
-        onView(allOf(withText("Consumerism"), isDescendantOfA(withId(R.id.pref_LAY_grid))))
-            .perform(click())
-        onView(withId(R.id.main_LBL_banner)).check(matches(withText(R.string.pref_disabled)))
-        // Editing is disabled: the selection must not change.
-        assertTrue(SessionManager.getInstance().get()?.hobbies?.contains("Consumerism") != true)
+    fun tapOption_thenSave_addsToSelection() {
+        signIn()
+        openCategories()
+        onView(allOf(withText("Consumerism"), isDescendantOfA(withId(R.id.pref_LAY_grid)))).perform(click())
+        onView(withId(R.id.pref_BTN_save)).perform(click())
+        assertTrue(SessionManager.getInstance().get()?.hobbies?.contains("Consumerism") == true)
+    }
+
+    @Test
+    fun tapSelectedOption_thenSave_removesIt() {
+        // Pre-seed a category; tapping it deselects, and Save persists the removal.
+        signIn(hobbies = listOf("Consumerism"))
+        openCategories()
+        onView(allOf(withText("Consumerism"), isDescendantOfA(withId(R.id.pref_LAY_grid)))).perform(click())
+        onView(withId(R.id.pref_BTN_save)).perform(click())
+        assertFalse(SessionManager.getInstance().get()?.hobbies?.contains("Consumerism") == true)
+    }
+
+    @Test
+    fun save_showsConfirmationAndReturnsToProfile() {
+        signIn()
+        openCategories()
+        onView(withId(R.id.pref_BTN_save)).perform(click())
+        onView(withId(R.id.main_LBL_banner)).check(matches(withText(R.string.pref_saved)))
+        onView(withId(R.id.profile_LBL_categories)).check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun googleMember_canEditPreferences() {
+        // Alternative auth flow: a Google-signed-in user edits the same way.
+        signIn(google = true)
+        openCategories()
+        onView(allOf(withText("Cars"), isDescendantOfA(withId(R.id.pref_LAY_grid)))).perform(click())
+        onView(withId(R.id.pref_BTN_save)).perform(click())
+        assertTrue(SessionManager.getInstance().get()?.hobbies?.contains("Cars") == true)
+    }
+
+    @Test
+    fun deselectingEverything_thenSave_clearsSelection() {
+        signIn(hobbies = listOf("Cars", "Insurance"))
+        openCategories()
+        onView(allOf(withText("Cars"), isDescendantOfA(withId(R.id.pref_LAY_grid)))).perform(click())
+        onView(allOf(withText("Insurance"), isDescendantOfA(withId(R.id.pref_LAY_grid)))).perform(click())
+        onView(withId(R.id.pref_BTN_save)).perform(click())
+        assertTrue(SessionManager.getInstance().get()?.hobbies?.isEmpty() == true)
+    }
+
+    @Test
+    fun editingCategories_preservesStatuses() {
+        // Only the edited dimension changes; the other is preserved on save.
+        signIn(statuses = listOf("Student"), hobbies = emptyList())
+        openCategories()
+        onView(allOf(withText("Cars"), isDescendantOfA(withId(R.id.pref_LAY_grid)))).perform(click())
+        onView(withId(R.id.pref_BTN_save)).perform(click())
+        val s = SessionManager.getInstance().get()
+        assertTrue(s?.status?.contains("Student") == true)
+        assertTrue(s?.hobbies?.contains("Cars") == true)
     }
 
     @Test
     fun back_returnsToProfile() {
+        signIn()
         onView(withId(R.id.main_LAY_tabProfile)).perform(click())
         onView(withId(R.id.profile_LBL_preferences)).perform(click())
         onView(withId(R.id.pref_BTN_close)).perform(click())
