@@ -23,6 +23,7 @@ import com.example.intellishopapp.ui.PreferencesFragment
 import com.example.intellishopapp.ui.ProfileFragment
 import com.example.intellishopapp.ui.RegisterFragment
 import com.example.intellishopapp.ui.SearchFragment
+import com.example.intellishopapp.ui.SentOffersFragment
 import com.example.intellishopapp.utilities.ApiResult
 import com.example.intellishopapp.utilities.SessionManager
 import com.example.intellishopapp.utilities.SignalManager
@@ -386,6 +387,16 @@ class MainActivity : AppCompatActivity() {
             .commit()
     }
 
+    /** Opens the "Sent Offers by friends" page over the content (from the Profile). */
+    fun showSentOffers() {
+        if (supportFragmentManager.findFragmentByTag(TAG_SENT) != null) return
+        main_LAY_topBar.visibility = View.GONE
+        supportFragmentManager.beginTransaction()
+            .add(R.id.main_FRAME_content, SentOffersFragment(), TAG_SENT)
+            .addToBackStack(TAG_SENT)
+            .commit()
+    }
+
     /** Opens the local preferences/categories editor over the content. */
     fun showPreferences(type: String) {
         if (supportFragmentManager.findFragmentByTag(TAG_PREFS) != null) return
@@ -498,6 +509,7 @@ class MainActivity : AppCompatActivity() {
         private const val TAG_SEARCH = "search"
         private const val TAG_PREFS = "prefs"
         private const val TAG_HISTORY = "history"
+        private const val TAG_SENT = "sent_offers"
         private const val STATE_TAB = "state_tab"
     }
 }
