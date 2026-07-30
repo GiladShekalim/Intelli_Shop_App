@@ -946,6 +946,59 @@ def received_shares_view(request):
 
 
 @csrf_exempt
+def remove_share_view(request):
+    """Recipient dismisses one shared offer (matched by sender username + coupon)."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    try:
+        user_id = request.session.get('user_id')
+        if not user_id:
+            return JsonResponse({'error': 'User not authenticated'}, status=401)
+        data = json.loads(request.body)
+        from_username = (data.get('from_username') or '').strip()
+        discount_id = data.get('discount_id')
+        if not from_username or not discount_id:
+            return JsonResponse({'error': 'from_username and discount_id are required'}, status=400)
+        User.remove_received_share(user_id, from_username, discount_id)
+        return JsonResponse({'status': 'success'})
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        logger.error(f"Error in remove_share_view: {str(e)}")
+        return JsonResponse({'error': 'Internal server error'}, status=500)
+
+
+@csrf_exempt
+def add_redeemed_view(request):
+    """Record a coupon the user redeemed (copy / go to site / go to offer)."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    try:
+        user_id = request.session.get('user_id')
+        if not user_id:
+            return JsonResponse({'error': 'User not authenticated'}, status=401)
+        data = json.loads(request.body)
+        discount_id = data.get('discount_id')
+        if not discount_id:
+            return JsonResponse({'error': 'discount_id is required'}, status=400)
+        User.add_redeemed(user_id, discount_id)
+        return JsonResponse({'status': 'success', 'discount_id': discount_id})
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        logger.error(f"Error in add_redeemed_view: {str(e)}")
+        return JsonResponse({'error': 'Internal server error'}, status=500)
+
+
+def redeemed_view(request):
+    """Return the coupons the logged-in user redeemed (most recent first)."""
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return JsonResponse({'error': 'User not authenticated'}, status=401)
+    return JsonResponse({'redeemed': User.get_redeemed(user_id)})
+
+
+@csrf_exempt
 def add_favorite_view(request):
     """Add a discount to user's favorites"""
     if request.method != 'POST':

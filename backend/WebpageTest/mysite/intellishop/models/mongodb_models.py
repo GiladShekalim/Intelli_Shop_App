@@ -98,6 +98,7 @@ class User(MongoDBModel):
             'location': location,
             'hobbies': hobbies,
             'favorites': [],  # NEW: Array of discount_id strings
+            'redeemed': [],  # Coupons the user redeemed (copy / site / offer)
             'received_shares': [],  # Coupons other users shared to this user
             'created_at': datetime.datetime.now()
         }
@@ -162,6 +163,29 @@ class User(MongoDBModel):
         """Get user's coupon action history (discount IDs, most recent first)."""
         user = cls.find_one({'_id': ObjectId(user_id)})
         return user.get('history', []) if user else []
+
+    @classmethod
+    def add_redeemed(cls, user_id, discount_id):
+        """Record a coupon the user actually redeemed (copy / go to site / offer)."""
+        cls.update_one({'_id': ObjectId(user_id)}, {'$pull': {'redeemed': discount_id}})
+        return cls.update_one(
+            {'_id': ObjectId(user_id)},
+            {'$push': {'redeemed': {'$each': [discount_id], '$position': 0, '$slice': 100}}}
+        )
+
+    @classmethod
+    def get_redeemed(cls, user_id):
+        """Coupons the user redeemed (discount IDs, most recent first)."""
+        user = cls.find_one({'_id': ObjectId(user_id)})
+        return user.get('redeemed', []) if user else []
+
+    @classmethod
+    def remove_received_share(cls, recipient_id, from_username, discount_id):
+        """Recipient dismisses one shared offer, matched by sender name + coupon."""
+        return cls.update_one(
+            {'_id': ObjectId(recipient_id)},
+            {'$pull': {'received_shares': {'from_username': from_username, 'discount_id': discount_id}}}
+        )
 
     @classmethod
     def add_received_share(cls, recipient_id, from_user_id, from_username, discount_id):
