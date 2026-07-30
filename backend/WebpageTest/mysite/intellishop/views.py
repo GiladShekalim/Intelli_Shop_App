@@ -900,6 +900,52 @@ def check_username_view(request):
 
 
 @csrf_exempt
+def share_coupon_view(request):
+    """
+    Share a coupon with another user, addressed by username. The SENDER identity
+    stored on the recipient comes from the authenticated session, never from the
+    request body, so a sender cannot impersonate anyone. New endpoint, JSON only;
+    the web client is untouched.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    try:
+        sender_id = request.session.get('user_id')
+        if not sender_id:
+            return JsonResponse({'error': 'User not authenticated'}, status=401)
+        data = json.loads(request.body)
+        to_username = (data.get('to_username') or '').strip()
+        discount_id = data.get('discount_id')
+        if not to_username or not discount_id:
+            return JsonResponse({'error': 'to_username and discount_id are required'}, status=400)
+        recipient = User.get_by_username(to_username)
+        if not recipient:
+            return JsonResponse({'error': 'No user with that username', 'status': 'not_found'}, status=404)
+        if str(recipient['_id']) == str(sender_id):
+            return JsonResponse({'error': 'You cannot share with yourself', 'status': 'self'}, status=400)
+        # Never store a share for a coupon that does not exist.
+        if not Coupon.find_one({'discount_id': discount_id}):
+            return JsonResponse({'error': 'Unknown coupon', 'status': 'bad_coupon'}, status=400)
+        sender = User.get_by_id(sender_id)
+        from_username = sender.get('username', '') if sender else ''
+        User.add_received_share(str(recipient['_id']), str(sender_id), from_username, discount_id)
+        return JsonResponse({'status': 'success'})
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+    except Exception as e:
+        logger.error(f"Error in share_coupon_view: {str(e)}")
+        return JsonResponse({'error': 'Internal server error'}, status=500)
+
+
+def received_shares_view(request):
+    """Coupons shared TO the logged-in user (most recent first); grouped by sender on the client."""
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return JsonResponse({'error': 'User not authenticated'}, status=401)
+    return JsonResponse({'received_shares': User.get_received_shares(user_id)})
+
+
+@csrf_exempt
 def add_favorite_view(request):
     """Add a discount to user's favorites"""
     if request.method != 'POST':

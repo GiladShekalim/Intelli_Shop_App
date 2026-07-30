@@ -98,6 +98,7 @@ class User(MongoDBModel):
             'location': location,
             'hobbies': hobbies,
             'favorites': [],  # NEW: Array of discount_id strings
+            'received_shares': [],  # Coupons other users shared to this user
             'created_at': datetime.datetime.now()
         }
         return cls.insert_one(user_data)
@@ -161,6 +162,35 @@ class User(MongoDBModel):
         """Get user's coupon action history (discount IDs, most recent first)."""
         user = cls.find_one({'_id': ObjectId(user_id)})
         return user.get('history', []) if user else []
+
+    @classmethod
+    def add_received_share(cls, recipient_id, from_user_id, from_username, discount_id):
+        """
+        Record a coupon shared TO recipient_id. Newest first, de-duplicated per
+        (sender, coupon) so re-sending just moves it to the top, capped at 200.
+        Only the received_shares array is touched, so the recipient's other data is
+        never altered. Element values are supplied by the caller from the trusted
+        sender session, not from the sender's request body.
+        """
+        share = {
+            'from_user_id': from_user_id,
+            'from_username': from_username,
+            'discount_id': discount_id,
+        }
+        cls.update_one(
+            {'_id': ObjectId(recipient_id)},
+            {'$pull': {'received_shares': {'from_user_id': from_user_id, 'discount_id': discount_id}}}
+        )
+        return cls.update_one(
+            {'_id': ObjectId(recipient_id)},
+            {'$push': {'received_shares': {'$each': [share], '$position': 0, '$slice': 200}}}
+        )
+
+    @classmethod
+    def get_received_shares(cls, user_id):
+        """Coupons shared to this user (most recent first). [] for older users."""
+        user = cls.find_one({'_id': ObjectId(user_id)})
+        return user.get('received_shares', []) if user else []
 
 # Updated Coupon model with new schema
 class Coupon(MongoDBModel):
