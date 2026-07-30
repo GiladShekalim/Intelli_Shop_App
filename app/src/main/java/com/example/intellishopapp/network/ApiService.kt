@@ -14,8 +14,11 @@ import com.example.intellishopapp.model.dto.ProfileUpdateResponse
 import com.example.intellishopapp.model.dto.ShowAllDiscountsResponse
 import com.example.intellishopapp.model.dto.LoginRequest
 import com.example.intellishopapp.model.dto.LoginResponse
+import com.example.intellishopapp.model.dto.ReceivedSharesResponse
 import com.example.intellishopapp.model.dto.RegisterRequest
 import com.example.intellishopapp.model.dto.RegisterResponse
+import com.example.intellishopapp.model.dto.ShareRequest
+import com.example.intellishopapp.model.dto.ShareResponse
 import com.example.intellishopapp.model.dto.UsernameCheckResponse
 import okhttp3.ResponseBody
 import retrofit2.Response
@@ -84,4 +87,13 @@ interface ApiService {
 
     @POST("remove_favorite/")
     suspend fun removeFavorite(@Body body: FavoriteRequest): Response<FavoriteResponse>
+
+    // Share a coupon with another user by username.
+    @POST("share_coupon/")
+    suspend fun shareCoupon(@Body body: ShareRequest): Response<ShareResponse>
+
+    // Coupons other users shared to the logged-in user.
+    @GET("received_shares/")
+    @Headers("Accept: application/json")
+    suspend fun getReceivedShares(): Response<ReceivedSharesResponse>
 }

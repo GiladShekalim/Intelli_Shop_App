@@ -132,6 +132,24 @@ class SessionManager private constructor(context: Context) {
         prefs.edit().putString(historyKey(email), gson.toJson(ids.take(100))).apply()
     }
 
+    // --- coupons shared to this user, per-user mirror of /received_shares/ ---
+
+    private fun sharesKey(email: String) = "shares_" + email.lowercase()
+
+    fun setReceivedShares(shares: List<com.example.intellishopapp.model.dto.SharedItemDto>) {
+        val email = get()?.email ?: return
+        prefs.edit().putString(sharesKey(email), gson.toJson(shares.take(200))).apply()
+    }
+
+    fun getReceivedShares(): List<com.example.intellishopapp.model.dto.SharedItemDto> {
+        val email = get()?.email ?: return emptyList()
+        val json = prefs.getString(sharesKey(email), null) ?: return emptyList()
+        val type = object : TypeToken<List<com.example.intellishopapp.model.dto.SharedItemDto>>() {}.type
+        return runCatching {
+            gson.fromJson<List<com.example.intellishopapp.model.dto.SharedItemDto>>(json, type)
+        }.getOrNull() ?: emptyList()
+    }
+
     companion object {
         @Volatile
         private var instance: SessionManager? = null
