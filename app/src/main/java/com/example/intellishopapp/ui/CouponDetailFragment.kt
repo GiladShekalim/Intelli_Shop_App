@@ -58,6 +58,7 @@ class CouponDetailFragment : Fragment() {
 
     private val couponId: String get() = requireArguments().getString(ARG_ID).orEmpty()
     private val historyRepository = com.example.intellishopapp.repository.HistoryRepository()
+    private val redeemRepository = com.example.intellishopapp.repository.RedeemRepository()
     private val shareRepository = com.example.intellishopapp.repository.ShareRepository()
 
     private var dragStartY = 0f
@@ -300,6 +301,7 @@ class CouponDetailFragment : Fragment() {
         val clipboard = requireContext().getSystemService(ClipboardManager::class.java)
         clipboard?.setPrimaryClip(ClipData.newPlainText("coupon_code", code))
         markCopied()
+        recordRedeemed()
         (requireActivity() as MainActivity).showBanner(getString(R.string.detail_code_copied))
     }
 
@@ -338,13 +340,20 @@ class CouponDetailFragment : Fragment() {
             .show()
     }
 
-    /** Record the view locally (immediate) and write it through to the backend. */
+    /** Record the VIEW locally (immediate) and write it through — feeds Recently Viewed. */
     private fun recordHistory() {
         SessionManager.getInstance().addHistory(couponId)
         viewLifecycleOwner.lifecycleScope.launch { historyRepository.add(couponId) }
     }
 
+    /** Record an actual REDEMPTION (copy / site / offer) — feeds Redeemed Offers. */
+    private fun recordRedeemed() {
+        SessionManager.getInstance().addRedeemed(couponId)
+        viewLifecycleOwner.lifecycleScope.launch { redeemRepository.add(couponId) }
+    }
+
     private fun openUrl(url: String) {
+        recordRedeemed()
         try {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         } catch (e: ActivityNotFoundException) {

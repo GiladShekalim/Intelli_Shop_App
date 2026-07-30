@@ -15,8 +15,10 @@ import com.example.intellishopapp.model.dto.ShowAllDiscountsResponse
 import com.example.intellishopapp.model.dto.LoginRequest
 import com.example.intellishopapp.model.dto.LoginResponse
 import com.example.intellishopapp.model.dto.ReceivedSharesResponse
+import com.example.intellishopapp.model.dto.RedeemedResponse
 import com.example.intellishopapp.model.dto.RegisterRequest
 import com.example.intellishopapp.model.dto.RegisterResponse
+import com.example.intellishopapp.model.dto.ShareRemoveRequest
 import com.example.intellishopapp.model.dto.ShareRequest
 import com.example.intellishopapp.model.dto.ShareResponse
 import com.example.intellishopapp.model.dto.UsernameCheckResponse
@@ -96,4 +98,16 @@ interface ApiService {
     @GET("received_shares/")
     @Headers("Accept: application/json")
     suspend fun getReceivedShares(): Response<ReceivedSharesResponse>
+
+    // Recipient dismisses one shared offer.
+    @POST("remove_share/")
+    suspend fun removeShare(@Body body: ShareRemoveRequest): Response<ShareResponse>
+
+    // Coupons the user redeemed (copy / go to site / go to offer).
+    @POST("add_redeemed/")
+    suspend fun addRedeemed(@Body body: FavoriteRequest): Response<FavoriteResponse>
+
+    @GET("redeemed/")
+    @Headers("Accept: application/json")
+    suspend fun getRedeemed(): Response<RedeemedResponse>
 }

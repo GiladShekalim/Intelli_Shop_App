@@ -132,6 +132,31 @@ class SessionManager private constructor(context: Context) {
         prefs.edit().putString(historyKey(email), gson.toJson(ids.take(100))).apply()
     }
 
+    // --- redeemed coupons (copy / site / offer), per-user mirror of /redeemed/ ---
+
+    private fun redeemedKey(email: String) = "redeemed_" + email.lowercase()
+
+    fun addRedeemed(discountId: String) {
+        val email = get()?.email ?: return
+        if (discountId.isBlank()) return
+        val list = getRedeemed().toMutableList()
+        list.remove(discountId)
+        list.add(0, discountId)
+        prefs.edit().putString(redeemedKey(email), gson.toJson(list.take(100))).apply()
+    }
+
+    fun getRedeemed(): List<String> {
+        val email = get()?.email ?: return emptyList()
+        val json = prefs.getString(redeemedKey(email), null) ?: return emptyList()
+        val type = object : TypeToken<List<String>>() {}.type
+        return runCatching { gson.fromJson<List<String>>(json, type) }.getOrNull() ?: emptyList()
+    }
+
+    fun setRedeemed(ids: List<String>) {
+        val email = get()?.email ?: return
+        prefs.edit().putString(redeemedKey(email), gson.toJson(ids.take(100))).apply()
+    }
+
     // --- coupons shared to this user, per-user mirror of /received_shares/ ---
 
     private fun sharesKey(email: String) = "shares_" + email.lowercase()

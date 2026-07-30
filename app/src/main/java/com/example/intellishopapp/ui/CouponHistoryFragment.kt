@@ -21,9 +21,9 @@ import com.google.android.material.textview.MaterialTextView
 import kotlinx.coroutines.launch
 
 /**
- * Coupon History: coupons the user acted on (copy / go to site / go to offer),
- * most recent first. Tapping a row opens the shared Coupon Detail sheet over this
- * page (no duplicated detail code — it reuses MainActivity.showCouponDetail).
+ * Redeemed Offers: coupons the user actually redeemed (copy / go to site / go to
+ * offer), most recent first. Distinct from Home's "Recently Viewed", which lists
+ * coupons merely opened. Tapping a row opens the shared Coupon Detail sheet.
  */
 class CouponHistoryFragment : Fragment() {
 
@@ -33,7 +33,7 @@ class CouponHistoryFragment : Fragment() {
     private lateinit var history_BTN_close: ImageButton
 
     private val couponRepository = CouponRepository()
-    private val historyRepository = com.example.intellishopapp.repository.HistoryRepository()
+    private val redeemRepository = com.example.intellishopapp.repository.RedeemRepository()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -55,11 +55,11 @@ class CouponHistoryFragment : Fragment() {
     private fun load() {
         history_PRG_loading.visibility = View.VISIBLE
         viewLifecycleOwner.lifecycleScope.launch {
-            // Pull the authoritative history from the backend (keep local on 401/error).
-            (historyRepository.get() as? ApiResult.Success)?.let {
-                SessionManager.getInstance().setHistory(it.data)
+            // Pull the authoritative redemptions from the backend (keep local on 401/error).
+            (redeemRepository.get() as? ApiResult.Success)?.let {
+                SessionManager.getInstance().setRedeemed(it.data)
             }
-            val ids = SessionManager.getInstance().getHistory()
+            val ids = SessionManager.getInstance().getRedeemed()
             if (ids.isEmpty()) {
                 history_PRG_loading.visibility = View.GONE
                 showEmpty()
