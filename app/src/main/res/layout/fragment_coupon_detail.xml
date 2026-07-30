@@ -117,6 +117,16 @@
                     android:contentDescription="@string/favorite_toggle"
                     android:src="@drawable/ic_heart_outline"
                     app:tint="@color/brand_primary" />
+
+                <ImageButton
+                    android:id="@+id/detail_BTN_share"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="4dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/share_action"
+                    android:src="@drawable/ic_share"
+                    app:tint="@color/brand_primary" />
             </LinearLayout>
 
             <com.google.android.material.textview.MaterialTextView

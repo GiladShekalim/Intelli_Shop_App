@@ -87,6 +87,18 @@
     <string name="gate_site">Sign-Up to go to the site</string>
     <string name="gate_offer">Sign-Up to view the offer</string>
     <string name="gate_word">Sign-Up</string>
+    <string name="gate_share">Sign-Up to share coupons</string>
+    <string name="share_action">Share coupon</string>
+    <string name="share_dialog_title">Send to a friend</string>
+    <string name="share_hint">Friend\'s username</string>
+    <string name="share_send">Send</string>
+    <string name="share_sent">Sent to %s</string>
+    <string name="share_unknown_user">No user with that username</string>
+    <string name="share_self">You can\'t share with yourself</string>
+    <string name="share_failed">Could not share, try again</string>
+    <string name="profile_sent_offers">Sent Offers by friends</string>
+    <string name="sent_offers_title">Sent Offers by friends</string>
+    <string name="sent_offers_empty">No offers from friends yet</string>
 
     <string name="leave_title">Leaving IntelliShop</string>
     <string name="leave_message">This opens an external site in your browser. Continue?</string>

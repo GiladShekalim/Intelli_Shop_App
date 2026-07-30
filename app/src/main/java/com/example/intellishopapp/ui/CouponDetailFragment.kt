@@ -45,6 +45,7 @@ class CouponDetailFragment : Fragment() {
     private lateinit var detail_LAY_actions: View
     private lateinit var detail_BTN_close: ImageButton
     private lateinit var detail_BTN_favorite: ImageButton
+    private lateinit var detail_BTN_share: ImageButton
     private lateinit var detail_LBL_store: MaterialTextView
     private lateinit var detail_LBL_discount: MaterialTextView
     private lateinit var detail_LBL_couponTitle: MaterialTextView
@@ -57,6 +58,7 @@ class CouponDetailFragment : Fragment() {
 
     private val couponId: String get() = requireArguments().getString(ARG_ID).orEmpty()
     private val historyRepository = com.example.intellishopapp.repository.HistoryRepository()
+    private val shareRepository = com.example.intellishopapp.repository.ShareRepository()
 
     private var dragStartY = 0f
     private var dismissing = false
@@ -96,6 +98,7 @@ class CouponDetailFragment : Fragment() {
         detail_LAY_actions = view.findViewById(R.id.detail_LAY_actions)
         detail_BTN_close = view.findViewById(R.id.detail_BTN_close)
         detail_BTN_favorite = view.findViewById(R.id.detail_BTN_favorite)
+        detail_BTN_share = view.findViewById(R.id.detail_BTN_share)
         detail_LBL_store = view.findViewById(R.id.detail_LBL_store)
         detail_LBL_discount = view.findViewById(R.id.detail_LBL_discount)
         detail_LBL_couponTitle = view.findViewById(R.id.detail_LBL_couponTitle)
@@ -177,6 +180,7 @@ class CouponDetailFragment : Fragment() {
         detail_BTN_close.setOnClickListener { animateDownAndDismiss() }
 
         detail_BTN_favorite.setOnClickListener { gated(R.string.gate_save) { toggleFavorite() } }
+        detail_BTN_share.setOnClickListener { gated(R.string.gate_share) { showShareDialog() } }
         detail_BTN_copy.setOnClickListener { gated(R.string.gate_copy) { copyCode() } }
         detail_BTN_site.setOnClickListener { gated(R.string.gate_site) { confirmLeave(ARG_SITE) } }
         detail_BTN_offer.setOnClickListener { gated(R.string.gate_offer) { confirmLeave(ARG_OFFER) } }
@@ -230,6 +234,57 @@ class CouponDetailFragment : Fragment() {
         setHeart(!SessionManager.getInstance().isFavorite(couponId))
         (requireActivity() as MainActivity).toggleFavorite(couponId) { nowFavorite ->
             setHeart(nowFavorite)
+        }
+    }
+
+    /**
+     * Ask for a recipient username and send this coupon to them. The dialog stays
+     * open on a bad recipient (unknown / yourself) so the user can correct it; it
+     * closes and confirms on success. Sender identity is set server-side, so nothing
+     * about the recipient is exposed here.
+     */
+    private fun showShareDialog() {
+        val input = android.widget.EditText(requireContext()).apply {
+            hint = getString(R.string.share_hint)
+            inputType = android.text.InputType.TYPE_CLASS_TEXT
+            setSingleLine()
+            val pad = (16 * resources.displayMetrics.density).toInt()
+            setPadding(pad, pad, pad, pad)
+        }
+        val dialog = AlertDialog.Builder(requireContext())
+            .setTitle(R.string.share_dialog_title)
+            .setView(input)
+            .setPositiveButton(R.string.share_send, null)
+            .setNegativeButton(R.string.pw_cancel) { d, _ -> d.dismiss() }
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val username = input.text?.toString()?.trim().orEmpty()
+                if (username.isEmpty()) {
+                    input.error = getString(R.string.share_hint)
+                    return@setOnClickListener
+                }
+                sendShare(username, input, dialog)
+            }
+        }
+        dialog.show()
+    }
+
+    private fun sendShare(username: String, input: android.widget.EditText, dialog: AlertDialog) {
+        val shell = requireActivity() as MainActivity
+        viewLifecycleOwner.lifecycleScope.launch {
+            when (shareRepository.share(username, couponId)) {
+                is com.example.intellishopapp.repository.ShareRepository.ShareResult.Success -> {
+                    dialog.dismiss()
+                    shell.showBanner(getString(R.string.share_sent, username))
+                }
+                is com.example.intellishopapp.repository.ShareRepository.ShareResult.UnknownUser ->
+                    input.error = getString(R.string.share_unknown_user)
+                is com.example.intellishopapp.repository.ShareRepository.ShareResult.SelfShare ->
+                    input.error = getString(R.string.share_self)
+                is com.example.intellishopapp.repository.ShareRepository.ShareResult.Failed ->
+                    input.error = getString(R.string.share_failed)
+            }
         }
     }
 
