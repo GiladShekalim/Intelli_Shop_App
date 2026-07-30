@@ -24,6 +24,7 @@ class CouponAdapter(
     private var items: List<CouponDto>,
     @LayoutRes private val layoutRes: Int,
     private val onFavorite: ((CouponDto) -> Unit)? = null,
+    private val onLongClick: ((CouponDto) -> Unit)? = null,
     private val onClick: (CouponDto) -> Unit
 ) : RecyclerView.Adapter<CouponAdapter.CouponViewHolder>() {
 
@@ -54,6 +55,9 @@ class CouponAdapter(
                 heart.setOnClickListener { onFavorite?.invoke(coupon) }
             }
             itemView.setOnClickListener { onClick(coupon) }
+            itemView.setOnLongClickListener {
+                onLongClick?.let { it(coupon); true } ?: false
+            }
         }
     }
 

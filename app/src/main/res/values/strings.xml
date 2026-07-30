@@ -99,6 +99,11 @@
     <string name="profile_sent_offers">Sent Offers by friends</string>
     <string name="sent_offers_title">Sent Offers by friends</string>
     <string name="sent_offers_empty">No offers from friends yet</string>
+    <string name="sent_remove_title">Remove offer</string>
+    <string name="sent_remove_message">Remove this offer from %s?</string>
+    <string name="sent_remove_confirm">Remove</string>
+    <string name="sent_removed">Offer removed</string>
+    <string name="sent_remove_failed">Could not remove, try again</string>
 
     <string name="leave_title">Leaving IntelliShop</string>
     <string name="leave_message">This opens an external site in your browser. Continue?</string>

@@ -93,8 +93,38 @@ class SentOffersFragment : Fragment() {
             row.findViewById<MaterialTextView>(R.id.section_LBL_title).text = section.sender
             val rcv = row.findViewById<RecyclerView>(R.id.section_LAY_row)
             rcv.layoutManager = LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false)
-            rcv.adapter = CouponAdapter(section.coupons, R.layout.item_coupon_card) { onCouponClicked(it) }
+            rcv.adapter = CouponAdapter(
+                section.coupons, R.layout.item_coupon_card,
+                onLongClick = { confirmRemove(section.sender, it) }
+            ) { onCouponClicked(it) }
             sent_LAY_sections.addView(row)
+        }
+    }
+
+    /** Long-press a shared card to dismiss it (removes it from the backend + reloads). */
+    private fun confirmRemove(sender: String, coupon: com.example.intellishopapp.model.dto.CouponDto) {
+        val discountId = coupon.discount_id ?: return
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(R.string.sent_remove_title)
+            .setMessage(getString(R.string.sent_remove_message, sender))
+            .setPositiveButton(R.string.sent_remove_confirm) { d, _ ->
+                d.dismiss()
+                removeShare(sender, discountId)
+            }
+            .setNegativeButton(R.string.pw_cancel) { d, _ -> d.dismiss() }
+            .show()
+    }
+
+    private fun removeShare(sender: String, discountId: String) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            when (shareRepository.removeShare(sender, discountId)) {
+                is ApiResult.Success -> {
+                    (requireActivity() as MainActivity).showBanner(getString(R.string.sent_removed))
+                    load()
+                }
+                is ApiResult.Error ->
+                    (requireActivity() as MainActivity).showBanner(getString(R.string.sent_remove_failed))
+            }
         }
     }
 

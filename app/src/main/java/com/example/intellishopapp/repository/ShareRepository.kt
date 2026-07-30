@@ -1,5 +1,6 @@
 package com.example.intellishopapp.repository
 
+import com.example.intellishopapp.model.dto.ShareRemoveRequest
 import com.example.intellishopapp.model.dto.ShareRequest
 import com.example.intellishopapp.model.dto.SharedItemDto
 import com.example.intellishopapp.model.dto.ShareResponse
@@ -40,6 +41,17 @@ class ShareRepository {
             }
         } catch (e: Exception) {
             ShareResult.Failed(e.message ?: "Network error")
+        }
+    }
+
+    /** Recipient dismisses one offer (by sender username + coupon). Needs a session. */
+    suspend fun removeShare(fromUsername: String, discountId: String): ApiResult<Unit> {
+        return try {
+            val response = api.removeShare(ShareRemoveRequest(fromUsername, discountId))
+            if (response.isSuccessful) ApiResult.Success(Unit)
+            else ApiResult.Error("Could not remove", response.code())
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Network error")
         }
     }
 
