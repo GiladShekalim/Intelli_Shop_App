@@ -60,6 +60,25 @@ class AuthRepository {
         }
     }
 
+    /**
+     * Is this username free to register? UX-only hint for the registration screen —
+     * registration itself still rejects duplicates. Any error (network, etc.) is
+     * surfaced so the caller can fail open and not block a legitimate sign-up.
+     */
+    suspend fun checkUsername(username: String): ApiResult<Boolean> {
+        return try {
+            val response = api.checkUsername(username)
+            val body = response.body()
+            if (response.isSuccessful && body != null) {
+                ApiResult.Success(body.available)
+            } else {
+                ApiResult.Error("Check failed", response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Network error")
+        }
+    }
+
     suspend fun googleLogin(idToken: String): ApiResult<GoogleLoginResponse> {
         return try {
             val response = api.googleLogin(GoogleLoginRequest(idToken))

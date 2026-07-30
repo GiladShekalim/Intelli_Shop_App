@@ -50,6 +50,12 @@ class RegisterFragment : Fragment() {
     private var googleMode = false
     private var generatedPassword: String? = null
 
+    // Live username availability: debounced so we call at most once per idle window.
+    // null = unknown/not checked; true = free; false = taken.
+    private var usernameAvailable: Boolean? = null
+    private val usernameCheckHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var usernameCheckRunnable: Runnable? = null
+
     private val palette = listOf(
         0xFFFFCDD2.toInt(), 0xFFF8BBD0.toInt(), 0xFFE1BEE7.toInt(), 0xFFC5CAE9.toInt(),
         0xFFB3E5FC.toInt(), 0xFFB2DFDB.toInt(), 0xFFC8E6C9.toInt(), 0xFFFFF9C4.toInt(),
@@ -95,6 +101,53 @@ class RegisterFragment : Fragment() {
             register_ET_password.visibility = View.GONE
             generatedPassword = UUID.randomUUID().toString()
         }
+        watchUsernameAvailability()
+    }
+
+    /**
+     * Debounced live check: whenever the username changes, wait for a short idle
+     * window (so we call at most once per burst of typing) then ask the backend if
+     * it is free. Purely a hint — registration still rejects duplicates on submit.
+     */
+    private fun watchUsernameAvailability() {
+        register_ET_username.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+            override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                usernameAvailable = null
+                usernameCheckRunnable?.let { usernameCheckHandler.removeCallbacks(it) }
+                val name = s?.toString()?.trim().orEmpty()
+                if (name.length < MIN_USERNAME_CHECK) return
+                val runnable = Runnable { checkUsername(name) }
+                usernameCheckRunnable = runnable
+                usernameCheckHandler.postDelayed(runnable, USERNAME_DEBOUNCE_MS)
+            }
+        })
+    }
+
+    private fun checkUsername(name: String) {
+        if (view == null) return
+        viewLifecycleOwner.lifecycleScope.launch {
+            when (val result = authRepository.checkUsername(name)) {
+                is ApiResult.Success -> {
+                    // Ignore a stale result if the field has since changed.
+                    if (register_ET_username.text?.toString()?.trim() != name) return@launch
+                    usernameAvailable = result.data
+                    if (!result.data) {
+                        register_ET_username.error = getString(R.string.error_username_taken)
+                    } else if (register_ET_username.error == getString(R.string.error_username_taken)) {
+                        register_ET_username.error = null
+                    }
+                }
+                // Fail open: a failed check never blocks a legitimate sign-up.
+                is ApiResult.Error -> usernameAvailable = null
+            }
+        }
+    }
+
+    override fun onDestroyView() {
+        usernameCheckRunnable?.let { usernameCheckHandler.removeCallbacks(it) }
+        super.onDestroyView()
     }
 
     private fun buildToggleGrid(grid: GridLayout, values: List<String>, selected: MutableSet<String>) {
@@ -196,6 +249,10 @@ class RegisterFragment : Fragment() {
         if (username.isEmpty()) {
             register_ET_username.error = getString(R.string.error_username_required)
             ok = false
+        } else if (usernameAvailable == false) {
+            // Known-taken from the live check; the backend would reject it anyway.
+            register_ET_username.error = getString(R.string.error_username_taken)
+            ok = false
         }
         when {
             email.isEmpty() -> {
@@ -258,6 +315,8 @@ class RegisterFragment : Fragment() {
     companion object {
         private const val DOUBLE_TAP_MS = 300L
         private const val MIN_PASSWORD = 6
+        private const val MIN_USERNAME_CHECK = 2
+        private const val USERNAME_DEBOUNCE_MS = 2000L
         const val EXTRA_EMAIL = "extra_email"
         const val EXTRA_NAME = "extra_name"
         const val EXTRA_GOOGLE = "extra_google"

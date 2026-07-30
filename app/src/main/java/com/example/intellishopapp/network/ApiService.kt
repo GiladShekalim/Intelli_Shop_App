@@ -16,6 +16,7 @@ import com.example.intellishopapp.model.dto.LoginRequest
 import com.example.intellishopapp.model.dto.LoginResponse
 import com.example.intellishopapp.model.dto.RegisterRequest
 import com.example.intellishopapp.model.dto.RegisterResponse
+import com.example.intellishopapp.model.dto.UsernameCheckResponse
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -25,6 +26,7 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface ApiService {
 
@@ -37,6 +39,11 @@ interface ApiService {
 
     @POST("register/")
     suspend fun register(@Body body: RegisterRequest): Response<RegisterResponse>
+
+    // Live username-availability check for the registration screen.
+    @GET("check_username/")
+    @Headers("Accept: application/json")
+    suspend fun checkUsername(@Query("username") username: String): Response<UsernameCheckResponse>
 
     @POST("google_login/")
     suspend fun googleLogin(@Body body: GoogleLoginRequest): Response<GoogleLoginResponse>

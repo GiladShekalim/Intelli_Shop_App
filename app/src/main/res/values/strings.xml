@@ -109,6 +109,7 @@
     <string name="register_success">Account created — please log in</string>
     <string name="error_register_failed">Registration failed</string>
     <string name="error_username_required">Enter a username</string>
+    <string name="error_username_taken">Username already taken</string>
     <string name="error_email_required">Enter an email</string>
     <string name="error_email_invalid">Enter a valid email address</string>
     <string name="error_password_required">Enter a password</string>
