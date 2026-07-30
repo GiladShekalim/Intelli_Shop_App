@@ -16,6 +16,7 @@ import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import org.hamcrest.Matchers.not
 import com.example.intellishopapp.utilities.SessionManager
 import org.junit.Before
 import org.junit.Rule
@@ -66,6 +67,54 @@ class RegisterFragmentTest {
     fun register_showsFields() {
         openRegister()
         onView(withId(R.id.register_ET_username)).check(matches(isDisplayed()))
+    }
+
+    // --- live username availability (debounced backend check) ---
+
+    @Test
+    fun username_takenName_showsTakenError() {
+        openRegister()
+        // "lala" is a known existing account (used by FavoritesSyncTest).
+        onView(withId(R.id.register_ET_username)).perform(typeText("lala"), closeSoftKeyboard())
+        waitForErrorText(R.id.register_ET_username, R.string.error_username_taken)
+    }
+
+    @Test
+    fun username_takenName_blocksSubmit() {
+        openRegister()
+        onView(withId(R.id.register_ET_username)).perform(typeText("lala"), closeSoftKeyboard())
+        onView(withId(R.id.register_ET_email)).perform(typeText("x@example.com"), closeSoftKeyboard())
+        onView(withId(R.id.register_ET_password)).perform(typeText("pw1234"), closeSoftKeyboard())
+        waitForErrorText(R.id.register_ET_username, R.string.error_username_taken)
+        onView(withId(R.id.register_BTN_submit)).perform(scrollTo(), click())
+        // Still on Register (submit blocked); the username field remains shown.
+        onView(withId(R.id.register_ET_username)).perform(scrollTo())
+        onView(withId(R.id.register_ET_username)).check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun username_freeName_hasNoTakenError() {
+        openRegister()
+        val free = "free_" + System.currentTimeMillis()
+        onView(withId(R.id.register_ET_username)).perform(typeText(free), closeSoftKeyboard())
+        // Give the debounce + check time to run, then confirm no taken error stuck.
+        Thread.sleep(4000)
+        onView(withId(R.id.register_ET_username))
+            .check(matches(not(hasErrorText(context.getString(R.string.error_username_taken)))))
+    }
+
+    /** Polls for the debounced availability error (fires ~2s after typing stops). */
+    private fun waitForErrorText(id: Int, textRes: Int) {
+        val end = System.currentTimeMillis() + 10000
+        while (System.currentTimeMillis() < end) {
+            try {
+                onView(withId(id)).check(matches(hasErrorText(context.getString(textRes))))
+                return
+            } catch (e: Throwable) {
+                Thread.sleep(300)
+            }
+        }
+        onView(withId(id)).check(matches(hasErrorText(context.getString(textRes))))
     }
 
     @Test
