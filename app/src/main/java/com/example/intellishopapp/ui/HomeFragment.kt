@@ -60,9 +60,11 @@ class HomeFragment : Fragment() {
      * history, rebuild so Recently Viewed picks it up straight away.
      */
     private val backStackListener = FragmentManager.OnBackStackChangedListener {
-        // isAdded guards against the callback firing while the fragment is detached
-        // (showCoupons touches requireContext()/getString()).
-        if (isAdded && view != null && loadedCoupons.isNotEmpty() &&
+        // This fires for ANY back-stack change on the activity, including while the
+        // activity is tearing down — at which point isAdded can still be true but the
+        // context is already gone, so showCoupons()'s requireContext()/getString()
+        // would crash. Require a resumed fragment with a live context and view.
+        if (isResumed && view != null && context != null && loadedCoupons.isNotEmpty() &&
             SessionManager.getInstance().getHistory() != shownHistory
         ) {
             showCoupons(loadedCoupons)
