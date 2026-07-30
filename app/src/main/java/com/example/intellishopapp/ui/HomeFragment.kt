@@ -54,21 +54,27 @@ class HomeFragment : Fragment() {
 
     private var loadedCoupons: List<CouponDto> = emptyList()
     private var shownHistory: List<String> = emptyList()
+    private var shownProfile: Pair<List<String>, List<String>> = emptyList<String>() to emptyList()
 
     /**
-     * Closing a coupon detail pops the back stack. If that visit added to the
-     * history, rebuild so Recently Viewed picks it up straight away.
+     * Popping an overlay can change what Home shows: Recently Viewed if the history
+     * grew, or the personalized hero if the user edited their statuses/interests.
+     * Rebuild when either moved. This fires for ANY back-stack change including during
+     * teardown, so require a resumed fragment with a live context/view (isAdded can be
+     * true while the context is already gone -> requireContext()/getString() crash).
      */
     private val backStackListener = FragmentManager.OnBackStackChangedListener {
-        // This fires for ANY back-stack change on the activity, including while the
-        // activity is tearing down — at which point isAdded can still be true but the
-        // context is already gone, so showCoupons()'s requireContext()/getString()
-        // would crash. Require a resumed fragment with a live context and view.
         if (isResumed && view != null && context != null && loadedCoupons.isNotEmpty() &&
-            SessionManager.getInstance().getHistory() != shownHistory
+            (SessionManager.getInstance().getHistory() != shownHistory ||
+                currentProfile() != shownProfile)
         ) {
             showCoupons(loadedCoupons)
         }
+    }
+
+    private fun currentProfile(): Pair<List<String>, List<String>> {
+        val s = SessionManager.getInstance().get()
+        return (s?.status.orEmpty()) to (s?.hobbies.orEmpty())
     }
 
     override fun onCreateView(
@@ -137,7 +143,11 @@ class HomeFragment : Fragment() {
     }
 
     private fun showCoupons(coupons: List<CouponDto>) {
+        // A network coroutine can resume just after the view is torn down; showCoupons
+        // touches requireContext()/getString(), so bail if we are no longer attached.
+        if (!isAdded || view == null || context == null) return
         loadedCoupons = coupons
+        shownProfile = currentProfile()
         val session = SessionManager.getInstance()
 
         // Hero: the personal suggestions, best match first, capped at 10 — the same
