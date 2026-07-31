@@ -5,39 +5,17 @@ import com.example.intellishopapp.network.RetrofitClient
 import com.example.intellishopapp.utilities.ApiResult
 
 /**
- * Coupon action history (copy / go to site / go to offer), per user. Write-through
- * to the backend with a local mirror; a 401 (no server session) is treated as a
- * local-only success, matching the favorites approach.
+ * Coupon views ("Recently Viewed"), per user. Write-through with a local mirror; a
+ * 401 is treated as local-only success. Result-shape handling is shared in
+ * [RepoSupport] so it is not duplicated across the id-list repositories.
  */
 class HistoryRepository {
 
     private val api get() = RetrofitClient.getInstance().apiService
 
-    suspend fun add(discountId: String): ApiResult<Unit> {
-        return try {
-            val response = api.addHistory(FavoriteRequest(discountId))
-            when {
-                response.isSuccessful -> ApiResult.Success(Unit)
-                response.code() == 401 -> ApiResult.Success(Unit) // keep it local
-                else -> ApiResult.Error("Failed to record history", response.code())
-            }
-        } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error")
-        }
-    }
+    suspend fun add(discountId: String): ApiResult<Unit> =
+        RepoSupport.writeThrough("Failed to record history") { api.addHistory(FavoriteRequest(discountId)) }
 
-    /** Read history from the backend. 401 (no server session) -> Error (keep local). */
-    suspend fun get(): ApiResult<List<String>> {
-        return try {
-            val response = api.getHistory()
-            val body = response.body()
-            if (response.isSuccessful && body != null) {
-                ApiResult.Success(body.history ?: emptyList())
-            } else {
-                ApiResult.Error("Not authenticated", response.code())
-            }
-        } catch (e: Exception) {
-            ApiResult.Error(e.message ?: "Network error")
-        }
-    }
+    suspend fun get(): ApiResult<List<String>> =
+        RepoSupport.readList({ it.history }) { api.getHistory() }
 }
