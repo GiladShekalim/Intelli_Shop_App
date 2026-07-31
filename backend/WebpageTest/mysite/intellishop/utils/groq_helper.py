@@ -155,9 +155,9 @@ def extract_filters_from_text(user_text: str, max_retries: int = 2) -> Dict[str,
     logging.getLogger("groq").setLevel(logging.WARNING)
     logging.getLogger("groq._base_client").setLevel(logging.WARNING)
     
-    # Available models (same as in groq_chat.py)
-    models = ["llama3-70b-8192", "llama3-8b-8192", "llama-3.1-8b-instant", 
-              "llama-3.3-70b-versatile", "gemma2-9b-it"]
+    # Available models, current Groq production models first. The older
+    # llama3-*-8192 models were decommissioned by Groq, so they are no longer listed.
+    models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "gemma2-9b-it"]
     
     current_model_index = 0
     retry_count = 0
@@ -236,7 +236,14 @@ def extract_filters_from_text(user_text: str, max_retries: int = 2) -> Dict[str,
             
             if retry_count < max_retries:
                 retry_count += 1
-                logger.warning(f"{error_message}\nRetrying attempt {retry_count} of {max_retries}...")
+                # Advance to the next model on ANY failure (not only 429): a
+                # decommissioned or erroring model should fall through to a working one.
+                prev_model = models[current_model_index]
+                current_model_index = (current_model_index + 1) % len(models)
+                logger.warning(
+                    f"{error_message}\nRetry {retry_count}/{max_retries}: "
+                    f"switching model from {prev_model} to {models[current_model_index]}..."
+                )
                 time.sleep(2)  # Add a slightly longer delay before retrying
             else:
                 logger.error(f"{error_message}\nMax retries exceeded. Returning empty filters.")
