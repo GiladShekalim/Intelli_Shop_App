@@ -57,10 +57,16 @@ class FavoritesSyncTest {
 
         // Open a coupon deterministically via search (a known code), NOT the
         // personalized hero — the hero depends on the user's statuses/interests and
-        // can be empty for a narrowly-filtered account. lala has no favorites, so
-        // this saves (does not toggle off).
+        // can be empty for a narrowly-filtered account.
         openCouponWithCode()
+        // Guarantee the coupon ends SAVED regardless of its prior state: this test is
+        // run repeatedly against a real account, so the coupon may already be a
+        // favorite from an earlier run — in which case the first tap removes it, so
+        // tap again to save.
         onView(withId(R.id.detail_BTN_favorite)).perform(click())
+        if (!bannerShows(R.string.detail_saved, 3000)) {
+            onView(withId(R.id.detail_BTN_favorite)).perform(click())
+        }
         waitForBanner(R.string.detail_saved)
 
         // Fake a fresh device: wipe ONLY the local favorite mirror (keep session+cookie).
@@ -107,6 +113,20 @@ class FavoritesSyncTest {
                 Thread.sleep(150)
             }
         }
+    }
+
+    /** Non-asserting: true if the banner shows the given text within the window. */
+    private fun bannerShows(textRes: Int, ms: Long): Boolean {
+        val end = System.currentTimeMillis() + ms
+        while (System.currentTimeMillis() < end) {
+            try {
+                onView(withId(R.id.main_LBL_banner)).check(matches(withText(textRes)))
+                return true
+            } catch (e: Throwable) {
+                Thread.sleep(150)
+            }
+        }
+        return false
     }
 
     private fun waitUntilGone(id: Int) {
