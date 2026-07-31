@@ -69,6 +69,35 @@ class SentOffersTest {
     }
 
     @Test
+    fun favoriteHeartOnSharedCard_works() {
+        // The heart on a Sent Offers card uses the same single favorite path as every
+        // other list; tapping it saves (member session, 401-safe local write).
+        RetrofitClient.getInstance().clearCookies()
+        SessionManager.getInstance().setReceivedShares(
+            listOf(SharedItemDto(from_user_id = "u1", from_username = "alice", discount_id = "1"))
+        )
+        openSentOffers()
+        waitForText("alice")
+        onView(
+            org.hamcrest.Matchers.allOf(
+                withId(R.id.section_LAY_row),
+                androidx.test.espresso.matcher.ViewMatchers.isDescendantOfA(withId(R.id.sent_LAY_sections))
+            )
+        ).perform(
+            RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(
+                0, clickChildViewWithId(R.id.item_BTN_favorite)
+            )
+        )
+        val end = System.currentTimeMillis() + 6000
+        while (System.currentTimeMillis() < end) {
+            try {
+                onView(withId(R.id.main_LBL_banner)).check(matches(withText(R.string.detail_saved))); break
+            } catch (e: Throwable) { Thread.sleep(150) }
+        }
+        onView(withId(R.id.main_LBL_banner)).check(matches(withText(R.string.detail_saved)))
+    }
+
+    @Test
     fun longPressOffer_opensRemoveDialog() {
         SessionManager.getInstance().setReceivedShares(
             listOf(SharedItemDto(from_user_id = "u1", from_username = "alice", discount_id = "1"))

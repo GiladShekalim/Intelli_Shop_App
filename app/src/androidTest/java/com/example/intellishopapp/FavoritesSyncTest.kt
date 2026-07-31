@@ -4,6 +4,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
+import androidx.test.espresso.action.ViewActions.replaceText
 import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.RecyclerViewActions
@@ -54,21 +55,11 @@ class FavoritesSyncTest {
         onView(withId(R.id.login_BTN_submit)).perform(click())
         waitUntilGone(R.id.login_ET_email)
 
-        // Save the first coupon (real backend write-through). Opening the detail can
-        // lag under full-suite load, and a tap may not register the first time, so
-        // retry the open until the sheet is actually up.
-        waitForHero()
-        onView(withId(R.id.home_LAY_hero))
-            .perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(0, click()))
-        if (!isDisplayedWithin(R.id.detail_LBL_title, 6000)) {
-            onView(withId(R.id.home_LAY_hero))
-                .perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(0, click()))
-        }
-        waitDisplayed(R.id.detail_LBL_title)
-        // Settle on the favorite button itself: it is always present, whereas the
-        // offer button is hidden for coupons that carry no offer link (the top
-        // personalized coupon varies per user).
-        waitCompletelyDisplayed(R.id.detail_BTN_favorite)
+        // Open a coupon deterministically via search (a known code), NOT the
+        // personalized hero — the hero depends on the user's statuses/interests and
+        // can be empty for a narrowly-filtered account. lala has no favorites, so
+        // this saves (does not toggle off).
+        openCouponWithCode()
         onView(withId(R.id.detail_BTN_favorite)).perform(click())
         waitForBanner(R.string.detail_saved)
 
@@ -81,16 +72,16 @@ class FavoritesSyncTest {
         onView(withId(R.id.favorites_RCV_list)).check(matches(hasMinimumChildCount(1)))
     }
 
-    private fun waitForHero() {
-        val end = System.currentTimeMillis() + 15000
-        while (System.currentTimeMillis() < end) {
-            try {
-                onView(withId(R.id.home_LAY_hero)).check(matches(hasMinimumChildCount(1)))
-                return
-            } catch (e: Throwable) {
-                Thread.sleep(400)
-            }
-        }
+    /** Opens a coupon that has a code via text search — deterministic, prefs-independent. */
+    private fun openCouponWithCode() {
+        onView(withId(R.id.main_ET_search)).perform(click())
+        onView(withId(R.id.main_ET_search)).perform(replaceText("HOT29"), closeSoftKeyboard())
+        onView(withId(R.id.main_BTN_search)).perform(click())
+        waitForChildren(R.id.search_RCV_results)
+        onView(withId(R.id.search_RCV_results))
+            .perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(0, click()))
+        waitDisplayed(R.id.detail_LBL_title)
+        waitCompletelyDisplayed(R.id.detail_BTN_favorite)
     }
 
     private fun waitForChildren(id: Int) {
