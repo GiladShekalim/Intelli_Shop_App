@@ -163,6 +163,11 @@ class MainActivity : AppCompatActivity() {
 
     fun searchQueryText(): String = main_ET_search.text?.toString().orEmpty()
 
+    /** Clear the top-bar search field (after the AI turns the text into filters). */
+    fun clearSearchQuery() {
+        main_ET_search.text?.clear()
+    }
+
     private var pendingSearchAi: Boolean? = null
 
     fun consumePendingSearch(): Boolean? {

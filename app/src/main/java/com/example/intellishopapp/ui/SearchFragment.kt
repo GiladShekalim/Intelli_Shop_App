@@ -131,12 +131,26 @@ class SearchFragment : Fragment() {
             when (val result = searchRepository.aiFilters(query)) {
                 is ApiResult.Success -> {
                     val f = result.data
-                    selectedInterests.clear(); selectedInterests.addAll(f.interests.orEmpty())
-                    selectedStatuses.clear(); selectedStatuses.addAll(f.statuses.orEmpty())
-                    selectedBucket = f.percentage_range?.takeIf { it.enabled }?.bucket
-                    currentPrice = f.price_range?.takeIf { it.enabled }?.max_value
+                    val interests = f.interests.orEmpty()
+                    val statuses = f.statuses.orEmpty()
+                    val bucket = f.percentage_range?.takeIf { it.enabled }?.bucket
+                    val price = f.price_range?.takeIf { it.enabled }?.max_value
+                    // Old-web parity: if nothing was understood, say so and keep the
+                    // filter panel, rather than running an empty (all-results) search.
+                    if (interests.isEmpty() && statuses.isEmpty() && bucket == null && price == null) {
+                        showFilters()
+                        banner(R.string.search_ai_none)
+                        return@launch
+                    }
+                    selectedInterests.clear(); selectedInterests.addAll(interests)
+                    selectedStatuses.clear(); selectedStatuses.addAll(statuses)
+                    selectedBucket = bucket
+                    currentPrice = price
                     lastText = null // AI parsed the text into filters; not a text search
                     applySelectionsToUi()
+                    // Clear the text field and confirm, like the old web AI helper did.
+                    (requireActivity() as MainActivity).clearSearchQuery()
+                    banner(R.string.search_ai_applied)
                     doSearch()
                 }
                 is ApiResult.Error -> {
