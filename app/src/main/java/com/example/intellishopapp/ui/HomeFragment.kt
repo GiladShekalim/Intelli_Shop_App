@@ -122,11 +122,12 @@ class HomeFragment : Fragment() {
      * Slowly and continuously scrolls a looping hero row, giving the app a gentle
      * moving feel. The user can still drag/fling to spin faster or reach a specific
      * card — auto-scroll only advances while the row is idle, so it never fights the
-     * finger. Skipped when the system "remove animations" setting is on (which also
-     * keeps instrumented tests free of a perpetual main-thread callback).
+     * finger. Disabled only under instrumented tests, so the perpetual main-thread
+     * callback never blocks Espresso and hero-tap tests stay deterministic; it runs
+     * in the real app regardless of the system animation-scale setting.
      */
     private fun startCarousel(rcv: RecyclerView, adapter: CouponAdapter, dx: Int) {
-        if (view == null || !animationsEnabled() || adapter.itemCount == 0) return
+        if (view == null || isInstrumentedTest || adapter.itemCount == 0) return
         // Jump to the middle of the looped range so it can scroll either direction.
         (rcv.layoutManager as? LinearLayoutManager)
             ?.scrollToPositionWithOffset(adapter.itemCount / 2, 0)
@@ -146,12 +147,15 @@ class HomeFragment : Fragment() {
         carouselRunnables.clear()
     }
 
-    /** Respects the system reduce-motion setting (Animator duration scale == 0). */
-    private fun animationsEnabled(): Boolean = context?.let {
-        android.provider.Settings.Global.getFloat(
-            it.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f
-        ) != 0f
-    } ?: false
+    // Espresso is only on the classpath during instrumented tests; used to keep the
+    // perpetual auto-scroll callback out of the test process. Detected once.
+    private val isInstrumentedTest: Boolean by lazy {
+        try {
+            Class.forName("androidx.test.espresso.Espresso"); true
+        } catch (e: Throwable) {
+            false
+        }
+    }
 
     private fun findViews(view: View) {
         home_LBL_bestMatches = view.findViewById(R.id.home_LBL_bestMatches)
