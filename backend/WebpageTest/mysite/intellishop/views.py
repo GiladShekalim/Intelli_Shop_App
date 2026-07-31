@@ -569,9 +569,17 @@ def profile_view(request):
             message = 'Preferences updated'
 
         elif action == 'delete_account':
-            # Add email verification here
+            # Delete the user document. All of the user's data (favorites, history,
+            # redeemed, received_shares) is embedded on that document, so it goes with
+            # it. Then re-query to CONFIRM it is truly gone before reporting success.
             User.delete_one({'_id': ObjectId(user_id)})
+            still_exists = User.find_one({'_id': ObjectId(user_id)}) is not None
             if wants_json:
+                if still_exists:
+                    return JsonResponse(
+                        {'status': 'error', 'message': 'Account could not be deleted'}, status=500
+                    )
+                request.session.flush()
                 return JsonResponse({'status': 'success', 'message': 'Account deleted'})
             return redirect('logout')
 
