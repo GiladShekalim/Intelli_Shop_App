@@ -136,6 +136,17 @@ class RegisterFragmentTest {
     }
 
     @Test
+    fun register_emptyFields_showsOrangeNotice() {
+        openRegister()
+        onView(withId(R.id.register_BTN_submit)).perform(scrollTo(), click())
+        // A single light-orange notice names the fields that need fixing.
+        onView(withId(R.id.register_LBL_error)).perform(scrollTo())
+        onView(withId(R.id.register_LBL_error)).check(matches(isDisplayed()))
+        onView(withId(R.id.register_LBL_error))
+            .check(matches(withText(org.hamcrest.Matchers.containsString(context.getString(R.string.field_username)))))
+    }
+
+    @Test
     fun register_invalidEmail_showsEmailError() {
         openRegister()
         onView(withId(R.id.register_ET_username)).perform(typeText("someone"), closeSoftKeyboard())

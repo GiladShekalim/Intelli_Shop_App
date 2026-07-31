@@ -245,34 +245,44 @@ class RegisterFragment : Fragment() {
      * have no password field, so that check is skipped for them.
      */
     private fun validate(username: String, email: String, password: String): Boolean {
-        var ok = true
+        // Collect the fields that fail so a single light-orange notice can name them,
+        // while each field also flags inline.
+        val bad = mutableListOf<String>()
         if (username.isEmpty()) {
             register_ET_username.error = getString(R.string.error_username_required)
-            ok = false
+            bad.add(getString(R.string.field_username))
         } else if (usernameAvailable == false) {
             // Known-taken from the live check; the backend would reject it anyway.
             register_ET_username.error = getString(R.string.error_username_taken)
-            ok = false
+            bad.add(getString(R.string.field_username))
         }
         when {
             email.isEmpty() -> {
-                register_ET_email.error = getString(R.string.error_email_required); ok = false
+                register_ET_email.error = getString(R.string.error_email_required)
+                bad.add(getString(R.string.field_email))
             }
             !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
-                register_ET_email.error = getString(R.string.error_email_invalid); ok = false
+                register_ET_email.error = getString(R.string.error_email_invalid)
+                bad.add(getString(R.string.field_email))
             }
         }
         if (!googleMode) {
             when {
                 password.isEmpty() -> {
-                    register_ET_password.error = getString(R.string.error_password_required); ok = false
+                    register_ET_password.error = getString(R.string.error_password_required)
+                    bad.add(getString(R.string.field_password))
                 }
                 password.length < MIN_PASSWORD -> {
-                    register_ET_password.error = getString(R.string.error_password_short); ok = false
+                    register_ET_password.error = getString(R.string.error_password_short)
+                    bad.add(getString(R.string.field_password))
                 }
             }
         }
-        return ok
+        if (bad.isNotEmpty()) {
+            showError(getString(R.string.register_fix_fields, bad.joinToString(", ")))
+            return false
+        }
+        return true
     }
 
     private fun finishRegister(email: String) {
