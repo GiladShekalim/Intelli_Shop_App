@@ -40,13 +40,14 @@ class HomeFragment : Fragment() {
 
     private val couponRepository = CouponRepository()
     private val historyRepository = HistoryRepository()
+    // loop = true: the two hero rows are endless carousels that auto-scroll.
     private val heroAdapter = CouponAdapter(
         emptyList(), R.layout.item_hero_card,
-        onFavorite = { onFavoriteClicked(it) }
+        onFavorite = { onFavoriteClicked(it) }, loop = true
     ) { onCouponClicked(it) }
     private val heroAdapter2 = CouponAdapter(
         emptyList(), R.layout.item_hero_card,
-        onFavorite = { onFavoriteClicked(it) }
+        onFavorite = { onFavoriteClicked(it) }, loop = true
     ) { onCouponClicked(it) }
 
     // Every card adapter on the page, so a favorite toggle refreshes all hearts.
@@ -93,8 +94,64 @@ class HomeFragment : Fragment() {
 
     override fun onDestroyView() {
         parentFragmentManager.removeOnBackStackChangedListener(backStackListener)
+        stopCarousels()
         super.onDestroyView()
     }
+
+    override fun onPause() {
+        // Don't spin while the app is backgrounded.
+        stopCarousels()
+        super.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (loadedCoupons.isNotEmpty()) restartCarousels()
+    }
+
+    private fun restartCarousels() {
+        stopCarousels()
+        startCarousel(home_LAY_hero, heroAdapter, +CAROUSEL_SPEED_PX)
+        startCarousel(home_LAY_hero2, heroAdapter2, -CAROUSEL_SPEED_PX)
+    }
+
+    private val carouselHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private val carouselRunnables = mutableListOf<Runnable>()
+
+    /**
+     * Slowly and continuously scrolls a looping hero row, giving the app a gentle
+     * moving feel. The user can still drag/fling to spin faster or reach a specific
+     * card — auto-scroll only advances while the row is idle, so it never fights the
+     * finger. Skipped when the system "remove animations" setting is on (which also
+     * keeps instrumented tests free of a perpetual main-thread callback).
+     */
+    private fun startCarousel(rcv: RecyclerView, adapter: CouponAdapter, dx: Int) {
+        if (view == null || !animationsEnabled() || adapter.itemCount == 0) return
+        // Jump to the middle of the looped range so it can scroll either direction.
+        (rcv.layoutManager as? LinearLayoutManager)
+            ?.scrollToPositionWithOffset(adapter.itemCount / 2, 0)
+        val runnable = object : Runnable {
+            override fun run() {
+                if (view == null) return
+                if (rcv.scrollState == RecyclerView.SCROLL_STATE_IDLE) rcv.scrollBy(dx, 0)
+                carouselHandler.postDelayed(this, CAROUSEL_INTERVAL_MS)
+            }
+        }
+        carouselRunnables.add(runnable)
+        carouselHandler.postDelayed(runnable, CAROUSEL_INTERVAL_MS)
+    }
+
+    private fun stopCarousels() {
+        carouselRunnables.forEach { carouselHandler.removeCallbacks(it) }
+        carouselRunnables.clear()
+    }
+
+    /** Respects the system reduce-motion setting (Animator duration scale == 0). */
+    private fun animationsEnabled(): Boolean = context?.let {
+        android.provider.Settings.Global.getFloat(
+            it.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f
+        ) != 0f
+    } ?: false
 
     private fun findViews(view: View) {
         home_LBL_bestMatches = view.findViewById(R.id.home_LBL_bestMatches)
@@ -168,16 +225,9 @@ class HomeFragment : Fragment() {
         heroAdapter.updateItems(suggestions.take(5))
         val secondRow = suggestions.drop(5).take(5)
         heroAdapter2.updateItems(secondRow)
-        // Nudge the second row half a card to the left so it visibly reads as
-        // scrollable. Absolute (scrollToPositionWithOffset) so repeated binds don't
-        // accumulate the offset.
-        if (secondRow.isNotEmpty()) {
-            home_LAY_hero2.post {
-                val halfCard = (150 * resources.displayMetrics.density).toInt()
-                (home_LAY_hero2.layoutManager as? LinearLayoutManager)
-                    ?.scrollToPositionWithOffset(0, -halfCard)
-            }
-        }
+        // Start each carousel mid-list (loop mode) so it can scroll either way, then
+        // begin the slow auto-scroll: row one drifts left, row two the opposite.
+        restartCarousels()
 
         home_LAY_sections.removeAllViews()
         cardAdapters.retainAll(listOf(heroAdapter, heroAdapter2))
@@ -234,5 +284,11 @@ class HomeFragment : Fragment() {
         (requireActivity() as MainActivity).toggleFavorite(coupon.discount_id.orEmpty()) {
             cardAdapters.forEach { it.notifyDataSetChanged() }
         }
+    }
+
+    companion object {
+        // Slow drift: a couple of pixels every frame-ish for a gentle moving feel.
+        private const val CAROUSEL_SPEED_PX = 2
+        private const val CAROUSEL_INTERVAL_MS = 16L
     }
 }

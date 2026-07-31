@@ -25,6 +25,9 @@ class CouponAdapter(
     @LayoutRes private val layoutRes: Int,
     private val onFavorite: ((CouponDto) -> Unit)? = null,
     private val onLongClick: ((CouponDto) -> Unit)? = null,
+    // When true the list repeats endlessly (position is taken modulo the real size),
+    // so a row can be auto-scrolled as a continuous carousel. Off for normal lists.
+    private val loop: Boolean = false,
     private val onClick: (CouponDto) -> Unit
 ) : RecyclerView.Adapter<CouponAdapter.CouponViewHolder>() {
 
@@ -67,13 +70,20 @@ class CouponAdapter(
     }
 
     override fun onBindViewHolder(holder: CouponViewHolder, position: Int) {
-        holder.bind(items[position])
+        holder.bind(items[position % items.size])
     }
 
-    override fun getItemCount(): Int = items.size
+    override fun getItemCount(): Int =
+        if (loop && items.isNotEmpty()) items.size * LOOP_MULTIPLIER else items.size
 
     fun updateItems(newItems: List<CouponDto>) {
         items = newItems
         notifyDataSetChanged()
+    }
+
+    companion object {
+        // A large repeat factor so the carousel effectively never runs out; the middle
+        // is used as the start position so it scrolls freely in both directions.
+        private const val LOOP_MULTIPLIER = 1000
     }
 }
