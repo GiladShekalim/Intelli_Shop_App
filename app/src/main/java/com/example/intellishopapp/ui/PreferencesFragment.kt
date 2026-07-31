@@ -1,6 +1,5 @@
 package com.example.intellishopapp.ui
 
-import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -15,6 +14,7 @@ import com.example.intellishopapp.MainActivity
 import com.example.intellishopapp.R
 import com.example.intellishopapp.repository.ProfileRepository
 import com.example.intellishopapp.utilities.ApiResult
+import com.example.intellishopapp.utilities.ChipPalette
 import com.example.intellishopapp.utilities.Constants
 import com.example.intellishopapp.utilities.SessionManager
 import com.google.android.material.button.MaterialButton
@@ -36,12 +36,6 @@ class PreferencesFragment : Fragment() {
     private lateinit var pref_BTN_save: MaterialButton
 
     private val profileRepository = ProfileRepository()
-
-    private val palette = listOf(
-        0xFFFFCDD2.toInt(), 0xFFF8BBD0.toInt(), 0xFFE1BEE7.toInt(), 0xFFC5CAE9.toInt(),
-        0xFFB3E5FC.toInt(), 0xFFB2DFDB.toInt(), 0xFFC8E6C9.toInt(), 0xFFFFF9C4.toInt(),
-        0xFFFFE0B2.toInt(), 0xFFD1C4E9.toInt()
-    )
 
     private val isStatus by lazy { requireArguments().getString(ARG_TYPE) == TYPE_STATUS }
     private val selected = mutableSetOf<String>()
@@ -152,22 +146,15 @@ class PreferencesFragment : Fragment() {
         // write through to the backend for cross-device sync.
         SessionManager.getInstance().updatePreferences(statuses, hobbies)
         viewLifecycleOwner.lifecycleScope.launch { profileRepository.updatePreferences(statuses, hobbies) }
-        (requireActivity() as MainActivity).showBanner(getString(R.string.pref_saved))
+        val shell = requireActivity() as MainActivity
+        shell.showBanner(getString(R.string.pref_saved))
         parentFragmentManager.popBackStack()
+        // Celebrate the saved selection back on the Profile page.
+        shell.playFireworks()
     }
 
-    private fun style(button: MaterialButton, on: Boolean, brand: Int) {
-        if (on) {
-            button.backgroundTintList = ColorStateList.valueOf(palette.random())
-            button.setTextColor(0xFF212121.toInt())
-        } else {
-            // Keep the outlined look on a light surface (a null tint renders dark).
-            button.backgroundTintList = ColorStateList.valueOf(
-                ContextCompat.getColor(requireContext(), R.color.card_background)
-            )
-            button.setTextColor(brand)
-        }
-    }
+    private fun style(button: MaterialButton, on: Boolean, brand: Int) =
+        ChipPalette.styleToggle(button, on, brand)
 
     companion object {
         private const val ARG_TYPE = "type"
