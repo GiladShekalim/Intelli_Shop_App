@@ -89,6 +89,14 @@ interface ApiService {
         @Field("hobbies") hobbies: List<String>
     ): Response<ProfileUpdateResponse>
 
+    // Permanently deletes the account; the backend confirms it is gone before success.
+    @FormUrlEncoded
+    @POST("profile/")
+    suspend fun deleteAccount(
+        @Header("Accept") accept: String,
+        @Field("action") action: String
+    ): Response<ProfileUpdateResponse>
+
     @GET("favorites/")
     @Headers("Accept: application/json")
     suspend fun getFavorites(): Response<FavoritesResponse>

@@ -454,6 +454,14 @@ class MainActivity : AppCompatActivity() {
         showBanner(getString(R.string.signed_out))
     }
 
+    /** After the backend confirms account deletion: drop everything and go to guest Home. */
+    fun onAccountDeleted() {
+        SessionManager.getInstance().clear()
+        com.example.intellishopapp.network.RetrofitClient.getInstance().clearCookies()
+        selectTab(Tab.HOME)
+        showBanner(getString(R.string.delete_account_done))
+    }
+
     private fun selectTab(tab: Tab) {
         // A tab press always leaves any overlay (Login/Register/Detail) behind so the
         // chosen page is actually shown instead of staying pinned under it.

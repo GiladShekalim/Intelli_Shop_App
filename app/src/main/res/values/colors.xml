@@ -13,6 +13,8 @@
     <color name="card_background">#FFFFFFFF</color>
     <color name="discount_text">#FFEF6C00</color>
     <color name="expired_red">#FFD32F2F</color>
+    <color name="notice_orange_bg">#FFFFF0E0</color>
+    <color name="notice_orange_text">#FFB35400</color>
     <color name="search_field">#FF8FE0A6</color>
     <color name="search_btn_bg">#FFCDEBD5</color>
     <color name="bottom_bar_bg">#FFECF3E9</color>

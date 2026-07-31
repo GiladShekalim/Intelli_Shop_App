@@ -40,6 +40,7 @@ class ProfileFragment : Fragment() {
     private lateinit var profile_SW_notifications: SwitchCompat
     private lateinit var profile_IMG_avatar: AppCompatImageView
     private lateinit var profile_BTN_signOut: MaterialTextView
+    private lateinit var profile_BTN_delete: MaterialTextView
 
     private val profileRepository = ProfileRepository()
 
@@ -63,6 +64,7 @@ class ProfileFragment : Fragment() {
         profile_SW_notifications = view.findViewById(R.id.profile_SW_notifications)
         profile_IMG_avatar = view.findViewById(R.id.profile_IMG_avatar)
         profile_BTN_signOut = view.findViewById(R.id.profile_BTN_signOut)
+        profile_BTN_delete = view.findViewById(R.id.profile_BTN_delete)
 
         val shell = requireActivity() as MainActivity
         profile_LBL_myCoupons.setOnClickListener { shell.showCouponHistory() }
@@ -71,6 +73,7 @@ class ProfileFragment : Fragment() {
         profile_LBL_sentOffers.setOnClickListener { shell.showSentOffers() }
         profile_LBL_password.setOnClickListener { showChangePasswordDialog() }
         profile_BTN_signOut.setOnClickListener { shell.signOut() }
+        profile_BTN_delete.setOnClickListener { confirmDeleteAccount() }
         // Click (not checked-change) so re-binding the switch never fires the listener.
         profile_SW_night.setOnClickListener { setNightMode(profile_SW_night.isChecked) }
         profile_SW_notifications.setOnClickListener {
@@ -163,6 +166,8 @@ class ProfileFragment : Fragment() {
                                 if (nw.isBlank()) newPw.error = getString(R.string.pw_fill_all)
                                 if (cf.isBlank()) confirm.error = getString(R.string.pw_fill_all)
                             }
+                            // Same rule as registration: a new password must be long enough.
+                            nw.length < MIN_PASSWORD -> newPw.error = getString(R.string.error_password_short)
                             nw != cf -> confirm.error = getString(R.string.pw_mismatch)
                             else -> submitPassword(cur, nw, cf, dialog, current)
                         }
@@ -189,5 +194,34 @@ class ProfileFragment : Fragment() {
                 is ApiResult.Error -> currentField.error = result.message
             }
         }
+    }
+
+    /** Confirm, then delete — only treating it as done once the backend confirms it. */
+    private fun confirmDeleteAccount() {
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.delete_account_title)
+            .setMessage(R.string.delete_account_message)
+            .setPositiveButton(R.string.delete_account_confirm) { d, _ ->
+                d.dismiss()
+                deleteAccount()
+            }
+            .setNegativeButton(R.string.pw_cancel) { d, _ -> d.dismiss() }
+            .show()
+    }
+
+    private fun deleteAccount() {
+        val shell = activity as? MainActivity ?: return
+        shell.showBanner(getString(R.string.delete_account_progress))
+        viewLifecycleOwner.lifecycleScope.launch {
+            when (profileRepository.deleteAccount()) {
+                // Confirmed gone on the backend: clear the local session and go home.
+                is ApiResult.Success -> shell.onAccountDeleted()
+                is ApiResult.Error -> shell.showBanner(getString(R.string.delete_account_failed))
+            }
+        }
+    }
+
+    companion object {
+        private const val MIN_PASSWORD = 6
     }
 }

@@ -22,6 +22,24 @@ class ProfileRepository {
     }
 
     /**
+     * Permanently delete the account. Returns Success only when the backend confirms
+     * the user (and all embedded data) is truly gone; any other outcome is an Error.
+     */
+    suspend fun deleteAccount(): ApiResult<Unit> {
+        return try {
+            val response = api.deleteAccount(accept = "application/json", action = "delete_account")
+            val body = response.body()
+            if (response.isSuccessful && body?.status == "success") {
+                ApiResult.Success(Unit)
+            } else {
+                ApiResult.Error(body?.message ?: "Account could not be deleted", response.code())
+            }
+        } catch (e: Exception) {
+            ApiResult.Error(e.message ?: "Network error")
+        }
+    }
+
+    /**
      * Save both statuses and interests. Write-through with a 401-as-local-success
      * fallback (same as favorites) so the editor still works offline; a real session
      * syncs the change to every device.

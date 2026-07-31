@@ -7,6 +7,7 @@ import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.RootMatchers.isDialog
+import androidx.test.espresso.matcher.ViewMatchers.hasErrorText
 import androidx.test.espresso.matcher.ViewMatchers.isChecked
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
@@ -34,6 +35,9 @@ class ProfileTest {
 
     @get:Rule
     val scenario = ActivityScenarioRule(MainActivity::class.java)
+
+    private val context = androidx.test.platform.app.InstrumentationRegistry
+        .getInstrumentation().targetContext
 
     @Before
     fun signInMember() {
@@ -101,6 +105,19 @@ class ProfileTest {
         onView(withText(R.string.pw_change)).inRoot(isDialog()).perform(click())
         // A mismatch surfaces as a field error and keeps the dialog open.
         onView(withId(R.id.pw_ET_current)).inRoot(isDialog()).check(matches(isDisplayed()))
+    }
+
+    @Test
+    fun changePassword_shortNew_showsError() {
+        // Same minimum as registration: a new password under 6 chars is rejected inline.
+        openProfile()
+        onView(withId(R.id.profile_LBL_password)).perform(click())
+        onView(withId(R.id.pw_ET_current)).inRoot(isDialog()).perform(typeText("old"), closeSoftKeyboard())
+        onView(withId(R.id.pw_ET_new)).inRoot(isDialog()).perform(typeText("abc"), closeSoftKeyboard())
+        onView(withId(R.id.pw_ET_confirm)).inRoot(isDialog()).perform(typeText("abc"), closeSoftKeyboard())
+        onView(withText(R.string.pw_change)).inRoot(isDialog()).perform(click())
+        onView(withId(R.id.pw_ET_new)).inRoot(isDialog())
+            .check(matches(hasErrorText(context.getString(R.string.error_password_short))))
     }
 
     @Test

@@ -246,6 +246,22 @@
                 android:textSize="16sp" />
         </LinearLayout>
 
+        <!-- Destructive: the lowest option, reached by scrolling, shown in red -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/profile_BTN_delete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="16dp"
+            android:text="@string/delete_account"
+            android:textColor="@color/expired_red"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
         <Space
             android:layout_width="match_parent"
             android:layout_height="32dp" />
