@@ -24,6 +24,7 @@ import com.example.intellishopapp.model.dto.PercentageRange
 import com.example.intellishopapp.model.dto.PriceRange
 import com.example.intellishopapp.repository.SearchRepository
 import com.example.intellishopapp.utilities.ApiResult
+import com.example.intellishopapp.utilities.ChipPalette
 import com.example.intellishopapp.utilities.Constants
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textview.MaterialTextView
@@ -154,8 +155,11 @@ class SearchFragment : Fragment() {
                     doSearch()
                 }
                 is ApiResult.Error -> {
+                    // The request failed / never reached the backend. Be honest about it
+                    // instead of showing an empty result that reads like "no coupons found".
                     search_PRG_loading.visibility = View.GONE
-                    showEmpty(R.string.search_ai_failed)
+                    showFilters()
+                    banner(R.string.search_ai_failed)
                 }
             }
         }
@@ -231,7 +235,9 @@ class SearchFragment : Fragment() {
         val chip = MaterialTextView(requireContext())
         chip.text = getString(R.string.search_label_remove, text)
         chip.setBackgroundResource(R.drawable.bg_label)
-        chip.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary))
+        // Same random pastel set as the toggles/registration, so labels aren't all green.
+        chip.backgroundTintList = ColorStateList.valueOf(ChipPalette.random())
+        chip.setTextColor(0xFF212121.toInt())
         chip.textSize = 12f
         chip.setPadding(24, 12, 24, 12)
         val lp = LinearLayout.LayoutParams(
@@ -338,19 +344,10 @@ class SearchFragment : Fragment() {
         return button
     }
 
-    private fun styleToggle(button: MaterialButton, selected: Boolean) {
-        val brand = ContextCompat.getColor(requireContext(), R.color.brand_primary)
-        if (selected) {
-            button.backgroundTintList = ColorStateList.valueOf(brand)
-            button.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
-        } else {
-            // Keep the outlined look on a light surface (a null tint renders dark).
-            button.backgroundTintList = ColorStateList.valueOf(
-                ContextCompat.getColor(requireContext(), R.color.card_background)
-            )
-            button.setTextColor(brand)
-        }
-    }
+    private fun styleToggle(button: MaterialButton, selected: Boolean) =
+        ChipPalette.styleToggle(
+            button, selected, ContextCompat.getColor(requireContext(), R.color.brand_primary)
+        )
 
     private fun onCouponClicked(coupon: CouponDto) {
         (requireActivity() as MainActivity).showCouponDetail(coupon)
