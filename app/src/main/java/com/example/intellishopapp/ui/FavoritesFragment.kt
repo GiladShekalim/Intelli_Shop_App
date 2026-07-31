@@ -28,7 +28,7 @@ class FavoritesFragment : Fragment() {
 
     private lateinit var favorites_RCV_list: RecyclerView
     private lateinit var favorites_LBL_empty: MaterialTextView
-    private lateinit var favorites_PRG_loading: ProgressBar
+    private lateinit var favorites_PRG_loading: View
 
     private val couponRepository = CouponRepository()
     private val favoriteRepository = com.example.intellishopapp.repository.FavoriteRepository()

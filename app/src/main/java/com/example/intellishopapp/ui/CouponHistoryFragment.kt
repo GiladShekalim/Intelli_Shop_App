@@ -29,7 +29,7 @@ class CouponHistoryFragment : Fragment() {
 
     private lateinit var history_RCV_list: RecyclerView
     private lateinit var history_LBL_empty: MaterialTextView
-    private lateinit var history_PRG_loading: ProgressBar
+    private lateinit var history_PRG_loading: View
     private lateinit var history_BTN_close: ImageButton
 
     private val couponRepository = CouponRepository()

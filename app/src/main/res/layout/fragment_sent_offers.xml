@@ -70,11 +70,13 @@
             android:textSize="16sp"
             android:visibility="gone" />
 
-        <ProgressBar
+        <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/sent_PRG_loading"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
             android:layout_gravity="center"
+            android:contentDescription="@string/loading"
+            android:src="@mipmap/ic_launcher"
             android:visibility="gone" />
     </FrameLayout>
 </LinearLayout>

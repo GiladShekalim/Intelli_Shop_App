@@ -38,7 +38,7 @@ class SearchFragment : Fragment() {
 
     private lateinit var search_RCV_results: RecyclerView
     private lateinit var search_LBL_empty: MaterialTextView
-    private lateinit var search_PRG_loading: ProgressBar
+    private lateinit var search_PRG_loading: View
     private lateinit var search_LAY_filters: View
     private lateinit var search_LAY_interestGrid: GridLayout
     private lateinit var search_LAY_statusGrid: GridLayout

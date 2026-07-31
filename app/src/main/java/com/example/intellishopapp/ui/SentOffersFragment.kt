@@ -31,7 +31,7 @@ class SentOffersFragment : Fragment() {
 
     private lateinit var sent_LAY_sections: LinearLayout
     private lateinit var sent_LBL_empty: MaterialTextView
-    private lateinit var sent_PRG_loading: ProgressBar
+    private lateinit var sent_PRG_loading: View
     private lateinit var sent_BTN_close: ImageButton
 
     private val couponRepository = CouponRepository()

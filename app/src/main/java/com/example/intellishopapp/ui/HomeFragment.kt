@@ -35,7 +35,7 @@ class HomeFragment : Fragment() {
     private lateinit var home_LAY_hero: RecyclerView
     private lateinit var home_LAY_hero2: RecyclerView
     private lateinit var home_LAY_sections: LinearLayout
-    private lateinit var home_PRG_loading: ProgressBar
+    private lateinit var home_PRG_loading: View
     private lateinit var home_LBL_empty: MaterialTextView
 
     private val couponRepository = CouponRepository()
