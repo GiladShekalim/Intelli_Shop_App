@@ -95,6 +95,7 @@ class SentOffersFragment : Fragment() {
             rcv.layoutManager = LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false)
             rcv.adapter = CouponAdapter(
                 section.coupons, R.layout.item_coupon_card,
+                onFavorite = { onFavoriteClicked(it) },
                 onLongClick = { confirmRemove(section.sender, it) }
             ) { onCouponClicked(it) }
             sent_LAY_sections.addView(row)
@@ -135,5 +136,15 @@ class SentOffersFragment : Fragment() {
 
     private fun onCouponClicked(coupon: com.example.intellishopapp.model.dto.CouponDto) {
         (requireActivity() as MainActivity).showCouponDetail(coupon)
+    }
+
+    /** Same single favorite path as every other card list: delegate to the shell. */
+    private fun onFavoriteClicked(coupon: com.example.intellishopapp.model.dto.CouponDto) {
+        (requireActivity() as MainActivity).toggleFavorite(coupon.discount_id.orEmpty()) {
+            for (i in 0 until sent_LAY_sections.childCount) {
+                sent_LAY_sections.getChildAt(i)
+                    .findViewById<RecyclerView>(R.id.section_LAY_row)?.adapter?.notifyDataSetChanged()
+            }
+        }
     }
 }
