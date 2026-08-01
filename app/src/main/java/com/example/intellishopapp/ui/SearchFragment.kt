@@ -24,6 +24,7 @@ import com.example.intellishopapp.model.dto.PercentageRange
 import com.example.intellishopapp.model.dto.PriceRange
 import com.example.intellishopapp.repository.SearchRepository
 import com.example.intellishopapp.utilities.ApiResult
+import com.example.intellishopapp.logic.MembershipFilter
 import com.example.intellishopapp.utilities.ChipPalette
 import com.example.intellishopapp.utilities.Constants
 import com.google.android.material.button.MaterialButton
@@ -180,7 +181,8 @@ class SearchFragment : Fragment() {
             when (result) {
                 is ApiResult.Success -> {
                     renderLabels()
-                    render(result.data)
+                    // Hard-filter results to the user's selected memberships (empty = all).
+                    render(MembershipFilter.apply(result.data))
                 }
                 is ApiResult.Error -> showEmpty(R.string.search_empty)
             }

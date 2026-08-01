@@ -15,6 +15,7 @@ import com.example.intellishopapp.MainActivity
 import com.example.intellishopapp.R
 import com.example.intellishopapp.adapter.CouponAdapter
 import com.example.intellishopapp.logic.CouponRanker
+import com.example.intellishopapp.logic.MembershipFilter
 import com.example.intellishopapp.model.dto.CouponDto
 import com.example.intellishopapp.repository.CouponRepository
 import com.example.intellishopapp.repository.HistoryRepository
@@ -213,8 +214,13 @@ class HomeFragment : Fragment() {
             if (name != null) getString(R.string.home_best_matches, name)
             else getString(R.string.home_best_matches_guest)
 
+        // Discovery surfaces (hero, Last Minute, categories) are hard-filtered to the
+        // user's selected memberships; an empty selection means no filter. Recently
+        // Viewed is deliberately left off this — it is the user's own history.
+        val discoverable = MembershipFilter.apply(coupons)
+
         val suggestions = CouponRanker.personalizedTop(
-            coupons,
+            discoverable,
             session.favoriteIds(),
             15,
             session.get()?.status.orEmpty(),
@@ -230,15 +236,15 @@ class HomeFragment : Fragment() {
         home_LAY_sections.removeAllViews()
         cardAdapters.retainAll(listOf(heroAdapter, heroAdapter2))
 
-        // Recently viewed, newest first. Hidden until there is something to show.
+        // Recently viewed, newest first (NOT membership-filtered). Hidden until there's one.
         addRecentlyViewedSection(coupons)
 
         // Last Minute: offers closest to their expiration date, soonest first.
-        addSection(getString(R.string.home_last_minute), CouponRanker.lastMinute(coupons, 10))
+        addSection(getString(R.string.home_last_minute), CouponRanker.lastMinute(discoverable, 10))
 
         // Then one row per category that has coupons (canonical order).
         for (category in Constants.Categories.ALL) {
-            val inCategory = coupons.filter { it.category?.contains(category) == true }
+            val inCategory = discoverable.filter { it.category?.contains(category) == true }
             if (inCategory.isNotEmpty()) {
                 addSection(category, inCategory)
             }
