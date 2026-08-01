@@ -33,6 +33,7 @@ class ProfileFragment : Fragment() {
     private lateinit var profile_LBL_myCoupons: MaterialTextView
     private lateinit var profile_LBL_preferences: MaterialTextView
     private lateinit var profile_LBL_categories: MaterialTextView
+    private lateinit var profile_LBL_memberships: MaterialTextView
     private lateinit var profile_LBL_sentOffers: MaterialTextView
     private lateinit var profile_LBL_password: MaterialTextView
     private lateinit var profile_DIV_password: View
@@ -60,6 +61,7 @@ class ProfileFragment : Fragment() {
         profile_LBL_myCoupons = view.findViewById(R.id.profile_LBL_myCoupons)
         profile_LBL_preferences = view.findViewById(R.id.profile_LBL_preferences)
         profile_LBL_categories = view.findViewById(R.id.profile_LBL_categories)
+        profile_LBL_memberships = view.findViewById(R.id.profile_LBL_memberships)
         profile_LBL_sentOffers = view.findViewById(R.id.profile_LBL_sentOffers)
         profile_LBL_password = view.findViewById(R.id.profile_LBL_password)
         profile_DIV_password = view.findViewById(R.id.profile_DIV_password)
@@ -73,6 +75,7 @@ class ProfileFragment : Fragment() {
         profile_LBL_myCoupons.setOnClickListener { shell.showCouponHistory() }
         profile_LBL_preferences.setOnClickListener { shell.showPreferences(PreferencesFragment.TYPE_STATUS) }
         profile_LBL_categories.setOnClickListener { shell.showPreferences(PreferencesFragment.TYPE_CATEGORY) }
+        profile_LBL_memberships.setOnClickListener { shell.showPreferences(PreferencesFragment.TYPE_MEMBERSHIP) }
         profile_LBL_sentOffers.setOnClickListener { shell.showSentOffers() }
         profile_LBL_password.setOnClickListener { showChangePasswordDialog() }
         profile_BTN_signOut.setOnClickListener { shell.signOut() }

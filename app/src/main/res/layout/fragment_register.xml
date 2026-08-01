@@ -118,6 +118,21 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp" />
 
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="@string/label_memberships"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <GridLayout
+                android:id="@+id/register_LAY_membershipGrid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp" />
+
             <!-- Light-orange notice listing the fields that need fixing on a failed sign-up -->
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/register_LBL_error"

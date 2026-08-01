@@ -37,12 +37,37 @@ class PreferencesFragment : Fragment() {
 
     private val profileRepository = ProfileRepository()
 
-    private val isStatus by lazy { requireArguments().getString(ARG_TYPE) == TYPE_STATUS }
-    private val selected = mutableSetOf<String>()
-    // The dimension NOT being edited here, preserved so Save never clears it.
-    private var otherDimension: List<String> = emptyList()
+    // One editor for three dimensions: statuses, categories, and memberships. Only the
+    // dimension named by ARG_TYPE is edited; the other two are preserved on Save.
+    private val type by lazy { requireArguments().getString(ARG_TYPE) ?: TYPE_STATUS }
+    private val selected = mutableSetOf<String>() // keys of the edited dimension
+    private var curStatuses: List<String> = emptyList()
+    private var curHobbies: List<String> = emptyList()
+    private var curMemberships: List<String> = emptyList()
     // Once the user has toggled anything, a late backend load must not clobber it.
     private var userEdited = false
+
+    // The (key, label) options for the edited dimension. For statuses/categories the key
+    // is the label; memberships show "HOT"/"Adif" but store "hot"/"adif".
+    private val options: List<Pair<String, String>>
+        get() = when (type) {
+            TYPE_STATUS -> Constants.ConsumerStatus.ALL.map { it to it }
+            TYPE_CATEGORY -> Constants.Categories.ALL.map { it to it }
+            else -> Constants.Memberships.ALL
+        }
+
+    private val titleRes: Int
+        get() = when (type) {
+            TYPE_STATUS -> R.string.profile_my_preferences
+            TYPE_CATEGORY -> R.string.profile_my_categories
+            else -> R.string.profile_my_memberships
+        }
+
+    private fun editedValues(): List<String> = when (type) {
+        TYPE_STATUS -> curStatuses
+        TYPE_CATEGORY -> curHobbies
+        else -> curMemberships
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -58,9 +83,7 @@ class PreferencesFragment : Fragment() {
         pref_BTN_save = view.findViewById(R.id.pref_BTN_save)
         pref_BTN_close.setOnClickListener { parentFragmentManager.popBackStack() }
         pref_BTN_save.setOnClickListener { save() }
-        pref_LBL_title.setText(
-            if (isStatus) R.string.profile_my_preferences else R.string.profile_my_categories
-        )
+        pref_LBL_title.setText(titleRes)
 
         // Seed from the session immediately (instant render), then reconcile with the
         // authoritative backend copy so edits made on another device show up.
@@ -70,14 +93,14 @@ class PreferencesFragment : Fragment() {
     }
 
     private fun seedFromSession() {
-        // The session is authoritative here: login seeds status/hobbies from the
+        // The session is authoritative here: login seeds the three dimensions from the
         // backend, and loadFromBackend reconciles right after. (No stale local store.)
         val session = SessionManager.getInstance().get()
-        val statuses = session?.status.orEmpty()
-        val hobbies = session?.hobbies.orEmpty()
+        curStatuses = session?.status.orEmpty()
+        curHobbies = session?.hobbies.orEmpty()
+        curMemberships = session?.memberships.orEmpty()
         selected.clear()
-        selected.addAll(if (isStatus) statuses else hobbies)
-        otherDimension = if (isStatus) hobbies else statuses
+        selected.addAll(editedValues())
     }
 
     /**
@@ -93,59 +116,63 @@ class PreferencesFragment : Fragment() {
             if (result is ApiResult.Success && view != null && !userEdited &&
                 result.data.email.equals(sessionEmail, ignoreCase = true)
             ) {
-                val statuses = result.data.statuses.orEmpty()
-                val hobbies = result.data.hobbies.orEmpty()
+                curStatuses = result.data.statuses.orEmpty()
+                curHobbies = result.data.hobbies.orEmpty()
+                curMemberships = result.data.memberships.orEmpty()
                 selected.clear()
-                selected.addAll(if (isStatus) statuses else hobbies)
-                otherDimension = if (isStatus) hobbies else statuses
+                selected.addAll(editedValues())
                 buildGrid()
             }
         }
     }
 
     private fun buildGrid() {
-        val all = if (isStatus) Constants.ConsumerStatus.ALL else Constants.Categories.ALL
-        // Selected first, then the rest.
-        val ordered = all.filter { selected.contains(it) } + all.filterNot { selected.contains(it) }
+        // Selected first, then the rest. Each option is (storedKey, shownLabel).
+        val ordered = options.filter { selected.contains(it.first) } +
+            options.filterNot { selected.contains(it.first) }
         pref_LAY_grid.removeAllViews()
         pref_LAY_grid.columnCount = 3
         val brand = ContextCompat.getColor(requireContext(), R.color.brand_primary)
-        for (value in ordered) {
+        for ((key, label) in ordered) {
             val button = MaterialButton(
                 requireContext(), null,
                 com.google.android.material.R.attr.materialButtonOutlinedStyle
             )
-            button.text = value
+            button.text = label
             button.isAllCaps = false
             button.textSize = 11f
             button.insetTop = 0
             button.insetBottom = 0
-            style(button, selected.contains(value), brand)
+            style(button, selected.contains(key), brand)
             val params = GridLayout.LayoutParams()
             params.width = 0
             params.height = GridLayout.LayoutParams.WRAP_CONTENT
             params.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
             params.setMargins(6, 6, 6, 6)
             button.layoutParams = params
-            button.setOnClickListener { onToggle(value, button, brand) }
+            button.setOnClickListener { onToggle(key, button, brand) }
             pref_LAY_grid.addView(button)
         }
     }
 
     /** Single tap toggles the option on/off and restyles it immediately. */
-    private fun onToggle(value: String, button: MaterialButton, brand: Int) {
+    private fun onToggle(key: String, button: MaterialButton, brand: Int) {
         userEdited = true
-        if (selected.contains(value)) selected.remove(value) else selected.add(value)
-        style(button, selected.contains(value), brand)
+        if (selected.contains(key)) selected.remove(key) else selected.add(key)
+        style(button, selected.contains(key), brand)
     }
 
     private fun save() {
-        val statuses = if (isStatus) selected.toList() else otherDimension
-        val hobbies = if (isStatus) otherDimension else selected.toList()
-        // Optimistic: update the session now so Home personalization reflects it, then
-        // write through to the backend for cross-device sync.
-        SessionManager.getInstance().updatePreferences(statuses, hobbies)
-        viewLifecycleOwner.lifecycleScope.launch { profileRepository.updatePreferences(statuses, hobbies) }
+        val edited = selected.toList()
+        val statuses = if (type == TYPE_STATUS) edited else curStatuses
+        val hobbies = if (type == TYPE_CATEGORY) edited else curHobbies
+        val memberships = if (type == TYPE_MEMBERSHIP) edited else curMemberships
+        // Optimistic: update the session now so Home personalization/filtering reflects it,
+        // then write through to the backend for cross-device sync.
+        SessionManager.getInstance().updatePreferences(statuses, hobbies, memberships)
+        viewLifecycleOwner.lifecycleScope.launch {
+            profileRepository.updatePreferences(statuses, hobbies, memberships)
+        }
         val shell = requireActivity() as MainActivity
         shell.showBanner(getString(R.string.pref_saved))
         parentFragmentManager.popBackStack()
@@ -160,6 +187,7 @@ class PreferencesFragment : Fragment() {
         private const val ARG_TYPE = "type"
         const val TYPE_STATUS = "status"
         const val TYPE_CATEGORY = "category"
+        const val TYPE_MEMBERSHIP = "membership"
 
         fun newInstance(type: String): PreferencesFragment =
             PreferencesFragment().apply { arguments = bundleOf(ARG_TYPE to type) }

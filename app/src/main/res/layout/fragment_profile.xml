@@ -121,6 +121,25 @@
                 android:background="@color/divider" />
 
             <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/profile_LBL_memberships"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="start|center_vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="16dp"
+                android:text="@string/profile_my_memberships"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginHorizontal="16dp"
+                android:background="@color/divider" />
+
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/profile_LBL_sentOffers"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

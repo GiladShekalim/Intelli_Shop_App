@@ -37,6 +37,7 @@ class RegisterFragment : Fragment() {
     private lateinit var register_ET_location: EditText
     private lateinit var register_LAY_statusGrid: GridLayout
     private lateinit var register_LAY_interestGrid: GridLayout
+    private lateinit var register_LAY_membershipGrid: GridLayout
     private lateinit var register_BTN_submit: MaterialButton
     private lateinit var register_LBL_error: MaterialTextView
     private lateinit var register_LBL_loginLink: MaterialTextView
@@ -46,6 +47,7 @@ class RegisterFragment : Fragment() {
 
     private val selectedStatuses = mutableSetOf<String>()
     private val selectedInterests = mutableSetOf<String>()
+    private val selectedMemberships = mutableSetOf<String>()
 
     private var googleMode = false
     private var generatedPassword: String? = null
@@ -76,6 +78,7 @@ class RegisterFragment : Fragment() {
         register_ET_location = view.findViewById(R.id.register_ET_location)
         register_LAY_statusGrid = view.findViewById(R.id.register_LAY_statusGrid)
         register_LAY_interestGrid = view.findViewById(R.id.register_LAY_interestGrid)
+        register_LAY_membershipGrid = view.findViewById(R.id.register_LAY_membershipGrid)
         register_BTN_submit = view.findViewById(R.id.register_BTN_submit)
         register_LBL_error = view.findViewById(R.id.register_LBL_error)
         register_LBL_loginLink = view.findViewById(R.id.register_LBL_loginLink)
@@ -83,8 +86,9 @@ class RegisterFragment : Fragment() {
     }
 
     private fun initViews() {
-        buildToggleGrid(register_LAY_statusGrid, Constants.ConsumerStatus.ALL, selectedStatuses)
-        buildToggleGrid(register_LAY_interestGrid, Constants.Categories.ALL, selectedInterests)
+        buildToggleGrid(register_LAY_statusGrid, Constants.ConsumerStatus.ALL.map { it to it }, selectedStatuses)
+        buildToggleGrid(register_LAY_interestGrid, Constants.Categories.ALL.map { it to it }, selectedInterests)
+        buildToggleGrid(register_LAY_membershipGrid, Constants.Memberships.ALL, selectedMemberships)
         register_BTN_submit.setOnClickListener { submit() }
         register_LBL_loginLink.setOnClickListener { parentFragmentManager.popBackStack() }
 
@@ -144,16 +148,19 @@ class RegisterFragment : Fragment() {
         super.onDestroyView()
     }
 
-    private fun buildToggleGrid(grid: GridLayout, values: List<String>, selected: MutableSet<String>) {
+    /** [options] are (storedKey, shownLabel); for status/category the two are identical. */
+    private fun buildToggleGrid(
+        grid: GridLayout, options: List<Pair<String, String>>, selected: MutableSet<String>
+    ) {
         grid.removeAllViews()
         grid.columnCount = 3
         val brand = ContextCompat.getColor(requireContext(), R.color.brand_primary)
-        for (value in values) {
+        for ((key, label) in options) {
             val button = MaterialButton(
                 requireContext(), null,
                 com.google.android.material.R.attr.materialButtonOutlinedStyle
             )
-            button.text = value
+            button.text = label
             button.isAllCaps = false
             button.textSize = 11f
             button.setTextColor(brand)
@@ -165,19 +172,19 @@ class RegisterFragment : Fragment() {
             params.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
             params.setMargins(6, 6, 6, 6)
             button.layoutParams = params
-            // Single tap selects; a double tap on a selected category removes it.
+            // Single tap selects; a double tap on a selected option removes it.
             var lastTapTime = 0L
             button.setOnClickListener {
                 val now = System.currentTimeMillis()
                 val doubleTap = now - lastTapTime < DOUBLE_TAP_MS
                 lastTapTime = now
-                if (selected.contains(value)) {
+                if (selected.contains(key)) {
                     if (doubleTap) {
-                        selected.remove(value)
+                        selected.remove(key)
                         ChipPalette.styleToggle(button, false, brand)
                     }
                 } else {
-                    selected.add(value)
+                    selected.add(key)
                     ChipPalette.styleToggle(button, true, brand)
                 }
             }
@@ -202,7 +209,8 @@ class RegisterFragment : Fragment() {
             status = selectedStatuses.toList(),
             age = ageText.toIntOrNull() ?: 0,
             location = location,
-            hobbies = selectedInterests.toList()
+            hobbies = selectedInterests.toList(),
+            memberships = selectedMemberships.toList()
         )
 
         register_LBL_error.visibility = View.GONE
@@ -212,8 +220,10 @@ class RegisterFragment : Fragment() {
                 is ApiResult.Success -> {
                     if (result.data.status == "success") {
                         // Persist the sign-up selections locally so Profile can edit them.
-                        SessionManager.getInstance()
-                            .savePreferences(email, selectedStatuses.toList(), selectedInterests.toList())
+                        SessionManager.getInstance().savePreferences(
+                            email, selectedStatuses.toList(), selectedInterests.toList(),
+                            selectedMemberships.toList()
+                        )
                         if (googleMode) finishGoogleSignUp(email, password, username)
                         else finishRegister(email)
                     } else {
