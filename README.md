@@ -6,27 +6,31 @@ IntelliShop for Android is a native Kotlin client for the IntelliShop coupon ser
 
 <p align="center">
   <img src="screenshots/01_register.png" width="200" alt="Registration"/>
-  <img src="screenshots/02_login.png" width="200" alt="Login"/>
-  <img src="screenshots/03_home.png" width="200" alt="Home"/>
-  <img src="screenshots/04_search.png" width="200" alt="Search"/>
+  <img src="screenshots/02_home.png" width="200" alt="Personalized home"/>
+  <img src="screenshots/03_search.png" width="200" alt="Search"/>
+  <img src="screenshots/04_detail.png" width="200" alt="Coupon detail"/>
 </p>
 <p align="center">
-  <img src="screenshots/05_detail.png" width="200" alt="Coupon detail"/>
-  <img src="screenshots/06_favorites.png" width="200" alt="Favorites"/>
-  <img src="screenshots/07_profile.png" width="200" alt="Profile"/>
+  <img src="screenshots/05_favorites.png" width="200" alt="Favorites"/>
+  <img src="screenshots/06_ai_helper.png" width="200" alt="AI Helper result"/>
+  <img src="screenshots/07_membership.png" width="200" alt="Membership filter"/>
+  <img src="screenshots/08_sent_offers.png" width="200" alt="Sent Offers"/>
 </p>
 
-*Registration · Login · Home · Search · Coupon detail · Favorites · Profile.*
+*Registration · Personalized home · Search · Coupon detail · Favorites · AI Helper result · Membership filter · Sent Offers.*
 
 ## Demo video
 
-A short walkthrough of the full user flow — **[▶ watch `screenshots/demo.mp4`](screenshots/demo.mp4)**:
+A walkthrough of the full user flow — **[▶ watch `screenshots/demo.mp4`](screenshots/demo.mp4)**:
 
-1. **Register** a new member ("Deen Demo", Tel Aviv, one label chosen in each of statuses / interests / memberships) and sign in.
-2. Browse the **personalized Home** (best-matches hero, Last Minute, category rows) and open **Search**.
-3. Open a **coupon detail**, **copy its code**, and **save it to Favorites** (a themed list — love-day, trips, pizza).
-4. **Share** the coupon to another user ("Tov Meod").
-5. Sign in as **Tov Meod** and see the received offer under **Sent Offers by friends**.
+1. **Register** a new member ("Deen Demo", one label chosen in statuses and interests) and sign in.
+2. Browse the **personalized Home** (best-matches hero, Recently Viewed, Last Minute, category rows), scrolling the feed.
+3. **Search**: pick a filter label, then a text search ("פיצה") returns the relevant pizza coupons first; scroll the results.
+4. Open a **coupon detail**, **like** it, and tap **Go to site** — cancelling the leave prompt to stay in the app.
+5. See the like land in **Favorites**.
+6. Edit **Preferences**, **Categories**, and **Memberships** to different labels, then return Home to see the feed re-rank and the membership filter narrow the hero to one club.
+7. Use the **AI Helper** ("Girlfriend want flours") to surface a love-day coupon, then **like** and **share** it to another user ("Tov Meod").
+8. Sign in as **Tov Meod** and see the received offer under **Sent Offers by friends**.
 
 ## Design (Figma)
 
