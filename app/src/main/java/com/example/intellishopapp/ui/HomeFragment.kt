@@ -19,6 +19,7 @@ import com.example.intellishopapp.model.dto.CouponDto
 import com.example.intellishopapp.repository.CouponRepository
 import com.example.intellishopapp.repository.HistoryRepository
 import com.example.intellishopapp.utilities.ApiResult
+import com.example.intellishopapp.utilities.TestEnv
 import com.example.intellishopapp.utilities.Constants
 import com.example.intellishopapp.utilities.SessionManager
 import com.google.android.material.textview.MaterialTextView
@@ -147,15 +148,8 @@ class HomeFragment : Fragment() {
         carouselRunnables.clear()
     }
 
-    // Espresso is only on the classpath during instrumented tests; used to keep the
-    // perpetual auto-scroll callback out of the test process. Detected once.
-    private val isInstrumentedTest: Boolean by lazy {
-        try {
-            Class.forName("androidx.test.espresso.Espresso"); true
-        } catch (e: Throwable) {
-            false
-        }
-    }
+    // Keep the perpetual auto-scroll callback out of the test process.
+    private val isInstrumentedTest: Boolean get() = TestEnv.isInstrumented
 
     private fun findViews(view: View) {
         home_LBL_bestMatches = view.findViewById(R.id.home_LBL_bestMatches)
@@ -213,7 +207,7 @@ class HomeFragment : Fragment() {
 
         // Hero: the personal suggestions, best match first, capped at 10 — the same
         // profile filter + favourites weighting the backend's index_home applies. Shown
-        // as a greeting over two big-card rows of five.
+        // as a greeting over two big-card rows (up to 15 coupons across both).
         val name = session.get()?.username?.takeIf { it.isNotBlank() }
         home_LBL_bestMatches.text =
             if (name != null) getString(R.string.home_best_matches, name)
@@ -222,12 +216,12 @@ class HomeFragment : Fragment() {
         val suggestions = CouponRanker.personalizedTop(
             coupons,
             session.favoriteIds(),
-            10,
+            15,
             session.get()?.status.orEmpty(),
             session.get()?.hobbies.orEmpty()
         )
-        heroAdapter.updateItems(suggestions.take(5))
-        val secondRow = suggestions.drop(5).take(5)
+        heroAdapter.updateItems(suggestions.take(8))
+        val secondRow = suggestions.drop(8).take(7)
         heroAdapter2.updateItems(secondRow)
         // Start each carousel mid-list (loop mode) so it can scroll either way, then
         // begin the slow auto-scroll: row one drifts left, row two the opposite.
