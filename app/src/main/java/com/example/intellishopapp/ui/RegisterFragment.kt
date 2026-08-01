@@ -16,6 +16,7 @@ import com.example.intellishopapp.model.dto.RegisterRequest
 import com.example.intellishopapp.repository.AuthRepository
 import com.example.intellishopapp.utilities.ApiResult
 import com.example.intellishopapp.utilities.ChipPalette
+import com.example.intellishopapp.logic.CatalogFacets
 import com.example.intellishopapp.utilities.Constants
 import com.example.intellishopapp.utilities.SessionManager
 import com.google.android.material.button.MaterialButton
@@ -86,9 +87,22 @@ class RegisterFragment : Fragment() {
     }
 
     private fun initViews() {
-        buildToggleGrid(register_LAY_statusGrid, Constants.ConsumerStatus.ALL.map { it to it }, selectedStatuses)
-        buildToggleGrid(register_LAY_interestGrid, Constants.Categories.ALL.map { it to it }, selectedInterests)
-        buildToggleGrid(register_LAY_membershipGrid, Constants.Memberships.ALL, selectedMemberships)
+        // Only offer labels the catalog actually has (empty ones are hidden).
+        buildToggleGrid(
+            register_LAY_statusGrid,
+            CatalogFacets.keepPresentPairs(Constants.ConsumerStatus.ALL.map { it to it }, CatalogFacets.Facet.STATUS, selectedStatuses),
+            selectedStatuses
+        )
+        buildToggleGrid(
+            register_LAY_interestGrid,
+            CatalogFacets.keepPresentPairs(Constants.Categories.ALL.map { it to it }, CatalogFacets.Facet.CATEGORY, selectedInterests),
+            selectedInterests
+        )
+        buildToggleGrid(
+            register_LAY_membershipGrid,
+            CatalogFacets.keepPresentPairs(Constants.Memberships.ALL, CatalogFacets.Facet.MEMBERSHIP, selectedMemberships),
+            selectedMemberships
+        )
         register_BTN_submit.setOnClickListener { submit() }
         register_LBL_loginLink.setOnClickListener { parentFragmentManager.popBackStack() }
 

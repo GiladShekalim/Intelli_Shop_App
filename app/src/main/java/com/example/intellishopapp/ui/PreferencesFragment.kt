@@ -15,6 +15,7 @@ import com.example.intellishopapp.R
 import com.example.intellishopapp.repository.ProfileRepository
 import com.example.intellishopapp.utilities.ApiResult
 import com.example.intellishopapp.utilities.ChipPalette
+import com.example.intellishopapp.logic.CatalogFacets
 import com.example.intellishopapp.utilities.Constants
 import com.example.intellishopapp.utilities.SessionManager
 import com.google.android.material.button.MaterialButton
@@ -47,13 +48,20 @@ class PreferencesFragment : Fragment() {
     // Once the user has toggled anything, a late backend load must not clobber it.
     private var userEdited = false
 
-    // The (key, label) options for the edited dimension. For statuses/categories the key
-    // is the label; memberships show "HOT"/"Adif" but store "hot"/"adif".
+    // The (key, label) options for the edited dimension, trimmed to labels the catalog
+    // actually has (plus anything already selected). For statuses/categories the key is
+    // the label; memberships show "HOT"/"Adif" but store "hot"/"adif".
     private val options: List<Pair<String, String>>
         get() = when (type) {
-            TYPE_STATUS -> Constants.ConsumerStatus.ALL.map { it to it }
-            TYPE_CATEGORY -> Constants.Categories.ALL.map { it to it }
-            else -> Constants.Memberships.ALL
+            TYPE_STATUS -> CatalogFacets.keepPresentPairs(
+                Constants.ConsumerStatus.ALL.map { it to it }, CatalogFacets.Facet.STATUS, selected
+            )
+            TYPE_CATEGORY -> CatalogFacets.keepPresentPairs(
+                Constants.Categories.ALL.map { it to it }, CatalogFacets.Facet.CATEGORY, selected
+            )
+            else -> CatalogFacets.keepPresentPairs(
+                Constants.Memberships.ALL, CatalogFacets.Facet.MEMBERSHIP, selected
+            )
         }
 
     private val titleRes: Int

@@ -1,5 +1,6 @@
 package com.example.intellishopapp.repository
 
+import com.example.intellishopapp.logic.CatalogFacets
 import com.example.intellishopapp.model.dto.CouponDto
 import com.example.intellishopapp.network.RetrofitClient
 import com.example.intellishopapp.utilities.ApiResult
@@ -13,6 +14,8 @@ class CouponRepository {
             val response = api.showAllDiscounts()
             val body = response.body()
             if (response.isSuccessful && body != null) {
+                // Refresh which labels the catalog actually has, so empty ones are hidden.
+                CatalogFacets.update(body.discounts)
                 ApiResult.Success(body.discounts)
             } else {
                 ApiResult.Error("Failed to load coupons", response.code())

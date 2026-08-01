@@ -26,6 +26,7 @@ import com.example.intellishopapp.repository.SearchRepository
 import com.example.intellishopapp.utilities.ApiResult
 import com.example.intellishopapp.logic.MembershipFilter
 import com.example.intellishopapp.utilities.ChipPalette
+import com.example.intellishopapp.logic.CatalogFacets
 import com.example.intellishopapp.utilities.Constants
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textview.MaterialTextView
@@ -71,8 +72,16 @@ class SearchFragment : Fragment() {
         search_RCV_results.layoutManager = LinearLayoutManager(requireContext())
         search_BTN_clear.setOnClickListener { clearFilters() }
         search_BTN_doSearch.setOnClickListener { runShellSearch(ai = false) }
-        buildMultiGrid(search_LAY_interestGrid, Constants.Categories.ALL, selectedInterests)
-        buildMultiGrid(search_LAY_statusGrid, Constants.ConsumerStatus.ALL, selectedStatuses)
+        buildMultiGrid(
+            search_LAY_interestGrid,
+            CatalogFacets.keepPresent(Constants.Categories.ALL, CatalogFacets.Facet.CATEGORY, selectedInterests),
+            selectedInterests
+        )
+        buildMultiGrid(
+            search_LAY_statusGrid,
+            CatalogFacets.keepPresent(Constants.ConsumerStatus.ALL, CatalogFacets.Facet.STATUS, selectedStatuses),
+            selectedStatuses
+        )
         buildBucketGrid()
 
         // If opened by an AI/Search tap, run that; otherwise show the filters.
@@ -288,8 +297,17 @@ class SearchFragment : Fragment() {
     }
 
     private fun applySelectionsToUi() {
-        buildMultiGrid(search_LAY_interestGrid, Constants.Categories.ALL, selectedInterests)
-        buildMultiGrid(search_LAY_statusGrid, Constants.ConsumerStatus.ALL, selectedStatuses)
+        // Only show filter labels the catalog actually has (empty ones hidden).
+        buildMultiGrid(
+            search_LAY_interestGrid,
+            CatalogFacets.keepPresent(Constants.Categories.ALL, CatalogFacets.Facet.CATEGORY, selectedInterests),
+            selectedInterests
+        )
+        buildMultiGrid(
+            search_LAY_statusGrid,
+            CatalogFacets.keepPresent(Constants.ConsumerStatus.ALL, CatalogFacets.Facet.STATUS, selectedStatuses),
+            selectedStatuses
+        )
         buildBucketGrid()
         search_ET_price.setText(currentPrice?.let { priceText(it) } ?: "")
     }

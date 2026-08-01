@@ -17,6 +17,16 @@ fun aCouponCodeFromCatalog(): String = kotlinx.coroutines.runBlocking {
         .firstNotNullOf { c -> c.coupon_code?.takeIf { it.isNotBlank() && it != "N/A" } }
 }
 
+/**
+ * A category that the current catalog actually has coupons for, so the label pickers
+ * (which now hide empty labels) will show it. Fetching also refreshes CatalogFacets.
+ */
+fun aPresentCategory(): String = kotlinx.coroutines.runBlocking {
+    val result = com.example.intellishopapp.repository.CouponRepository().getAllCoupons()
+    (result as com.example.intellishopapp.utilities.ApiResult.Success).data
+        .firstNotNullOf { c -> c.category?.firstOrNull { it.isNotBlank() } }
+}
+
 /** Clicks a specific child view inside a RecyclerView item (e.g. a card's heart). */
 fun clickChildViewWithId(id: Int): ViewAction = object : ViewAction {
     override fun getConstraints(): Matcher<View> = isDisplayed()

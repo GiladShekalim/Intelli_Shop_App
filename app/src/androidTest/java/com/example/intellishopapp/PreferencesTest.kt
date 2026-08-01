@@ -2,6 +2,7 @@ package com.example.intellishopapp
 
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.hasMinimumChildCount
 import androidx.test.espresso.matcher.ViewMatchers.isDescendantOfA
@@ -131,10 +132,11 @@ class PreferencesTest {
     fun googleMember_canEditPreferences() {
         // Alternative auth flow: a Google-signed-in user edits the same way.
         signIn(google = true)
+        val cat = aPresentCategory()
         openCategories()
-        onView(allOf(withText("Cars"), isDescendantOfA(withId(R.id.pref_LAY_grid)))).perform(click())
+        onView(allOf(withText(cat), isDescendantOfA(withId(R.id.pref_LAY_grid)))).perform(click())
         onView(withId(R.id.pref_BTN_save)).perform(click())
-        assertTrue(SessionManager.getInstance().get()?.hobbies?.contains("Cars") == true)
+        assertTrue(SessionManager.getInstance().get()?.hobbies?.contains(cat) == true)
     }
 
     @Test
@@ -151,12 +153,29 @@ class PreferencesTest {
     fun editingCategories_preservesStatuses() {
         // Only the edited dimension changes; the other is preserved on save.
         signIn(statuses = listOf("Student"), hobbies = emptyList())
+        val cat = aPresentCategory()
         openCategories()
-        onView(allOf(withText("Cars"), isDescendantOfA(withId(R.id.pref_LAY_grid)))).perform(click())
+        onView(allOf(withText(cat), isDescendantOfA(withId(R.id.pref_LAY_grid)))).perform(click())
         onView(withId(R.id.pref_BTN_save)).perform(click())
         val s = SessionManager.getInstance().get()
         assertTrue(s?.status?.contains("Student") == true)
-        assertTrue(s?.hobbies?.contains("Cars") == true)
+        assertTrue(s?.hobbies?.contains(cat) == true)
+    }
+
+    @Test
+    fun editor_hidesCategoriesWithNoCoupons() {
+        // A canonical category the catalog has zero coupons for must not be offered.
+        val present = kotlinx.coroutines.runBlocking {
+            (com.example.intellishopapp.repository.CouponRepository().getAllCoupons()
+                as com.example.intellishopapp.utilities.ApiResult.Success).data
+        }.flatMap { it.category ?: emptyList() }.toSet()
+        val absent = com.example.intellishopapp.utilities.Constants.Categories.ALL
+            .firstOrNull { it !in present }
+        org.junit.Assume.assumeTrue("every category has coupons; nothing to hide", absent != null)
+        signIn()
+        openCategories()
+        onView(allOf(withText(absent), isDescendantOfA(withId(R.id.pref_LAY_grid))))
+            .check(doesNotExist())
     }
 
     @Test
