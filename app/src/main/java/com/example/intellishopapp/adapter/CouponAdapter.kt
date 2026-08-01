@@ -81,6 +81,9 @@ class CouponAdapter(
         notifyDataSetChanged()
     }
 
+    /** The coupons currently backing this adapter — used by tests to assert what's shown. */
+    fun currentItems(): List<CouponDto> = items
+
     companion object {
         // A large repeat factor so the carousel effectively never runs out; the middle
         // is used as the start position so it scrolls freely in both directions.

@@ -5,11 +5,14 @@ import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.replaceText
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.matcher.ViewMatchers.hasMinimumChildCount
 import androidx.test.espresso.matcher.ViewMatchers.isDescendantOfA
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
+import com.example.intellishopapp.adapter.CouponAdapter
+import com.example.intellishopapp.model.dto.CouponDto
 import org.hamcrest.Matchers.allOf
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -123,6 +126,64 @@ class MembershipFeatureTest {
         signInWith(emptyList())
         assertTrue(SessionManager.getInstance().memberships().isEmpty())
         assertFalse(MembershipFilter.apply(catalog(), SessionManager.getInstance().memberships()).isEmpty())
+    }
+
+    // --- HOME re-filters when membership changes (regression for the stale-feed bug) ---
+
+    /** The clubs currently shown in the Home hero row (via the adapter's real items). */
+    private fun heroItems(): List<CouponDto> {
+        var items = emptyList<CouponDto>()
+        scenario.scenario.onActivity { act ->
+            val rv = act.findViewById<RecyclerView>(R.id.home_LAY_hero)
+            items = (rv?.adapter as? CouponAdapter)?.currentItems() ?: emptyList()
+        }
+        return items
+    }
+
+    private fun waitForHero() {
+        val end = System.currentTimeMillis() + 15000
+        while (System.currentTimeMillis() < end) {
+            if (heroItems().isNotEmpty()) return
+            Thread.sleep(300)
+        }
+    }
+
+    private fun editMembership(deselectLabel: String?, selectLabel: String) {
+        onView(withId(R.id.main_LAY_tabProfile)).perform(click())
+        onView(withId(R.id.profile_LBL_memberships)).perform(click())
+        deselectLabel?.let {
+            onView(allOf(withText(it), isDescendantOfA(withId(R.id.pref_LAY_grid)))).perform(click())
+        }
+        onView(allOf(withText(selectLabel), isDescendantOfA(withId(R.id.pref_LAY_grid)))).perform(click())
+        onView(withId(R.id.pref_BTN_save)).perform(click())
+        onView(withId(R.id.main_LAY_tabHome)).perform(click())
+    }
+
+    @Test
+    fun home_reFiltersWhenMembershipChangesMultipleTimes() {
+        // Sign in (empty memberships) and let the guest feed finish loading first.
+        signInWith(emptyList())
+        waitForHero()
+        // Set HOT via the editor -> Home shows only HOT.
+        editMembership(deselectLabel = null, selectLabel = "HOT")
+        waitForHero()
+        assertTrue("hero empty after selecting HOT", heroItems().isNotEmpty())
+        assertTrue(
+            "Home hero leaked a non-HOT coupon: " + heroItems().flatMap { it.club_name ?: listOf() },
+            heroItems().all { it.club_name?.contains("hot") == true }
+        )
+
+        // Change to ADIF. THIS is the bug: Home used to keep the HOT feed because its
+        // change-check ignored memberships. Home must now show only ADIF.
+        editMembership(deselectLabel = "HOT", selectLabel = "Adif")
+        waitForHero()
+        assertTrue("hero empty after switching to Adif", heroItems().isNotEmpty())
+        assertTrue(
+            "Home did not re-filter after changing membership; still showing: " +
+                heroItems().flatMap { it.club_name ?: listOf() },
+            heroItems().all { it.club_name?.contains("adif") == true }
+        )
+        assertFalse(heroItems().any { it.club_name?.contains("hot") == true && it.club_name?.contains("adif") != true })
     }
 
     @Test
