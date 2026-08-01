@@ -126,10 +126,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Use only one directory for static files to avoid duplicates
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
+# Web interface removed; no app-specific static dirs (Django admin serves its own).
+STATICFILES_DIRS = []
 
 # Add this to make static files work in all environments
 STATICFILES_FINDERS = [

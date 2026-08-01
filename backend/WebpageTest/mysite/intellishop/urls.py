@@ -8,15 +8,11 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('google_login/', views.google_login, name='google_login'),
     path('register/', views.register, name='register'),
+    # index_home / dashboard / mfa_verification kept: they are redirect() targets.
     path('mfa_verification/', views.mfa_verification, name='mfa_verification'),
     path('dashboard/', views.dashboard, name='dashboard'),
-    path('base/', views.template, name='template'),
-    path('coupon_for_aliexpress/', views.aliexpress_coupons, name='aliexpress_coupons'),
-    path('club/<str:club_name>/', views.coupon_detail, name='coupon_detail'),
-    path('filter_search/', views.filter_search, name='filter_search'),
     path('profile/', views.profile_view, name='profile'),
     path('logout/', views.logout_view, name='logout'),
-    path('coupon/<str:code>/', views.coupon_code_view, name='coupon_code'),
     path('favorites/', views.favorites_view, name='favorites'),
     path('show_all_discounts/', views.show_all_discounts, name='show_all_discounts'),
     path('filtered_discounts/', views.filtered_discounts, name='filtered_discounts'),
@@ -34,7 +30,5 @@ urlpatterns = [
     path('redeemed/', views.redeemed_view, name='redeemed'),
     path('check_favorite/<str:discount_id>/', views.check_favorite_view, name='check_favorite'),
     path('api/club_names/', views.get_club_names, name='get_club_names'),
-    path('debug_favorites/', views.debug_favorites, name='debug_favorites'),
-    path('debug_page/', views.debug_favorites_page, name='debug_favorites_page'),
-] 
+]
 

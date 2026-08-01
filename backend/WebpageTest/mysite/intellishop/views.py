@@ -18,6 +18,16 @@ import random
 
 logger = logging.getLogger(__name__)
 
+# The old Django-rendered web interface has been removed from this repo — the Android
+# app consumes the JSON API only. Any leftover view that still calls render() now
+# returns a JSON 406 instead of a (deleted) template, so nothing 500s and the JSON
+# endpoints the app relies on are untouched. (Shadows django.shortcuts.render here.)
+def render(request, *args, **kwargs):
+    return JsonResponse(
+        {'error': 'Web interface removed; this backend serves the app JSON API only'},
+        status=406,
+    )
+
 def index(request):
     return redirect('index_home')  # Redirect to /home/
 
@@ -228,7 +238,7 @@ def login_view(request):
                 'message': str(e)
             }, status=400)
             
-    return render(request, 'intellishop/login.html')
+    return JsonResponse({'error': 'This endpoint serves the app JSON API only'}, status=406)
 
 @csrf_exempt
 def register(request):
@@ -285,7 +295,7 @@ def register(request):
                 'message': str(e)
             }, status=400)
     
-    return render(request, 'intellishop/register.html')
+    return JsonResponse({'error': 'This endpoint serves the app JSON API only'}, status=406)
 
 def mfa_verification(request):
     """MFA verification view for dashboard access"""
@@ -608,7 +618,7 @@ def profile_view(request):
         'username': user.get('username'),
         'email': user.get('email')
     }
-    return render(request, 'intellishop/profile.html', context)
+    return JsonResponse({'error': 'This endpoint serves the app JSON API only'}, status=406)
 
 def logout_view(request):
     # Clear the session
@@ -698,7 +708,7 @@ def favorites_view(request):
         'favorite_coupons': favorite_coupons,
         'favorite_count': len(favorite_coupons)
     }
-    return render(request, 'intellishop/favorites.html', context)
+    return JsonResponse({'error': 'This endpoint serves the app JSON API only'}, status=406)
 
 @csrf_exempt
 def show_all_discounts(request):
