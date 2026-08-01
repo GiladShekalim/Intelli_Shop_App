@@ -1,6 +1,6 @@
 # IntelliShop Android App
 
-IntelliShop for Android is a native Kotlin client for the IntelliShop coupon service. It is the application layer of the project: a guest-browsable storefront with a personalized home feed, text and AI-assisted search, coupon details with copy/redeem actions, per-account favorites and redeemed offers, coupon sharing between users, and an editable profile. It runs on top of the existing IntelliShop Django/MongoDB backend, which is developed and documented separately in the [Intelli_Shop](https://github.com/GiladShekalim/Intelli_Shop) repository. The work in this repository is the Kotlin app itself; the backend is consumed as a service over HTTP.
+IntelliShop for Android is a native Kotlin client for the IntelliShop coupon service. It is the application layer of the project: a guest-browsable storefront with a personalized home feed, text and AI-assisted search, coupon details with copy/redeem actions, per-account favorites and redeemed offers, coupon sharing between users, membership-based filtering, and an editable profile. It runs on top of the existing IntelliShop Django/MongoDB backend, which is developed and documented separately in the [Intelli_Shop](https://github.com/GiladShekalim/Intelli_Shop) repository. The work in this repository is the Kotlin app itself; the backend is consumed as a service over HTTP.
 
 ## Quick start
 
@@ -30,15 +30,16 @@ Register a new account (with a live username-availability check) or sign in with
 
 ## Features
 
-- Guest-browsable home: a personalized "best matches" hero (two big-card rows), Recently Viewed, Last Minute Offers, and a row per category
+- Guest-browsable home: a personalized "best matches" hero (up to 15 coupons across two big-card rows), Recently Viewed, Last Minute Offers, and a row per category
 - Text search and AI-assisted search with removable filter labels
-- Coupon detail sheet: copy code, go to site, go to offer, favorite, share, and a bold validity line that turns red when expired
+- Coupon detail sheet: copy code, go to site, go to offer, favorite, share, and a bold validity line that turns red when expired; prices shown in Israeli shekels (₪)
 - Email/password and Google sign-in; live username-availability check during registration
-- Per-account data synced from the backend: favorites, redeemed offers, and preferences/interests
+- Per-account data synced from the backend: favorites, redeemed offers, and preferences/interests/memberships
 - Share a coupon with another user by username; a "Sent Offers by friends" page grouped by sender, with long-press to remove
-- Editable My Preferences / My Categories, synced across devices
-- Profile: day/night mode, in-app notifications toggle, change password, Google account photo
-- Responsive feedback: a slide-in notification banner and celebratory fireworks on account creation
+- Editable My Preferences / My Categories / My Memberships, synced across devices
+- My Memberships: select the clubs you hold (e.g. HOT, Adif) to hard-filter discovery surfaces — Home feed and Search show only coupons from those clubs (an empty selection means no filter); the user's own lists and friend-shared coupons are never filtered
+- Profile: day/night mode, in-app notifications toggle, change password, delete account, Google account photo
+- Responsive feedback: a slide-in notification banner and scale-independent fireworks on account creation, saved preferences/categories, copying a code, and an empty Favorites tab
 
 ## Technologies
 
@@ -61,7 +62,7 @@ Subsystems and purposes:
 - Repositories (`repository/`): one per backend concern; every method is `suspend`, wrapped in try/catch, and returns a typed `ApiResult.Success/Error`. Write-through calls treat a 401 as a local-only success so the app keeps working, and reads fall back to the local mirror when unauthenticated
 - Network (`network/`): `ApiService` (Retrofit interface) and `RetrofitClient` (OkHttp + cookie jar); the JSON branch is selected with an `Accept: application/json` header so the backend's web pages are unaffected
 - Session (`utilities/SessionManager`): the logged-in `UserSession` plus per-user local mirrors (favorites, redeemed, received shares) and app settings (night mode, notifications), keyed by email
-- Logic (`logic/`): pure, JVM-testable helpers — `CouponRanker` (personalization), `CouponFormatter` (price/date), `SharedOffersGrouper` (group shares by sender)
+- Logic (`logic/`): pure, JVM-testable helpers — `CouponRanker` (personalization), `CouponFormatter` (shekel price / date), `MembershipFilter` (hard-filter discovery surfaces by selected club), `SharedOffersGrouper` (group shares by sender)
 
 ## State Machine Diagrams
 
@@ -98,8 +99,10 @@ stateDiagram-v2
     end note
     note right of REGISTER
         Purpose: create an account
-        Does: field validation, live username
-        availability, fireworks on success
+        Does: field validation (orange notice on
+        bad fields), live username availability,
+        status / interest / membership pickers,
+        fireworks on success
     end note
 
     state PROFILE {
@@ -107,11 +110,13 @@ stateDiagram-v2
         HUB --> REDEEMED: Redeemed Offers
         HUB --> PREFERENCES: My Preferences
         HUB --> CATEGORIES: My Categories
+        HUB --> MEMBERSHIPS: My Memberships
         HUB --> SENT_OFFERS: Sent Offers by friends
-        HUB --> SETTINGS: Night mode / notifications / password
+        HUB --> SETTINGS: Night mode / notifications / password / delete account
         REDEEMED --> HUB
         PREFERENCES --> HUB
         CATEGORIES --> HUB
+        MEMBERSHIPS --> HUB
         SENT_OFFERS --> HUB
         SETTINGS --> HUB
 
@@ -122,6 +127,10 @@ stateDiagram-v2
         note right of PREFERENCES
             Edit statuses; tap to toggle, Save
             writes through to the backend (synced).
+        end note
+        note right of MEMBERSHIPS
+            Pick the clubs you hold; Save hard-filters
+            Home + Search to those clubs (synced).
         end note
         note right of SENT_OFFERS
             Coupons other users shared to you,
@@ -145,7 +154,7 @@ app/src/
         FavoritesFragment.kt    # saved coupons (Favorites tab)
         CouponHistoryFragment.kt# Redeemed Offers page
         SentOffersFragment.kt   # coupons shared to you, grouped by sender
-        PreferencesFragment.kt  # editable My Preferences / My Categories
+        PreferencesFragment.kt  # editable My Preferences / My Categories / My Memberships
         ProfileFragment.kt      # avatar, activity card, settings card
         LoginFragment.kt / RegisterFragment.kt
       adapter/CouponAdapter.kt  # renders coupons into card/row layouts
@@ -154,7 +163,8 @@ app/src/
                               # ShareRepository, ProfileRepository (suspend + ApiResult)
       network/                # ApiService (Retrofit), RetrofitClient (OkHttp + cookies)
       model/                  # UserSession + model/dto/ (wire models, exact backend names)
-      logic/                  # CouponRanker, CouponFormatter, SharedOffersGrouper (pure)
+      logic/                  # CouponRanker, CouponFormatter, MembershipFilter,
+                              # SharedOffersGrouper (pure)
       utilities/              # SessionManager, Constants, ApiResult, SignalManager,
                               # GoogleAuthHelper
     res/
@@ -180,8 +190,9 @@ app/src/
 - From a coupon, a member shares by username; the backend records the share on the recipient's account with the sender identity taken from the session (never the request body)
 - The recipient opens "Sent Offers by friends", sees coupons grouped by sender, and can long-press to remove one
 
-4) Editing preferences
-- My Preferences / My Categories load the current selection from the backend, toggle on tap, and Save writes both dimensions back (optimistically to the session, then through to the backend for cross-device sync)
+4) Editing preferences and memberships
+- My Preferences / My Categories / My Memberships load the current selection from the backend, toggle on tap, and Save writes all three dimensions back (optimistically to the session, then through to the backend for cross-device sync)
+- Memberships act differently from the ranking dimensions: they are a hard filter applied by `MembershipFilter` to the discovery surfaces (Home hero, Last Minute, category rows, and Search results), so those show only coupons whose `club_name` matches a selected club. An empty selection means no filter. Recently Viewed, Favorites, Redeemed offers, and friend-shared coupons are deliberately left unfiltered
 
 ## Subsystems and navigation
 
@@ -193,10 +204,12 @@ app/src/
   - Purpose: the slide-up sheet and its gated actions (copy, site, offer, favorite, share)
 - Sharing: [ui/SentOffersFragment.kt](app/src/main/java/com/example/intellishopapp/ui/SentOffersFragment.kt), [repository/ShareRepository.kt](app/src/main/java/com/example/intellishopapp/repository/ShareRepository.kt), [logic/SharedOffersGrouper.kt](app/src/main/java/com/example/intellishopapp/logic/SharedOffersGrouper.kt)
   - Purpose: send a coupon by username; group received shares by sender; remove
-- Preferences: [ui/PreferencesFragment.kt](app/src/main/java/com/example/intellishopapp/ui/PreferencesFragment.kt), [repository/ProfileRepository.kt](app/src/main/java/com/example/intellishopapp/repository/ProfileRepository.kt)
-  - Purpose: edit and sync statuses/interests
+- Preferences & memberships: [ui/PreferencesFragment.kt](app/src/main/java/com/example/intellishopapp/ui/PreferencesFragment.kt), [repository/ProfileRepository.kt](app/src/main/java/com/example/intellishopapp/repository/ProfileRepository.kt)
+  - Purpose: edit and sync statuses / interests / memberships (one editor, three dimensions)
 - Personalization: [logic/CouponRanker.kt](app/src/main/java/com/example/intellishopapp/logic/CouponRanker.kt)
   - Purpose: profile pre-filter + favorite-weighted ranking, matching the backend
+- Membership filter: [logic/MembershipFilter.kt](app/src/main/java/com/example/intellishopapp/logic/MembershipFilter.kt)
+  - Purpose: hard-filter the discovery surfaces (Home + Search) to the user's selected clubs
 - Network: [network/ApiService.kt](app/src/main/java/com/example/intellishopapp/network/ApiService.kt), [network/RetrofitClient.kt](app/src/main/java/com/example/intellishopapp/network/RetrofitClient.kt)
   - Purpose: the Retrofit surface and the session-cookie HTTP client
 - Session: [utilities/SessionManager.kt](app/src/main/java/com/example/intellishopapp/utilities/SessionManager.kt)
@@ -205,8 +218,8 @@ app/src/
 ## Data schema (client)
 
 - `CouponDto` (wire model, exact backend field names): `discount_id`, `title`, `price`, `discount_type`, `description`, `image_link`, `discount_link`, `provider_link`, `coupon_code`, `terms_and_conditions`, `club_name[]`, `category[]`, `consumer_statuses[]`, `valid_until`, `usage_limit`
-- `UserSession`: `userId`, `email`, `username`, `status[]`, `hobbies[]`, `knownFavoriteIds`, `isGoogle`
-- Per-user data synced from the backend: `favorites`, `redeemed`, `received_shares` (`{from_user_id, from_username, discount_id}`), and profile `status` / `hobbies`
+- `UserSession`: `userId`, `email`, `username`, `status[]`, `hobbies[]`, `memberships[]`, `knownFavoriteIds`, `isGoogle`
+- Per-user data synced from the backend: `favorites`, `redeemed`, `received_shares` (`{from_user_id, from_username, discount_id}`), and profile `status` / `hobbies` / `membership`
 
 ## Endpoints
 
@@ -218,7 +231,7 @@ The app is a client of the IntelliShop backend (see the [Intelli_Shop](https://g
 - Recently viewed — `POST /add_history/`, `GET /history/`
 - Redeemed offers — `POST /add_redeemed/`, `GET /redeemed/`
 - Sharing — `POST /share_coupon/`, `GET /received_shares/`, `POST /remove_share/`
-- Profile — `GET /profile/` (statuses/interests), `POST /profile/` (`update_password`, `update_preferences`)
+- Profile — `GET /profile/` (statuses / interests / memberships), `POST /profile/` (`update_password`, `update_preferences` — statuses + interests + memberships, `delete_account`)
 
 ## Contributors
 
