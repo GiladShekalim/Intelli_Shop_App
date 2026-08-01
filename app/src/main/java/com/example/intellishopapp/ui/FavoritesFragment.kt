@@ -33,6 +33,9 @@ class FavoritesFragment : Fragment() {
     private val couponRepository = CouponRepository()
     private val favoriteRepository = com.example.intellishopapp.repository.FavoriteRepository()
     private var catalog: List<CouponDto>? = null
+    // The saved-id set currently drawn on screen. Re-opening the tab skips the rebuild
+    // (and its image reloads) when this is unchanged, so switching pages doesn't flicker.
+    private var renderedFavs: Set<String>? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -58,8 +61,13 @@ class FavoritesFragment : Fragment() {
     }
 
     private fun loadThenRender() {
-        favorites_PRG_loading.visibility = if (catalog == null) View.VISIBLE else View.GONE
-        favorites_LBL_empty.visibility = View.GONE
+        // Only the very first load blanks the screen for the spinner. Later shows keep
+        // whatever is already drawn and refresh quietly underneath — no reload flash.
+        val firstLoad = catalog == null
+        if (firstLoad) {
+            favorites_PRG_loading.visibility = View.VISIBLE
+            favorites_LBL_empty.visibility = View.GONE
+        }
         viewLifecycleOwner.lifecycleScope.launch {
             if (catalog == null) {
                 catalog = when (val result = couponRepository.getAllCoupons()) {
@@ -73,27 +81,33 @@ class FavoritesFragment : Fragment() {
                     SessionManager.getInstance().setFavorites(it.data)
                 }
             }
+            if (view == null) return@launch
             favorites_PRG_loading.visibility = View.GONE
             render()
         }
     }
 
     private fun render() {
-        val favs = SessionManager.getInstance().favoriteIds()
+        val favs = SessionManager.getInstance().favoriteIds().toSet()
         val items = catalog.orEmpty().filter { favs.contains(it.discount_id) }
         if (items.isEmpty()) {
             favorites_RCV_list.visibility = View.GONE
             favorites_LBL_empty.visibility = View.VISIBLE
-            // A little cheer on the empty tab; leaving the tab cancels it (selectTab).
+            renderedFavs = favs
+            // A little cheer each time the empty tab is opened; leaving cancels it (selectTab).
             (activity as? MainActivity)?.playFireworks()
-        } else {
-            favorites_LBL_empty.visibility = View.GONE
-            favorites_RCV_list.visibility = View.VISIBLE
-            favorites_RCV_list.adapter = CouponAdapter(
-                items, R.layout.item_favorite_row,
-                onFavorite = { onFavoriteClicked(it) }
-            ) { onCouponClicked(it) }
+            return
         }
+        favorites_LBL_empty.visibility = View.GONE
+        favorites_RCV_list.visibility = View.VISIBLE
+        // Nothing changed since the last draw: leave the list (and its loaded images)
+        // in place instead of rebuilding it, which is what caused the flicker.
+        if (favs == renderedFavs && favorites_RCV_list.adapter != null) return
+        renderedFavs = favs
+        favorites_RCV_list.adapter = CouponAdapter(
+            items, R.layout.item_favorite_row,
+            onFavorite = { onFavoriteClicked(it) }
+        ) { onCouponClicked(it) }
     }
 
     private fun onCouponClicked(coupon: CouponDto) {

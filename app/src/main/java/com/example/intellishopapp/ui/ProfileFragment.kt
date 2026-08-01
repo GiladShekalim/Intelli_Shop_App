@@ -43,6 +43,9 @@ class ProfileFragment : Fragment() {
     private lateinit var profile_BTN_delete: MaterialTextView
 
     private val profileRepository = ProfileRepository()
+    // The avatar currently shown; re-shows of the tab skip re-loading it (which flickered)
+    // unless the signed-in identity actually changed. Reset when the view is rebuilt.
+    private var lastAvatarKey: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -79,6 +82,8 @@ class ProfileFragment : Fragment() {
         profile_SW_notifications.setOnClickListener {
             SessionManager.getInstance().setNotificationsEnabled(profile_SW_notifications.isChecked)
         }
+        // Fresh view: force the avatar to bind once regardless of the cached key.
+        lastAvatarKey = null
         bind()
     }
 
@@ -113,6 +118,12 @@ class ProfileFragment : Fragment() {
             ?.takeIf { it.isGoogle }
             ?.let { SessionManager.getInstance().getPhotoUrl(it.email) }
             ?.takeIf { it.isNotBlank() }
+
+        // Skip the reload when the avatar would be identical to what's already shown —
+        // re-opening the tab shouldn't blank-and-refill the image.
+        val key = photoUrl ?: "default"
+        if (key == lastAvatarKey) return
+        lastAvatarKey = key
 
         if (photoUrl == null) {
             Glide.with(this).clear(profile_IMG_avatar)
