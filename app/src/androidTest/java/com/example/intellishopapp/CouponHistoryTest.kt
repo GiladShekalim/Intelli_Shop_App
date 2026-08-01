@@ -158,7 +158,7 @@ class CouponHistoryTest {
     /** Opens a coupon that HAS a code (text search matches coupon_code). */
     private fun openCouponWithCode() {
         onView(withId(R.id.main_ET_search)).perform(click())
-        onView(withId(R.id.main_ET_search)).perform(replaceText("HOT29"), closeSoftKeyboard())
+        onView(withId(R.id.main_ET_search)).perform(replaceText(aCouponCodeFromCatalog()), closeSoftKeyboard())
         onView(withId(R.id.main_BTN_search)).perform(click())
         waitForChildren(R.id.search_RCV_results)
         onView(withId(R.id.search_RCV_results))

@@ -81,7 +81,7 @@ class FavoritesSyncTest {
     /** Opens a coupon that has a code via text search — deterministic, prefs-independent. */
     private fun openCouponWithCode() {
         onView(withId(R.id.main_ET_search)).perform(click())
-        onView(withId(R.id.main_ET_search)).perform(replaceText("HOT29"), closeSoftKeyboard())
+        onView(withId(R.id.main_ET_search)).perform(replaceText(aCouponCodeFromCatalog()), closeSoftKeyboard())
         onView(withId(R.id.main_BTN_search)).perform(click())
         waitForChildren(R.id.search_RCV_results)
         onView(withId(R.id.search_RCV_results))
