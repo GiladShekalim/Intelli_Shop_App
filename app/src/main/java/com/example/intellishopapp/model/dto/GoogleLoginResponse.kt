@@ -10,5 +10,6 @@ data class GoogleLoginResponse(
     // For an existing user: their saved profile, to personalize the home feed on
     // any device. Absent for new users (they set these during registration).
     val statuses: List<String>? = null,
-    val hobbies: List<String>? = null
+    val hobbies: List<String>? = null,
+    val memberships: List<String>? = null
 )

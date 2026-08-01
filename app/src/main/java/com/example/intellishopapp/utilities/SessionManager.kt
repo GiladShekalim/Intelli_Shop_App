@@ -82,26 +82,48 @@ class SessionManager private constructor(context: Context) {
     // --- per-user preferences (statuses + categories), stored locally (no backend) ---
     // Keyed by email so a user's registration choices survive logout on this device.
 
-    private data class StoredPrefs(val statuses: List<String>, val hobbies: List<String>)
+    // memberships defaults to empty so prefs stored before this field round-trip cleanly.
+    private data class StoredPrefs(
+        val statuses: List<String>,
+        val hobbies: List<String>,
+        val memberships: List<String> = emptyList()
+    )
+
+    /** A user's three selection dimensions, as loaded from the local store. */
+    data class Prefs(
+        val statuses: List<String>,
+        val hobbies: List<String>,
+        val memberships: List<String>
+    )
 
     private fun prefsKey(email: String) = "userprefs_" + email.lowercase()
 
-    fun savePreferences(email: String, statuses: List<String>, hobbies: List<String>) {
+    fun savePreferences(
+        email: String, statuses: List<String>, hobbies: List<String>,
+        memberships: List<String> = emptyList()
+    ) {
         if (email.isBlank()) return
-        prefs.edit().putString(prefsKey(email), gson.toJson(StoredPrefs(statuses, hobbies))).apply()
+        prefs.edit()
+            .putString(prefsKey(email), gson.toJson(StoredPrefs(statuses, hobbies, memberships)))
+            .apply()
     }
 
-    fun loadPreferences(email: String): Pair<List<String>, List<String>>? {
+    fun loadPreferences(email: String): Prefs? {
         val json = prefs.getString(prefsKey(email), null) ?: return null
         val stored = runCatching { gson.fromJson(json, StoredPrefs::class.java) }.getOrNull() ?: return null
-        return stored.statuses to stored.hobbies
+        return Prefs(stored.statuses, stored.hobbies, stored.memberships ?: emptyList())
     }
 
+    /** The clubs the signed-in user holds; empty means "no membership filter". */
+    fun memberships(): List<String> = get()?.memberships ?: emptyList()
+
     /** Update the live session AND the persistent per-user store together. */
-    fun updatePreferences(statuses: List<String>, hobbies: List<String>) {
+    fun updatePreferences(
+        statuses: List<String>, hobbies: List<String>, memberships: List<String>
+    ) {
         get()?.let { session ->
-            save(session.copy(status = statuses, hobbies = hobbies))
-            savePreferences(session.email, statuses, hobbies)
+            save(session.copy(status = statuses, hobbies = hobbies, memberships = memberships))
+            savePreferences(session.email, statuses, hobbies, memberships)
         }
     }
 

@@ -12,6 +12,8 @@ data class UserSession(
     val age: Int? = null,
     val location: String? = null,
     val hobbies: List<String> = emptyList(),
+    // Clubs the user holds (coupon.club_name keys, e.g. "hot"/"adif"); empty = no filter.
+    val memberships: List<String> = emptyList(),
     val knownFavoriteIds: Set<String> = emptySet(),
     val isGoogle: Boolean = false
 )

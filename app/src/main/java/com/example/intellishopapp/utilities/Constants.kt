@@ -29,6 +29,18 @@ class Constants {
         )
     }
 
+    // Memberships — the clubs a coupon can belong to (matches coupon.club_name, lower-case).
+    // Stored as the key ("hot"); shown with its label ("HOT"). Selecting memberships hard-
+    // filters discovery surfaces to only those clubs; an empty selection means "no filter".
+    object Memberships {
+        val ALL = listOf(
+            "hot" to "HOT",
+            "adif" to "Adif"
+        )
+        val KEYS = ALL.map { it.first }
+        fun label(key: String): String = ALL.firstOrNull { it.first == key }?.second ?: key
+    }
+
     // Statuses — exact backend CONSUMER_STATUS values.
     object ConsumerStatus {
         val ALL = listOf(

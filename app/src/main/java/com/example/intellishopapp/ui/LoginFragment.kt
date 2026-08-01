@@ -84,17 +84,20 @@ class LoginFragment : Fragment() {
                         // fall back to what was saved locally at registration.
                         val saved = SessionManager.getInstance().loadPreferences(email)
                         val statuses = result.data.statuses?.takeIf { it.isNotEmpty() }
-                            ?: saved?.first ?: emptyList()
+                            ?: saved?.statuses ?: emptyList()
                         val hobbies = result.data.hobbies?.takeIf { it.isNotEmpty() }
-                            ?: saved?.second ?: emptyList()
+                            ?: saved?.hobbies ?: emptyList()
+                        val memberships = result.data.memberships?.takeIf { it.isNotEmpty() }
+                            ?: saved?.memberships ?: emptyList()
                         // Keep the local store in step so it stays a valid fallback.
-                        SessionManager.getInstance().savePreferences(email, statuses, hobbies)
+                        SessionManager.getInstance().savePreferences(email, statuses, hobbies, memberships)
                         SessionManager.getInstance().save(
                             UserSession(
                                 userId = result.data.user_id,
                                 email = email,
                                 status = statuses,
-                                hobbies = hobbies
+                                hobbies = hobbies,
+                                memberships = memberships
                             )
                         )
                         // Sync favorites from the backend so they show on any device.
@@ -145,10 +148,12 @@ class LoginFragment : Fragment() {
                         val emailValue = body.email.orEmpty()
                         val saved = SessionManager.getInstance().loadPreferences(emailValue)
                         val statuses = body.statuses?.takeIf { it.isNotEmpty() }
-                            ?: saved?.first ?: emptyList()
+                            ?: saved?.statuses ?: emptyList()
                         val hobbies = body.hobbies?.takeIf { it.isNotEmpty() }
-                            ?: saved?.second ?: emptyList()
-                        SessionManager.getInstance().savePreferences(emailValue, statuses, hobbies)
+                            ?: saved?.hobbies ?: emptyList()
+                        val memberships = body.memberships?.takeIf { it.isNotEmpty() }
+                            ?: saved?.memberships ?: emptyList()
+                        SessionManager.getInstance().savePreferences(emailValue, statuses, hobbies, memberships)
                         SessionManager.getInstance().save(
                             UserSession(
                                 userId = body.user_id ?: "",
@@ -156,6 +161,7 @@ class LoginFragment : Fragment() {
                                 username = body.username,
                                 status = statuses,
                                 hobbies = hobbies,
+                                memberships = memberships,
                                 isGoogle = true
                             )
                         )

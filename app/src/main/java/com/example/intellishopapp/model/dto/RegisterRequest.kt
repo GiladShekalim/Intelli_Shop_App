@@ -7,5 +7,6 @@ data class RegisterRequest(
     val status: List<String>,
     val age: Int,
     val location: String,
-    val hobbies: List<String>
+    val hobbies: List<String>,
+    val memberships: List<String> = emptyList()
 )

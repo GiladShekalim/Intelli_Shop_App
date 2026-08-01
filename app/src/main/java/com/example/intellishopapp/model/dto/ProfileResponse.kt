@@ -6,5 +6,6 @@ data class ProfileResponse(
     val username: String? = null,
     val email: String? = null,
     val statuses: List<String>? = null,
-    val hobbies: List<String>? = null
+    val hobbies: List<String>? = null,
+    val memberships: List<String>? = null
 )

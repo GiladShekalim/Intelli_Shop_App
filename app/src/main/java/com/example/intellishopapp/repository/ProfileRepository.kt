@@ -44,13 +44,16 @@ class ProfileRepository {
      * fallback (same as favorites) so the editor still works offline; a real session
      * syncs the change to every device.
      */
-    suspend fun updatePreferences(statuses: List<String>, hobbies: List<String>): ApiResult<Unit> {
+    suspend fun updatePreferences(
+        statuses: List<String>, hobbies: List<String>, memberships: List<String>
+    ): ApiResult<Unit> {
         return try {
             val response = api.updatePreferences(
                 accept = "application/json",
                 action = "update_preferences",
                 statuses = statuses,
-                hobbies = hobbies
+                hobbies = hobbies,
+                memberships = memberships
             )
             when {
                 response.isSuccessful -> ApiResult.Success(Unit)

@@ -86,7 +86,8 @@ interface ApiService {
         @Header("Accept") accept: String,
         @Field("action") action: String,
         @Field("status") statuses: List<String>,
-        @Field("hobbies") hobbies: List<String>
+        @Field("hobbies") hobbies: List<String>,
+        @Field("membership") memberships: List<String>
     ): Response<ProfileUpdateResponse>
 
     // Permanently deletes the account; the backend confirms it is gone before success.
