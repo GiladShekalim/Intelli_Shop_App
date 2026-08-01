@@ -337,8 +337,10 @@ def process_discount_with_groq(discount: Dict[str, Any], max_retries: int = 10) 
     logging.getLogger("groq").setLevel(logging.WARNING)
     logging.getLogger("groq._base_client").setLevel(logging.WARNING)
     
-    models = ["llama3-70b-8192", "llama3-8b-8192", "llama-3.1-8b-instant", 
-              "llama-3.3-70b-versatile", "gemma2-9b-it"]
+    # Current Groq production models. The old llama3-*-8192 names were decommissioned
+    # and return errors, which stalled enhancement, so they are gone; the strongest
+    # model leads, with lighter ones as fallbacks when it is rate-limited.
+    models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "gemma2-9b-it"]
     
     system_message = MESSAGE_TEMPLATE
     
