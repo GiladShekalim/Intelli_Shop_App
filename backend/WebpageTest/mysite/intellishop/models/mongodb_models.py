@@ -406,8 +406,24 @@ class Coupon(MongoDBModel):
         # All words must be found (AND logic for words)
         if word_conditions:
             query = {'$and': word_conditions}
-            return cls.find(query, limit=FILTER_CONFIG['TEXT_SEARCH']['MAX_RESULTS'])
-        
+            results = list(cls.find(query, limit=FILTER_CONFIG['TEXT_SEARCH']['MAX_RESULTS']))
+
+            # Rank by relevance: a word matched in the title is far more
+            # meaningful than an incidental match in the description/terms,
+            # so title hits rank first (e.g. "pizza" surfaces pizza coupons
+            # instead of a hotel that merely mentions pizza in its terms).
+            lowered = [w.lower() for w in search_words]
+
+            def _relevance(coupon):
+                title = (coupon.get('title') or '').lower()
+                description = (coupon.get('description') or '').lower()
+                title_hits = sum(1 for w in lowered if w in title)
+                desc_hits = sum(1 for w in lowered if w in description)
+                return (title_hits, desc_hits)
+
+            results.sort(key=_relevance, reverse=True)
+            return results
+
         return []
 
     @classmethod
