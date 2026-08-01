@@ -2,6 +2,36 @@
 
 IntelliShop for Android is a native Kotlin client for the IntelliShop coupon service. It is the application layer of the project: a guest-browsable storefront with a personalized home feed, text and AI-assisted search, coupon details with copy/redeem actions, per-account favorites and redeemed offers, coupon sharing between users, membership-based filtering, and an editable profile. It runs on top of the existing IntelliShop Django/MongoDB backend, which is developed and documented separately in the [Intelli_Shop](https://github.com/GiladShekalim/Intelli_Shop) repository. The work in this repository is the Kotlin app itself; the backend is consumed as a service over HTTP.
 
+## Screenshots
+
+<p align="center">
+  <img src="screenshots/01_register.png" width="200" alt="Registration"/>
+  <img src="screenshots/02_login.png" width="200" alt="Login"/>
+  <img src="screenshots/03_home.png" width="200" alt="Home"/>
+  <img src="screenshots/04_search.png" width="200" alt="Search"/>
+</p>
+<p align="center">
+  <img src="screenshots/05_detail.png" width="200" alt="Coupon detail"/>
+  <img src="screenshots/06_favorites.png" width="200" alt="Favorites"/>
+  <img src="screenshots/07_profile.png" width="200" alt="Profile"/>
+</p>
+
+*Registration · Login · Home · Search · Coupon detail · Favorites · Profile.*
+
+## Demo video
+
+A short walkthrough of the full user flow — **[▶ watch `screenshots/demo.mp4`](screenshots/demo.mp4)**:
+
+1. **Register** a new member ("Deen Demo", Tel Aviv, one label chosen in each of statuses / interests / memberships) and sign in.
+2. Browse the **personalized Home** (best-matches hero, Last Minute, category rows) and open **Search**.
+3. Open a **coupon detail**, **copy its code**, and **save it to Favorites** (a themed list — love-day, trips, pizza).
+4. **Share** the coupon to another user ("Tov Meod").
+5. Sign in as **Tov Meod** and see the received offer under **Sent Offers by friends**.
+
+## Design (Figma)
+
+Interactive prototype: **[IntelliShop on Figma](https://www.figma.com/proto/e65jjbIl4APuTxXeWiue2F/IntelliShop-App-Design?node-id=332-4446&starting-point-node-id=332%3A4446)**
+
 ## Quick start
 
 The app runs against a running IntelliShop backend (local Django server by default).
