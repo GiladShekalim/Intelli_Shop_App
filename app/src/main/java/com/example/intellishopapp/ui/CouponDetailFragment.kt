@@ -302,7 +302,9 @@ class CouponDetailFragment : Fragment() {
         clipboard?.setPrimaryClip(ClipData.newPlainText("coupon_code", code))
         markCopied()
         recordRedeemed()
-        (requireActivity() as MainActivity).showBanner(getString(R.string.detail_code_copied))
+        val shell = requireActivity() as MainActivity
+        shell.showBanner(getString(R.string.detail_code_copied))
+        shell.playFireworks()
     }
 
     /**

@@ -341,40 +341,114 @@ class MainActivity : AppCompatActivity() {
     /** Jump to the Coupons tab (used by the Profile shortcut). */
     fun openCoupons() = selectTab(Tab.COUPONS)
 
+    private val fxHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var fxRunnable: Runnable? = null
+
+    /** One spark: a coloured dot with a position and a velocity, aged over its lifetime. */
+    private class Spark(
+        val view: View, var x: Float, var y: Float,
+        var vx: Float, var vy: Float, val bornAt: Long, val ttl: Long
+    )
+
     /**
-     * Celebratory fireworks rising from the bottom. Lives in the shell overlay so it
-     * keeps playing while the screen underneath changes (register -> login).
+     * Big exploding fireworks in the shell overlay (~3s). Driven by a manual frame loop
+     * rather than view animators: the emulator runs with the animator-duration scale at
+     * 0 for deterministic tests, and animator-based effects finish instantly there and
+     * are never seen. Direct property writes (translation/alpha/scale) per frame are
+     * unaffected by that scale, so the show plays in full on device and emulator alike.
+     * It lives in the shell overlay so it survives the screen changing underneath
+     * (register -> login). Skipped under instrumented tests to keep the suite fast.
      */
     fun playFireworks() {
+        if (com.example.intellishopapp.utilities.TestEnv.isInstrumented) return
         val fx = findViewById<android.widget.FrameLayout>(R.id.main_LAY_fx) ?: return
+        stopFireworks()
         val colors = listOf(
-            0xFFFFC107.toInt(), 0xFFFF5252.toInt(), 0xFF69F0AE.toInt(),
-            0xFF40C4FF.toInt(), 0xFFE040FB.toInt(), 0xFFFFFFFF.toInt()
+            0xFFFFC107.toInt(), 0xFFFF5252.toInt(), 0xFF69F0AE.toInt(), 0xFF40C4FF.toInt(),
+            0xFFE040FB.toInt(), 0xFFFFEB3B.toInt(), 0xFFFF9100.toInt(), 0xFFFFFFFF.toInt()
         )
-        val width = resources.displayMetrics.widthPixels
-        val height = resources.displayMetrics.heightPixels
-        repeat(30) { i ->
-            val size = (10..24).random()
-            val spark = View(this)
-            spark.setBackgroundResource(R.drawable.bg_spark)
-            spark.backgroundTintList =
-                android.content.res.ColorStateList.valueOf(colors.random())
-            val params = android.widget.FrameLayout.LayoutParams(size, size)
-            params.gravity = android.view.Gravity.BOTTOM or android.view.Gravity.START
-            params.leftMargin = (width * 0.08 + Math.random() * width * 0.84).toInt()
-            spark.layoutParams = params
-            fx.addView(spark)
-            spark.animate()
-                .translationY(-(height * (0.45 + Math.random() * 0.45)).toFloat())
-                .translationXBy((-140..140).random().toFloat())
-                .alpha(0f)
-                .scaleX(1.9f)
-                .scaleY(1.9f)
-                .setStartDelay(i * 45L)
-                .setDuration((900..1500).random().toLong())
-                .withEndAction { fx.removeView(spark) }
-                .start()
+        val w = resources.displayMetrics.widthPixels.toFloat()
+        val h = resources.displayMetrics.heightPixels.toFloat()
+        val sparks = ArrayList<Spark>()
+        // Explosion centres, staggered across ~3 seconds.
+        val bursts = mutableListOf(
+            Triple(w * 0.30f, h * 0.32f, 0L),
+            Triple(w * 0.70f, h * 0.28f, 450L),
+            Triple(w * 0.50f, h * 0.42f, 900L),
+            Triple(w * 0.22f, h * 0.50f, 1350L),
+            Triple(w * 0.78f, h * 0.48f, 1800L),
+            Triple(w * 0.45f, h * 0.30f, 2250L)
+        )
+        val start = System.currentTimeMillis()
+        val gravity = 0.22f
+        val frameMs = 16L
+
+        fun spawnBurst(cx: Float, cy: Float) {
+            val count = 28
+            val base = colors.random()
+            repeat(count) { k ->
+                val size = (14..26).random()
+                val v = View(this)
+                v.setBackgroundResource(R.drawable.bg_spark)
+                v.backgroundTintList = android.content.res.ColorStateList.valueOf(
+                    if (Math.random() < 0.35) colors.random() else base
+                )
+                v.layoutParams = android.widget.FrameLayout.LayoutParams(size, size)
+                fx.addView(v)
+                val angle = 2 * Math.PI * k / count + Math.random() * 0.25
+                val speed = (7..17).random().toFloat()
+                sparks.add(
+                    Spark(
+                        v, cx, cy,
+                        (Math.cos(angle) * speed).toFloat(),
+                        (Math.sin(angle) * speed).toFloat(),
+                        System.currentTimeMillis(), (900..1300).random().toLong()
+                    )
+                )
+            }
         }
+
+        val tick = object : Runnable {
+            override fun run() {
+                val now = System.currentTimeMillis()
+                val elapsed = now - start
+                val pending = bursts.iterator()
+                while (pending.hasNext()) {
+                    val (cx, cy, at) = pending.next()
+                    if (elapsed >= at) { spawnBurst(cx, cy); pending.remove() }
+                }
+                val si = sparks.iterator()
+                while (si.hasNext()) {
+                    val s = si.next()
+                    val age = now - s.bornAt
+                    if (age >= s.ttl) { fx.removeView(s.view); si.remove(); continue }
+                    s.vy += gravity
+                    s.x += s.vx
+                    s.y += s.vy
+                    val frac = age.toFloat() / s.ttl
+                    s.view.translationX = s.x
+                    s.view.translationY = s.y
+                    s.view.alpha = (1f - frac).coerceIn(0f, 1f)
+                    val scale = 1f + frac * 1.5f
+                    s.view.scaleX = scale
+                    s.view.scaleY = scale
+                }
+                if (bursts.isNotEmpty() || sparks.isNotEmpty()) {
+                    fxHandler.postDelayed(this, frameMs)
+                } else {
+                    fxRunnable = null
+                }
+            }
+        }
+        fxRunnable = tick
+        fxHandler.post(tick)
+    }
+
+    /** Cancel a running show at once and clear its sparks (page left before it ended). */
+    fun stopFireworks() {
+        fxRunnable?.let { fxHandler.removeCallbacks(it) }
+        fxRunnable = null
+        findViewById<android.widget.FrameLayout>(R.id.main_LAY_fx)?.removeAllViews()
     }
 
     /** Put the just-registered email into the Login form so only the password is needed. */
@@ -463,6 +537,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun selectTab(tab: Tab) {
+        // Leaving a page ends any celebratory fireworks it started (e.g. the empty
+        // Favorites tab), so the effect never bleeds onto the next page.
+        stopFireworks()
         // A tab press always leaves any overlay (Login/Register/Detail) behind so the
         // chosen page is actually shown instead of staying pinned under it.
         if (hasOverlay()) {

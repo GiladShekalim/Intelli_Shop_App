@@ -84,6 +84,8 @@ class FavoritesFragment : Fragment() {
         if (items.isEmpty()) {
             favorites_RCV_list.visibility = View.GONE
             favorites_LBL_empty.visibility = View.VISIBLE
+            // A little cheer on the empty tab; leaving the tab cancels it (selectTab).
+            (activity as? MainActivity)?.playFireworks()
         } else {
             favorites_LBL_empty.visibility = View.GONE
             favorites_RCV_list.visibility = View.VISIBLE
