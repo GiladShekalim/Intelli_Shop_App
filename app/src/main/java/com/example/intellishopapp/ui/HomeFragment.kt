@@ -57,14 +57,16 @@ class HomeFragment : Fragment() {
 
     private var loadedCoupons: List<CouponDto> = emptyList()
     private var shownHistory: List<String> = emptyList()
-    private var shownProfile: Pair<List<String>, List<String>> = emptyList<String>() to emptyList()
+    private var shownProfile: Triple<List<String>, List<String>, List<String>> =
+        Triple(emptyList(), emptyList(), emptyList())
 
     /**
      * Popping an overlay can change what Home shows: Recently Viewed if the history
-     * grew, or the personalized hero if the user edited their statuses/interests.
-     * Rebuild when either moved. This fires for ANY back-stack change including during
-     * teardown, so require a resumed fragment with a live context/view (isAdded can be
-     * true while the context is already gone -> requireContext()/getString() crash).
+     * grew, or the personalized/membership-filtered feed if the user edited their
+     * statuses, interests OR memberships. Rebuild when any moved. This fires for ANY
+     * back-stack change including during teardown, so require a resumed fragment with a
+     * live context/view (isAdded can be true while the context is already gone ->
+     * requireContext()/getString() crash).
      */
     private val backStackListener = FragmentManager.OnBackStackChangedListener {
         if (isResumed && view != null && context != null && loadedCoupons.isNotEmpty() &&
@@ -75,9 +77,11 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun currentProfile(): Pair<List<String>, List<String>> {
+    // The dimensions that change what the feed shows: statuses + interests drive the
+    // personalized ranking, memberships hard-filter the discovery rows.
+    private fun currentProfile(): Triple<List<String>, List<String>, List<String>> {
         val s = SessionManager.getInstance().get()
-        return (s?.status.orEmpty()) to (s?.hobbies.orEmpty())
+        return Triple(s?.status.orEmpty(), s?.hobbies.orEmpty(), s?.memberships.orEmpty())
     }
 
     override fun onCreateView(
