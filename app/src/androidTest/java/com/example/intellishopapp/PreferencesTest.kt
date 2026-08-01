@@ -40,13 +40,14 @@ class PreferencesTest {
     private fun signIn(
         statuses: List<String> = emptyList(),
         hobbies: List<String> = emptyList(),
+        memberships: List<String> = emptyList(),
         google: Boolean = false
     ) {
         RetrofitClient.getInstance().clearCookies()
         SessionManager.getInstance().save(
             UserSession(
                 userId = "m", email = "member@test.local", username = "M",
-                status = statuses, hobbies = hobbies, isGoogle = google
+                status = statuses, hobbies = hobbies, memberships = memberships, isGoogle = google
             )
         )
     }
@@ -54,6 +55,40 @@ class PreferencesTest {
     private fun openCategories() {
         onView(withId(R.id.main_LAY_tabProfile)).perform(click())
         onView(withId(R.id.profile_LBL_categories)).perform(click())
+    }
+
+    private fun openMemberships() {
+        onView(withId(R.id.main_LAY_tabProfile)).perform(click())
+        onView(withId(R.id.profile_LBL_memberships)).perform(click())
+    }
+
+    @Test
+    fun myMemberships_showsOptions() {
+        signIn()
+        openMemberships()
+        onView(withId(R.id.pref_LAY_grid)).check(matches(hasMinimumChildCount(1)))
+    }
+
+    @Test
+    fun tapMembership_thenSave_storesTheClubKey() {
+        // The grid shows the label "HOT" but stores the key "hot".
+        signIn()
+        openMemberships()
+        onView(allOf(withText("HOT"), isDescendantOfA(withId(R.id.pref_LAY_grid)))).perform(click())
+        onView(withId(R.id.pref_BTN_save)).perform(click())
+        assertTrue(SessionManager.getInstance().memberships().contains("hot"))
+    }
+
+    @Test
+    fun editingMemberships_preservesStatusesAndCategories() {
+        signIn(statuses = listOf("Student"), hobbies = listOf("Cars"))
+        openMemberships()
+        onView(allOf(withText("Adif"), isDescendantOfA(withId(R.id.pref_LAY_grid)))).perform(click())
+        onView(withId(R.id.pref_BTN_save)).perform(click())
+        val s = SessionManager.getInstance().get()
+        assertTrue(s?.memberships?.contains("adif") == true)
+        assertTrue(s?.status?.contains("Student") == true)
+        assertTrue(s?.hobbies?.contains("Cars") == true)
     }
 
     @Test

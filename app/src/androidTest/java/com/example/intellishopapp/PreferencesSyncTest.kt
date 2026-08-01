@@ -43,19 +43,23 @@ class PreferencesSyncTest {
     @Test
     fun updatePreferences_persistsAndReadsBack() = runBlocking {
         loginLala()
-        assertTrue(profile.updatePreferences(listOf("Student"), listOf("Cars")) is ApiResult.Success)
+        assertTrue(
+            profile.updatePreferences(listOf("Student"), listOf("Cars"), listOf("hot"))
+                is ApiResult.Success
+        )
         val p = profile.getProfile()
         assertTrue(p is ApiResult.Success)
         p as ApiResult.Success
         assertTrue(p.data.statuses == listOf("Student"))
         assertTrue(p.data.hobbies == listOf("Cars"))
+        assertTrue(p.data.memberships == listOf("hot"))
     }
 
     @Test
     fun preferences_syncAcrossAFreshLogin() = runBlocking {
         loginLala()
         assertTrue(
-            profile.updatePreferences(listOf("Renter"), listOf("Travel and Vacation"))
+            profile.updatePreferences(listOf("Renter"), listOf("Travel and Vacation"), listOf("adif"))
                 is ApiResult.Success
         )
         // Fake a fresh device: drop the local session + cookie, then log in again.

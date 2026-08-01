@@ -3,6 +3,7 @@ package com.example.intellishopapp
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
+import androidx.test.espresso.action.ViewActions.scrollTo
 import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
@@ -72,7 +73,7 @@ class ProfileTest {
     @Test
     fun signOut_returnsToGuestHome() {
         openProfile()
-        onView(withId(R.id.profile_BTN_signOut)).perform(click())
+        onView(withId(R.id.profile_BTN_signOut)).perform(scrollTo(), click())
         // Back on Home...
         onView(withId(R.id.home_LAY_scroll)).check(matches(isDisplayed()))
         // ...and now a guest: Profile gates to Login again.
