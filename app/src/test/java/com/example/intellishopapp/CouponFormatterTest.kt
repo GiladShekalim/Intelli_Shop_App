@@ -11,13 +11,14 @@ class CouponFormatterTest {
         price: Double?,
         type: String?,
         club: List<String>? = listOf("hot"),
-        title: String? = "Title"
+        title: String? = "Title",
+        currency: String? = null
     ) = CouponDto(
         discount_id = "id", title = title, price = price, discount_type = type,
         description = null, image_link = null, discount_link = null,
         terms_and_conditions = null, club_name = club, category = null,
         valid_until = null, usage_limit = null, coupon_code = null,
-        provider_link = null, consumer_statuses = null
+        provider_link = null, consumer_statuses = null, currency = currency
     )
 
     @Test
@@ -75,8 +76,21 @@ class CouponFormatterTest {
     }
 
     @Test
-    fun nullType_fallsBackToDollar() {
+    fun nullType_fallsBackToShekel() {
         assertEquals("₪50", CouponFormatter.priceLabel(coupon(50.0, null)))
+    }
+
+    @Test
+    fun foreignCurrency_usesItsOwnSymbol() {
+        // Foreign-priced coupons carry their currency; the number is unchanged.
+        assertEquals("$335", CouponFormatter.priceLabel(coupon(335.0, "fixed_amount", currency = "$")))
+        assertEquals("€2590", CouponFormatter.priceLabel(coupon(2590.0, "fixed_amount", currency = "€")))
+    }
+
+    @Test
+    fun percentage_ignoresCurrency() {
+        // A percentage discount is never prefixed with a currency symbol.
+        assertEquals("20%", CouponFormatter.priceLabel(coupon(20.0, "percentage", currency = "$")))
     }
 
     @Test

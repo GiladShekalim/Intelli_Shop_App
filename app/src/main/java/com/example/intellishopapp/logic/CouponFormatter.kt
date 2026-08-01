@@ -34,15 +34,17 @@ object CouponFormatter {
     }
 
     /**
-     * "29%" for percentage discounts, "₪500" (Israeli shekel) otherwise. Empty when there
-     * is no verified price value (null or 0) — a zero is treated as "unknown", so the
-     * field shows no text at all rather than a misleading "₪0" / "0%".
+     * "29%" for percentage discounts, else the amount with its currency symbol —
+     * shekels (₪) by default, or the coupon's own `currency` ("$", "€") for the few
+     * foreign-priced offers. Empty when there is no verified price value (null or 0):
+     * a zero is treated as "unknown", so the field shows no text rather than "₪0" / "0%".
      */
     fun priceLabel(coupon: CouponDto): String {
         val price = coupon.price ?: return ""
         if (price == 0.0) return ""
         val n = if (price % 1.0 == 0.0) price.toInt().toString() else price.toString()
-        return if (coupon.discount_type == "percentage") "$n%" else "₪$n"
+        if (coupon.discount_type == "percentage") return "$n%"
+        return (coupon.currency ?: "₪") + n
     }
 
     /** First club/store name, or empty. */

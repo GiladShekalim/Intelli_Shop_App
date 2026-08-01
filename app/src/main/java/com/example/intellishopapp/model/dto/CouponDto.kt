@@ -20,5 +20,7 @@ data class CouponDto(
     val usage_limit: Int?,
     val coupon_code: String?,
     val provider_link: String?,
-    val consumer_statuses: List<String>?
+    val consumer_statuses: List<String>?,
+    // Currency symbol for a fixed-amount price ("$", "€"); null defaults to shekels (₪).
+    val currency: String? = null
 )
