@@ -45,4 +45,25 @@ class MembershipFilterTest {
         val kept = MembershipFilter.apply(catalog, listOf("adif"))
         assertEquals(listOf("2"), kept.map { it.discount_id })
     }
+
+    @Test
+    fun couponInMultipleClubs_matchesIfAnyIsSelected() {
+        val multi = CouponDto(
+            discount_id = "m", title = "m", price = null, discount_type = null, description = null,
+            image_link = null, discount_link = null, terms_and_conditions = null,
+            club_name = listOf("hot", "adif"), category = null, valid_until = null,
+            usage_limit = null, coupon_code = null, provider_link = null, consumer_statuses = null
+        )
+        assertEquals(listOf("m"), MembershipFilter.apply(listOf(multi), listOf("adif")).map { it.discount_id })
+    }
+
+    @Test
+    fun selectionWithNoMatches_returnsEmpty() {
+        assertEquals(emptyList<String>(), MembershipFilter.apply(catalog, listOf("nonexistent")).map { it.discount_id })
+    }
+
+    @Test
+    fun emptyCatalog_staysEmpty() {
+        assertEquals(emptyList<CouponDto>(), MembershipFilter.apply(emptyList(), listOf("hot")))
+    }
 }
