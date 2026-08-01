@@ -205,7 +205,8 @@ def login_view(request):
                         # Android reads these to run the home personalization (pool
                         # pre-filter) on any device. The web client ignores them.
                         'statuses': user.get('status', []),
-                        'hobbies': user.get('hobbies', [])
+                        'hobbies': user.get('hobbies', []),
+                        'memberships': user.get('membership', [])
                     })
                 else:
                     print("6. Password mismatch")
@@ -264,10 +265,15 @@ def register(request):
                 location=data['location'],
                 hobbies=data['hobbies']
             )
+            # Memberships are optional and stored on the same doc (create_user has a
+            # fixed signature, so set it right after creation).
+            memberships = data.get('memberships', [])
+            if memberships:
+                User.update_one({'_id': ObjectId(user_id)}, {'membership': memberships})
             print("Created user with ID:", user_id)  # Debug log
-            
+
             return JsonResponse({
-                'status': 'success', 
+                'status': 'success',
                 'message': 'User registered successfully',
                 'user_id': str(user_id)
             })
@@ -525,6 +531,7 @@ def profile_view(request):
             'email': user.get('email', ''),
             'statuses': user.get('status', []),
             'hobbies': user.get('hobbies', []),
+            'memberships': user.get('membership', []),
         })
 
     if request.method == 'POST':
@@ -559,12 +566,13 @@ def profile_view(request):
                     message = 'New passwords do not match'
 
         elif action == 'update_preferences':
-            # Both dimensions are sent together so neither is accidentally cleared.
+            # All three dimensions are sent together so none is accidentally cleared.
             statuses = request.POST.getlist('status')
             hobbies = request.POST.getlist('hobbies')
+            memberships = request.POST.getlist('membership')
             User.update_one(
                 {'_id': ObjectId(user_id)},
-                {'status': statuses, 'hobbies': hobbies}
+                {'status': statuses, 'hobbies': hobbies, 'membership': memberships}
             )
             message = 'Preferences updated'
 
@@ -1288,6 +1296,7 @@ def google_login(request):
             # feed (pool pre-filter) on any device.
             'statuses': user.get('status', []),
             'hobbies': user.get('hobbies', []),
+            'memberships': user.get('membership', []),
         })
 
     return JsonResponse({
