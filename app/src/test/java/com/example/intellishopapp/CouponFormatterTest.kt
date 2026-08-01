@@ -27,7 +27,7 @@ class CouponFormatterTest {
 
     @Test
     fun fixedAmountDiscount_showsDollar() {
-        assertEquals("\$500", CouponFormatter.priceLabel(coupon(500.0, "fixed_amount")))
+        assertEquals("₪500", CouponFormatter.priceLabel(coupon(500.0, "fixed_amount")))
     }
 
     @Test
@@ -54,7 +54,7 @@ class CouponFormatterTest {
 
     @Test
     fun fixedWithDecimal_keepsDecimal() {
-        assertEquals("\$99.99", CouponFormatter.priceLabel(coupon(99.99, "fixed_amount")))
+        assertEquals("₪99.99", CouponFormatter.priceLabel(coupon(99.99, "fixed_amount")))
     }
 
     @Test
@@ -64,17 +64,17 @@ class CouponFormatterTest {
 
     @Test
     fun zeroFixed_showsZeroDollar() {
-        assertEquals("\$0", CouponFormatter.priceLabel(coupon(0.0, "fixed_amount")))
+        assertEquals("₪0", CouponFormatter.priceLabel(coupon(0.0, "fixed_amount")))
     }
 
     @Test
     fun nullType_fallsBackToDollar() {
-        assertEquals("\$50", CouponFormatter.priceLabel(coupon(50.0, null)))
+        assertEquals("₪50", CouponFormatter.priceLabel(coupon(50.0, null)))
     }
 
     @Test
     fun unknownType_fallsBackToDollar() {
-        assertEquals("\$50", CouponFormatter.priceLabel(coupon(50.0, "mystery")))
+        assertEquals("₪50", CouponFormatter.priceLabel(coupon(50.0, "mystery")))
     }
 
     @Test
@@ -84,7 +84,7 @@ class CouponFormatterTest {
 
     @Test
     fun largeAmount_hasNoThousandsSeparator() {
-        assertEquals("\$1000000", CouponFormatter.priceLabel(coupon(1_000_000.0, "fixed_amount")))
+        assertEquals("₪1000000", CouponFormatter.priceLabel(coupon(1_000_000.0, "fixed_amount")))
     }
 
     @Test

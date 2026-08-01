@@ -33,11 +33,11 @@ object CouponFormatter {
         return date.isBefore(today)
     }
 
-    /** "29%" for percentage discounts, "$500" otherwise. Empty if no price. */
+    /** "29%" for percentage discounts, "₪500" (Israeli shekel) otherwise. Empty if no price. */
     fun priceLabel(coupon: CouponDto): String {
         val price = coupon.price ?: return ""
         val n = if (price % 1.0 == 0.0) price.toInt().toString() else price.toString()
-        return if (coupon.discount_type == "percentage") "$n%" else "\$$n"
+        return if (coupon.discount_type == "percentage") "$n%" else "₪$n"
     }
 
     /** First club/store name, or empty. */

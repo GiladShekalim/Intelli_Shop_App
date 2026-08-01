@@ -26,7 +26,7 @@
     <string name="search_filter_percent">Minimum discount</string>
     <string name="search_apply">Apply</string>
     <string name="search_clear">Clear</string>
-    <string name="search_label_price">Max %s</string>
+    <string name="search_label_price">Max ₪%s</string>
     <string name="search_label_remove">%s  ×</string>
     <string name="home_recently_viewed">Recently Viewed</string>
     <string name="home_last_minute">Last Minute Offer</string>
