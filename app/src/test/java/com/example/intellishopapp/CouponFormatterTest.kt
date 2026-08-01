@@ -58,13 +58,20 @@ class CouponFormatterTest {
     }
 
     @Test
-    fun zeroPercentage_showsZeroPercent() {
-        assertEquals("0%", CouponFormatter.priceLabel(coupon(0.0, "percentage")))
+    fun zeroPercentage_showsNothing() {
+        // A 0 value is "unknown" -> no text at all, not a misleading "0%".
+        assertEquals("", CouponFormatter.priceLabel(coupon(0.0, "percentage")))
     }
 
     @Test
-    fun zeroFixed_showsZeroDollar() {
-        assertEquals("₪0", CouponFormatter.priceLabel(coupon(0.0, "fixed_amount")))
+    fun zeroFixed_showsNothing() {
+        // Likewise a 0 fixed amount shows no text, not "₪0".
+        assertEquals("", CouponFormatter.priceLabel(coupon(0.0, "fixed_amount")))
+    }
+
+    @Test
+    fun zeroWithNullType_showsNothing() {
+        assertEquals("", CouponFormatter.priceLabel(coupon(0.0, null)))
     }
 
     @Test
