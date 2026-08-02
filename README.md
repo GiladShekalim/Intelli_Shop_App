@@ -36,6 +36,10 @@ A walkthrough of the full user flow — **[▶ watch `screenshots/demo.mp4`](scr
 
 Interactive prototype: **[IntelliShop on Figma](https://www.figma.com/proto/e65jjbIl4APuTxXeWiue2F/IntelliShop-App-Design?node-id=332-4446&starting-point-node-id=332%3A4446)**
 
+## Project proposal
+
+Original project proposal deck (purpose, market research, competitor comparison, mockups, functional requirements, tech stack): **[IntelliShop-Project-Proposal.pdf](IntelliShop-Project-Proposal.pdf)**
+
 ## Quick start
 
 The app runs against a running IntelliShop backend (local Django server by default).
