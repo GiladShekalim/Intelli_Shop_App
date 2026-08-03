@@ -12,12 +12,12 @@ IntelliShop for Android is a native Kotlin client for the IntelliShop coupon ser
 </p>
 <p align="center">
   <img src="docs/screenshots/05_favorites.png" width="200" alt="Favorites"/>
-  <img src="docs/screenshots/06_ai_helper.png" width="200" alt="AI Helper result"/>
+  <img src="docs/screenshots/06_profile.png" width="200" alt="Profile"/>
   <img src="docs/screenshots/07_membership.png" width="200" alt="Membership filter"/>
   <img src="docs/screenshots/08_sent_offers.png" width="200" alt="Sent Offers"/>
 </p>
 
-*Registration · Personalized home · Search · Coupon detail · Favorites · AI Helper result · Membership filter · Sent Offers.*
+*Registration · Personalized home · Search · Coupon detail · Favorites · Profile · Membership filter · Sent Offers.*
 
 ## Demo video
 
