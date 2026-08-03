@@ -1,7 +1,11 @@
-# ── Local docs / planning notes — NEVER commit (code only) ──
-# All planning docs, design notes, and generated markdown stay local-only.
-# The repository holds source code only; no docs, plans, or process notes.
-/docs/
+# ── docs/ : final deliverables are tracked; local planning notes stay local ──
+# Everything under docs/ is ignored by default (planning notes, analysis, the
+# local test runner). Only the production deliverables below are re-included.
+/docs/*
+!/docs/screenshots/
+!/docs/IntelliShop-Project-Proposal.pdf
+!/docs/Smart-Consumerism-Poster.pdf
+!/docs/FIGMA.md
 *.plan.md
 PLAN*.md
 IMPLEMENTATION_PLAN.md

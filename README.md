@@ -5,23 +5,23 @@ IntelliShop for Android is a native Kotlin client for the IntelliShop coupon ser
 ## Screenshots
 
 <p align="center">
-  <img src="screenshots/01_register.png" width="200" alt="Registration"/>
-  <img src="screenshots/02_home.png" width="200" alt="Personalized home"/>
-  <img src="screenshots/03_search.png" width="200" alt="Search"/>
-  <img src="screenshots/04_detail.png" width="200" alt="Coupon detail"/>
+  <img src="docs/screenshots/01_register.png" width="200" alt="Registration"/>
+  <img src="docs/screenshots/02_home.png" width="200" alt="Personalized home"/>
+  <img src="docs/screenshots/03_search.png" width="200" alt="Search"/>
+  <img src="docs/screenshots/04_detail.png" width="200" alt="Coupon detail"/>
 </p>
 <p align="center">
-  <img src="screenshots/05_favorites.png" width="200" alt="Favorites"/>
-  <img src="screenshots/06_ai_helper.png" width="200" alt="AI Helper result"/>
-  <img src="screenshots/07_membership.png" width="200" alt="Membership filter"/>
-  <img src="screenshots/08_sent_offers.png" width="200" alt="Sent Offers"/>
+  <img src="docs/screenshots/05_favorites.png" width="200" alt="Favorites"/>
+  <img src="docs/screenshots/06_ai_helper.png" width="200" alt="AI Helper result"/>
+  <img src="docs/screenshots/07_membership.png" width="200" alt="Membership filter"/>
+  <img src="docs/screenshots/08_sent_offers.png" width="200" alt="Sent Offers"/>
 </p>
 
 *Registration · Personalized home · Search · Coupon detail · Favorites · AI Helper result · Membership filter · Sent Offers.*
 
 ## Demo video
 
-A walkthrough of the full user flow — **[▶ watch `screenshots/demo.mp4`](screenshots/demo.mp4)**:
+A walkthrough of the full user flow — **[▶ watch `docs/screenshots/demo.mp4`](docs/screenshots/demo.mp4)**:
 
 1. **Register** a new member ("Deen Demo", one label chosen in statuses and interests) and sign in.
 2. Browse the **personalized Home** (best-matches hero, Recently Viewed, Last Minute, category rows), scrolling the feed.
@@ -38,7 +38,7 @@ Interactive prototype: **[IntelliShop on Figma](https://www.figma.com/proto/e65j
 
 ## Project proposal
 
-Original project proposal deck (purpose, market research, competitor comparison, mockups, functional requirements, tech stack): **[IntelliShop-Project-Proposal.pdf](IntelliShop-Project-Proposal.pdf)**
+Original project proposal deck (purpose, market research, competitor comparison, mockups, functional requirements, tech stack): **[IntelliShop-Project-Proposal.pdf](docs/IntelliShop-Project-Proposal.pdf)**
 
 ## Quick start
 
