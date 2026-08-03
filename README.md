@@ -23,15 +23,6 @@ IntelliShop for Android is a native Kotlin client for the IntelliShop coupon ser
 
 A walkthrough of the full user flow — **[▶ watch `docs/screenshots/demo.mp4`](docs/screenshots/demo.mp4)**:
 
-1. **Register** a new member ("Deen Demo", one label chosen in statuses and interests) and sign in.
-2. Browse the **personalized Home** (best-matches hero, Recently Viewed, Last Minute, category rows), scrolling the feed.
-3. **Search**: pick a filter label, then a text search ("פיצה") returns the relevant pizza coupons first; scroll the results.
-4. Open a **coupon detail**, **like** it, and tap **Go to site** — cancelling the leave prompt to stay in the app.
-5. See the like land in **Favorites**.
-6. Edit **Preferences**, **Categories**, and **Memberships** to different labels, then return Home to see the feed re-rank and the membership filter narrow the hero to one club.
-7. Use the **AI Helper** ("Girlfriend want flours") to surface a love-day coupon, then **like** and **share** it to another user ("Tov Meod").
-8. Sign in as **Tov Meod** and see the received offer under **Sent Offers by friends**.
-
 ## Design (Figma)
 
 Interactive prototype: **[IntelliShop on Figma](https://www.figma.com/proto/e65jjbIl4APuTxXeWiue2F/IntelliShop-App-Design?node-id=332-4446&starting-point-node-id=332%3A4446)**
@@ -270,17 +261,3 @@ The app is a client of the IntelliShop backend (see the [Intelli_Shop](https://g
 - Redeemed offers — `POST /add_redeemed/`, `GET /redeemed/`
 - Sharing — `POST /share_coupon/`, `GET /received_shares/`, `POST /remove_share/`
 - Profile — `GET /profile/` (statuses / interests / memberships), `POST /profile/` (`update_password`, `update_preferences` — statuses + interests + memberships, `delete_account`)
-
-## Contributors
-
-<table>
-  <tr>
-    <td align="center">
-      <a href="https://github.com/GiladShekalim">
-        <img src="https://github.com/GiladShekalim.png" width="100px;" alt="Gilad Shekalim"/>
-        <br />
-        <sub><b>Gilad Shekalim</b></sub>
-      </a>
-    </td>
-  </tr>
-</table>
